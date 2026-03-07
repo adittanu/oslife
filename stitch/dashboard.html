@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Life OS Gratitude Journal Page</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&amp;family=Gochi+Hand&amp;family=Nunito:wght@400;600;800&amp;family=Patrick+Hand&amp;family=Homemade+Apple&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#EC4899",
+                        "journal-bg": "#FDFCF0",
+                        "page-bg": "#FFFDF5",
+                        "sticky-yellow": "#FEF9C3",
+                        "sticky-pink": "#FCE7F3",
+                        "sticky-blue": "#E0F2FE",
+                        "sticky-green": "#DCFCE7",
+                        "sticky-purple": "#F3E8FF",
+                        "text-journal": "#4B5563",
+                        "line-color": "#F3D2C1",
+                    },
+                    fontFamily: {
+                        "display": ["Nunito", "sans-serif"],
+                        "handwriting": ["Caveat", "cursive"],
+                        "note": ["Patrick Hand", "cursive"],
+                        "sketch": ["Gochi Hand", "cursive"],
+                        "elegant": ["Homemade Apple", "cursive"]
+                    },
+                    boxShadow: {
+                        'sticky': '2px 3px 10px rgba(0, 0, 0, 0.1)',
+                        'sticky-hover': '5px 8px 15px rgba(0, 0, 0, 0.12)',
+                        'notebook': '0 20px 40px -10px rgba(0,0,0,0.15), 0 0 20px rgba(0,0,0,0.05)',
+                        'notebook-spine': 'inset 15px 0 20px -10px rgba(0,0,0,0.05)',
+                        'photo': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 0 0 8px #fff',
+                        'photo-rotate': '2px 8px 10px rgba(0, 0, 0, 0.15), 0 0 0 8px #fff'
+                    }
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .paper-texture {
+                background-image: url("https://www.transparenttextures.com/patterns/notebook-dark.png");
+            }
+            .paper-lines {
+                background-image: linear-gradient(#FBCFE8 1px, transparent 1px);
+                background-size: 100% 2.5rem;
+                background-attachment: local;
+            }
+            .grid-lines {
+                background-image: 
+                    linear-gradient(to right, #f0f0f0 1px, transparent 1px),
+                    linear-gradient(to bottom, #f0f0f0 1px, transparent 1px);
+                background-size: 20px 20px;
+            }
+            .dot-grid {
+                background-image: radial-gradient(#d1d5db 1px, transparent 1px);
+                background-size: 20px 20px;
+            }
+            .custom-scrollbar::-webkit-scrollbar {
+                width: 6px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-track {
+                background: rgba(0,0,0,0.03);
+                border-radius: 10px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+                background: rgba(0,0,0,0.1);
+                border-radius: 10px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                background: rgba(0,0,0,0.2);
+            }
+            .washi-tape {
+                @apply absolute h-8 w-32 bg-pink-200/60 rotate-[-2deg] z-10;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                mask-image: url("data:image/svg+xml,%3Csvg width='200' height='50' viewBox='0 0 200 50' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,0 L200,0 L195,50 L5,50 Z' fill='black'/%3E%3C/svg%3E");
+            }
+        }
+    </style>
+</head>
+<body class="bg-journal-bg paper-texture text-text-journal font-display h-screen flex overflow-hidden">
+<aside class="w-64 bg-white/60 backdrop-blur-md flex flex-col border-r border-orange-100 hidden md:flex h-full shrink-0 z-30">
+<div class="p-8 flex items-center gap-3">
+<div class="bg-center bg-no-repeat bg-cover rounded-2xl h-12 w-12 border-2 border-primary rotate-3 shadow-md" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA_k8zodvgRy8J2Vg_lS-vpqOiCOMN7YDmjiDQ6rPpf1E9BQdiL5yaBRegMph3ndGJG5iBGCoGeXXoiD8gBnHTIlWdkb-qemjG6P1UGMrF9IOotUALq9sL__D-Qeoaniq5p_wGKkKop7xzg6fNL1yz0jRGw44WbxxNv3fpKFrvWOx2Oz-KVXmDDkuTKFl84eLDUWsFz1JYQ3jVM-GAgy-vMes50uH8ukigGXHVXQ7sDPzC639P7W_Ukma5OSle2SLxGV7Rs8X5KEdc");'></div>
+<div class="flex flex-col">
+<h1 class="text-primary text-xl font-handwriting font-bold leading-tight">My Journal</h1>
+<p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Life OS v2.4</p>
+</div>
+</div>
+<nav class="flex-1 px-4 py-2 flex flex-col gap-1 overflow-y-auto custom-scrollbar">
+<a class="flex items-center gap-3 px-4 py-3 rounded-2xl text-gray-500 hover:bg-white/80 transition-all font-semibold" href="#">
+<span class="material-symbols-outlined">auto_stories</span>
+<span class="text-sm">Daily Spread</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-2xl text-gray-500 hover:bg-white/80 transition-all font-semibold" href="#">
+<span class="material-symbols-outlined">edit_calendar</span>
+<span class="text-sm">Task Log</span>
+</a>
+<div class="mt-6 mb-2 px-4 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Collections</div>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-white/80 transition-all" href="#">
+<span class="material-symbols-outlined text-[18px]">lightbulb</span>
+<span class="text-sm font-medium">Idea Dump</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-xl text-gray-600 hover:bg-white/80 transition-all" href="#">
+<span class="material-symbols-outlined text-[18px]">palette</span>
+<span class="text-sm font-medium">Art Projects</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-2xl bg-primary/10 text-primary font-bold" href="#">
+<span class="material-symbols-outlined text-[18px] fill-1">favorite</span>
+<span class="text-sm font-medium">Gratitude</span>
+</a>
+</div>
+<div class="mt-6 mb-2 px-4 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Labels</div>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 rounded-xl text-gray-500 hover:bg-white/80 transition-all" href="#">
+<span class="w-2.5 h-2.5 rounded-full bg-sticky-blue border border-blue-200"></span>
+<span class="text-sm font-medium">Work</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-xl text-gray-500 hover:bg-white/80 transition-all" href="#">
+<span class="w-2.5 h-2.5 rounded-full bg-sticky-purple border border-purple-200"></span>
+<span class="text-sm font-medium">Personal</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-xl text-gray-500 hover:bg-white/80 transition-all" href="#">
+<span class="w-2.5 h-2.5 rounded-full bg-sticky-green border border-green-200"></span>
+<span class="text-sm font-medium">Sunnah</span>
+</a>
+</div>
+</nav>
+<div class="p-6 border-t border-orange-50 bg-white/20">
+<a class="flex items-center gap-3 px-4 py-3 rounded-2xl text-gray-400 hover:text-primary transition-colors font-medium" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm">Preferences</span>
+</a>
+</div>
+</aside>
+<main class="flex-1 flex flex-col h-full overflow-hidden relative">
+<div class="absolute top-10 right-10 opacity-20 pointer-events-none">
+<span class="material-symbols-outlined text-[120px] text-pink-300 rotate-12">spa</span>
+</div>
+<header class="h-20 flex items-center justify-between px-8 bg-transparent shrink-0 z-20">
+<div class="flex items-center gap-4">
+<div class="flex flex-col">
+<h2 class="text-4xl font-elegant font-bold text-gray-800 tracking-tight">Gratitude Journal</h2>
+<p class="text-sm font-note text-gray-500 italic">Cultivating thankfulness every single day.</p>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden md:flex bg-white/50 backdrop-blur shadow-sm rounded-2xl p-1 border border-orange-100">
+<label class="cursor-pointer">
+<input checked="" class="peer sr-only" name="mode" type="radio"/>
+<span class="block px-5 py-2 rounded-xl text-xs font-bold text-gray-400 peer-checked:bg-primary peer-checked:text-white transition-all">Life</span>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="mode" type="radio"/>
+<span class="block px-5 py-2 rounded-xl text-xs font-bold text-gray-400 peer-checked:bg-primary peer-checked:text-white transition-all">Muslim</span>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="mode" type="radio"/>
+<span class="block px-5 py-2 rounded-xl text-xs font-bold text-gray-400 peer-checked:bg-primary peer-checked:text-white transition-all">Work</span>
+</label>
+</div>
+<button class="w-12 h-12 rounded-2xl bg-white border border-orange-100 text-gray-400 flex items-center justify-center shadow-sm relative group hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[24px]">search</span>
+</button>
+</div>
+</header>
+<div class="flex-1 overflow-auto custom-scrollbar p-4 md:p-8 flex justify-center items-start">
+<div class="relative w-full max-w-6xl h-auto min-h-[800px] bg-page-bg shadow-notebook rounded-xl flex flex-col md:flex-row border border-gray-200">
+<div class="absolute left-1/2 top-0 bottom-0 w-px bg-gray-200 hidden md:block z-10"></div>
+<div class="absolute left-1/2 top-0 bottom-0 -translate-x-1/2 w-16 bg-gradient-to-r from-transparent via-gray-100/50 to-transparent pointer-events-none hidden md:block z-10"></div>
+<div class="absolute -top-6 -left-6 z-0 opacity-10 pointer-events-none rotate-[-10deg]">
+<span class="material-symbols-outlined text-9xl text-pink-500">local_florist</span>
+</div>
+<div class="absolute bottom-10 right-10 opacity-10 pointer-events-none z-0 rotate-12">
+<span class="material-symbols-outlined text-9xl text-yellow-500">sunny</span>
+</div>
+<div class="flex-1 p-8 md:p-12 relative border-r border-gray-100 paper-lines overflow-hidden">
+<div class="washi-tape -top-2 left-1/2 -translate-x-1/2 bg-pink-100/80 rotate-1"></div>
+<div class="flex justify-between items-start mb-8 z-10 relative">
+<div class="w-full text-center">
+<h3 class="font-elegant text-3xl font-bold text-gray-700 mt-2">Things I'm Grateful For</h3>
+<div class="h-0.5 w-32 bg-pink-200 mx-auto mt-2 rounded-full"></div>
+</div>
+</div>
+<div class="relative h-full w-full px-2 space-y-10 mt-10">
+<div class="flex gap-4 items-baseline group">
+<span class="font-elegant text-2xl text-pink-400 w-8">1.</span>
+<p class="font-handwriting text-3xl text-gray-600 border-b border-transparent leading-relaxed w-full">
+                                The smell of fresh coffee this morning <span class="material-symbols-outlined text-lg text-yellow-600 align-middle ml-1">coffee</span>
+</p>
+<div class="opacity-0 group-hover:opacity-100 transition-opacity absolute right-0">
+<span class="material-symbols-outlined text-pink-300">favorite</span>
+</div>
+</div>
+<div class="flex gap-4 items-baseline group">
+<span class="font-elegant text-2xl text-pink-400 w-8">2.</span>
+<p class="font-handwriting text-3xl text-gray-600 border-b border-transparent leading-relaxed w-full">
+                                A supportive message from Mom.
+                            </p>
+<div class="absolute left-[30%] -top-4 opacity-30 rotate-12">
+<span class="material-symbols-outlined text-3xl text-red-300">favorite</span>
+</div>
+</div>
+<div class="flex gap-4 items-baseline group">
+<span class="font-elegant text-2xl text-pink-400 w-8">3.</span>
+<p class="font-handwriting text-3xl text-gray-600 border-b border-transparent leading-relaxed w-full">
+                                Finally finishing that difficult project at work!
+                            </p>
+<div class="ml-2 inline-block rotate-12">
+<span class="text-2xl">✨</span>
+</div>
+</div>
+<div class="flex gap-4 items-baseline group">
+<span class="font-elegant text-2xl text-pink-400 w-8">4.</span>
+<p class="font-handwriting text-3xl text-gray-600 border-b border-transparent leading-relaxed w-full">
+                                The sun coming out after the rain.
+                            </p>
+</div>
+<div class="flex gap-4 items-baseline group">
+<span class="font-elegant text-2xl text-pink-400 w-8">5.</span>
+<p class="font-handwriting text-3xl text-gray-400 border-b border-dotted border-gray-300 leading-relaxed w-full italic opacity-50">
+                                Write something...
+                            </p>
+</div>
+<div class="absolute bottom-10 left-10">
+<img alt="Flower doodle" class="w-24 opacity-40 mix-blend-multiply rotate-[-15deg]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqdPueTGeW3RvB3PKh2Qs2ocOBqmsggqpkZx8wzTCZeMJW4CurIBP6-D-VOtp15H_ul8AcIeR0tI2jM5rM7GBAwhWyvgmFdq4HBpQFtkoZwC-KUCsQI5S2m-0rHp6qEOmKtBL_lL7QoH0oHUVRYU7COsvlwgAet3qn0tc9S-Wp3e3_cGfTSQhsi-IixtyhQZvpB8a7Yn1A9SJ8qowkRQ77zyGoMaVnny6CsnsRfCDy2ULZUDGoFnvbm3p3XOXf7DKBXsA-Z9OPF7k"/>
+</div>
+</div>
+</div>
+<div class="flex-1 p-8 md:p-12 relative bg-opacity-50">
+<div class="washi-tape top-0 right-10 bg-purple-100/70 rotate-[3deg]"></div>
+<div class="mb-12 flex flex-col items-center">
+<h3 class="font-elegant text-3xl font-bold text-gray-700 mb-2 flex items-center gap-2">
+                            Moments of Joy
+                        </h3>
+<span class="font-note text-gray-400 text-sm">Snapshots of happiness</span>
+</div>
+<div class="relative h-[600px] w-full">
+<div class="absolute top-0 left-4 z-10 rotate-[-3deg] hover:rotate-0 transition-transform duration-300 cursor-pointer group">
+<div class="bg-white p-3 pb-8 shadow-photo w-56 transform group-hover:scale-105 transition-transform">
+<div class="h-40 bg-gray-200 overflow-hidden mb-2">
+<img alt="Sunset view" class="w-full h-full object-cover filter sepia-[.3] contrast-[.9]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9lQRClYUzyoTMhEn1q8FSX6KD9ner1TI8Rs5Vev6Fdk4tdVOum_OJsn9TkueU5N0Whf36I4C47tO0IOpMDgBua0wg9fXTwGfv6AC9WDv1r7ggZ86CrEj3CZw9fIxEc6Pjppg74F6GhdnCdjREyKYAoDf1CSdhOr9CSWuKUS5rWzkrkTM58x8dQ47KLrXfeRHb9fSTrnvxaKyzOHT8NfwH9a1_Pty4vNknA4UyFufNRJZSi2pYGIsaYGMIkLFjHw0pfP_m4ZuaB3g"/>
+</div>
+<div class="text-center">
+<p class="font-note text-gray-600 text-lg">Golden hour walk 🌅</p>
+<p class="font-sans text-[10px] text-gray-400 uppercase tracking-widest mt-1">Oct 12</p>
+</div>
+</div>
+<div class="absolute -top-3 left-[35%] w-20 h-6 bg-yellow-100/60 blur-[1px] rotate-[-2deg] z-20"></div>
+</div>
+<div class="absolute top-20 right-8 z-20 rotate-[4deg] hover:rotate-0 transition-transform duration-300 cursor-pointer group">
+<div class="bg-white p-3 pb-8 shadow-photo w-48 transform group-hover:scale-105 transition-transform">
+<div class="h-40 bg-gray-200 overflow-hidden mb-2">
+<img alt="Cat sleeping" class="w-full h-full object-cover grayscale-[0.2]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCM6IHR6TxO6qjn-A9ikpb0QuEGjr7zs0EQU-_DQ6E9zjksASTuNGjO2ybF5UAj_3cQuaE4mTYfRLv52VsMYKhc_NnA2qG7mjaJvlvBNML2_Pbz6NUkYV9X2p_Mk8KDiBnPYphn5G4LcBJ67tuc6lDIsiJG08h-fINCMUCziEkD2IBgV-RgQbDifKTAsPZcoiBzWINO46RFMznSbRfkgKXqRB4UqXiuckvvNFg_I7QGyAAtB8IQfARRWJ6t6hfe0z8u3mNpFIPKAjk"/>
+</div>
+<div class="text-center">
+<p class="font-note text-gray-600 text-lg">Luna sleeping 🐱</p>
+</div>
+</div>
+<div class="absolute -top-2 right-[20%] w-16 h-8 bg-pink-200/50 rotate-[4deg] z-30 shadow-sm mix-blend-multiply"></div>
+</div>
+<div class="absolute bottom-32 left-10 z-10 rotate-[-2deg] group">
+<div class="bg-sticky-yellow p-4 shadow-sticky w-48 relative">
+<div class="absolute -top-3 left-[40%] w-12 h-4 bg-gray-200/40 rotate-[90deg] z-20 rounded-sm shadow-sm"></div>
+<p class="font-handwriting text-xl text-gray-800 leading-snug text-center">
+                                "Enjoy the little things, for one day you may look back and realize they were the big things."
+                            </p>
+<div class="mt-2 flex justify-center">
+<span class="material-symbols-outlined text-pink-400 text-sm">favorite</span>
+</div>
+</div>
+</div>
+<div class="absolute bottom-10 right-20 z-30 rotate-[-6deg] hover:rotate-[-2deg] transition-transform duration-300 group">
+<div class="bg-white p-2 pb-6 shadow-photo-rotate w-40">
+<div class="h-32 bg-gray-100 overflow-hidden">
+<img alt="Coffee cup" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxh5TfhyVlAszP-4nbiWB3U1QCy6om-TZJ1VuRIOCgAlVwm5LUtnM_rjvLdGtIo8euUDfHbYutqvvskbLLWr4KzNXR1-flONpCMy6USyLocGz5Ey6jLsNKcrb6KRqDXEXVsFsGjP4VHjho_HZWWpsq3Lc620H8rkFm3uQu-O_zbXGEr-LQyq7hFHcnosRiyVOnjibbkpQwpN2hOhwp3a7Z6H00vX2xU8pMAOvIbBMPz4Fxp-6wI9a7vHmHGyfK7bH0Rx5UpBDDvLA"/>
+</div>
+<div class="text-center mt-2">
+<p class="font-sketch text-gray-500 text-sm transform -rotate-2">Yummy latte!</p>
+</div>
+</div>
+<div class="absolute -bottom-4 -right-4 text-3xl opacity-80 rotate-12">✨</div>
+</div>
+<div class="absolute top-[40%] left-[40%] opacity-60 z-0">
+<svg height="100" viewBox="0 0 100 100" width="100">
+<path d="M50 10 Q60 40 90 50 Q60 60 50 90 Q40 60 10 50 Q40 40 50 10" fill="#FEF9C3" stroke="#FCD34D" stroke-width="1"></path>
+</svg>
+</div>
+</div>
+</div>
+</div>
+</div>
+<button class="md:hidden fixed bottom-6 right-6 w-16 h-16 bg-primary text-white rounded-full shadow-lg flex items-center justify-center z-50 hover:scale-110 transition-all">
+<span class="material-symbols-outlined text-3xl">add_a_photo</span>
+</button>
+</main>
+</body></html>

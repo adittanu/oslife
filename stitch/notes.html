@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Life OS Notes Collection Page</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&amp;family=Gochi+Hand&amp;family=Nunito:wght@400;600;800&amp;family=Patrick+Hand&amp;family=Homemade+Apple&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#EC4899",
+                        "journal-bg": "#FDFCF0",
+                        "page-bg": "#FFFDF5",
+                        "sticky-yellow": "#FEF9C3",
+                        "sticky-pink": "#FCE7F3",
+                        "sticky-blue": "#E0F2FE",
+                        "sticky-green": "#DCFCE7",
+                        "sticky-purple": "#F3E8FF",
+                        "text-journal": "#4B5563",
+                        "line-color": "#F3D2C1",
+                    },
+                    fontFamily: {
+                        "display": ["Nunito", "sans-serif"],
+                        "handwriting": ["Caveat", "cursive"],
+                        "note": ["Patrick Hand", "cursive"],
+                        "sketch": ["Gochi Hand", "cursive"],
+                        "elegant": ["Homemade Apple", "cursive"]
+                    },
+                    boxShadow: {
+                        'sticky': '2px 3px 10px rgba(0, 0, 0, 0.1)',
+                        'sticky-hover': '5px 8px 15px rgba(0, 0, 0, 0.12)',
+                        'notebook': '0 20px 40px -10px rgba(0,0,0,0.15), 0 0 20px rgba(0,0,0,0.05)',
+                        'notebook-spine': 'inset 15px 0 20px -10px rgba(0,0,0,0.05)',
+                        'photo': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 0 0 8px #fff',
+                        'photo-rotate': '2px 8px 10px rgba(0, 0, 0, 0.15), 0 0 0 8px #fff'
+                    }
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .paper-texture {
+                background-image: url("https://www.transparenttextures.com/patterns/notebook-dark.png");
+            }
+            .paper-lines {
+                background-image: linear-gradient(#FBCFE8 1px, transparent 1px);
+                background-size: 100% 2.5rem;
+                background-attachment: local;
+            }
+            .grid-lines {
+                background-image: 
+                    linear-gradient(to right, #f0f0f0 1px, transparent 1px),
+                    linear-gradient(to bottom, #f0f0f0 1px, transparent 1px);
+                background-size: 20px 20px;
+            }
+            .dot-grid {
+                background-image: radial-gradient(#d1d5db 1px, transparent 1px);
+                background-size: 20px 20px;
+            }
+            .custom-scrollbar::-webkit-scrollbar {
+                width: 6px;
+                height: 6px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-track {
+                background: rgba(0,0,0,0.03);
+                border-radius: 10px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+                background: rgba(0,0,0,0.1);
+                border-radius: 10px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                background: rgba(0,0,0,0.2);
+            }
+            .washi-tape {
+                @apply absolute h-8 w-32 bg-pink-200/60 rotate-[-2deg] z-10;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                mask-image: url("data:image/svg+xml,%3Csvg width='200' height='50' viewBox='0 0 200 50' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,0 L200,0 L195,50 L5,50 Z' fill='black'/%3E%3C/svg%3E");
+            }
+            .torn-paper {
+                clip-path: polygon(0 0, 100% 0, 100% 95%, 95% 100%, 90% 95%, 85% 100%, 80% 95%, 75% 100%, 70% 95%, 65% 100%, 60% 95%, 55% 100%, 50% 95%, 45% 100%, 40% 95%, 35% 100%, 30% 95%, 25% 100%, 20% 95%, 15% 100%, 10% 95%, 5% 100%, 0 95%);
+            }
+        }
+    </style>
+</head>
+<body class="bg-journal-bg paper-texture text-text-journal font-display h-screen flex overflow-hidden">
+<aside class="w-64 bg-white/60 backdrop-blur-md flex flex-col border-r border-orange-100 hidden md:flex h-full shrink-0 z-30">
+<div class="p-8 flex items-center gap-3">
+<div class="bg-center bg-no-repeat bg-cover rounded-2xl h-12 w-12 border-2 border-primary rotate-3 shadow-md" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA_k8zodvgRy8J2Vg_lS-vpqOiCOMN7YDmjiDQ6rPpf1E9BQdiL5yaBRegMph3ndGJG5iBGCoGeXXoiD8gBnHTIlWdkb-qemjG6P1UGMrF9IOotUALq9sL__D-Qeoaniq5p_wGKkKop7xzg6fNL1yz0jRGw44WbxxNv3fpKFrvWOx2Oz-KVXmDDkuTKFl84eLDUWsFz1JYQ3jVM-GAgy-vMes50uH8ukigGXHVXQ7sDPzC639P7W_Ukma5OSle2SLxGV7Rs8X5KEdc');"></div>
+<div class="flex flex-col">
+<h1 class="text-primary text-xl font-handwriting font-bold leading-tight">My Journal</h1>
+<p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Life OS v2.4</p>
+</div>
+</div>
+<nav class="flex-1 px-4 py-2 flex flex-col gap-1 overflow-y-auto custom-scrollbar">
+<a class="flex items-center gap-3 px-4 py-3 rounded-2xl text-gray-500 hover:bg-white/80 transition-all font-semibold" href="#">
+<span class="material-symbols-outlined">auto_stories</span>
+<span class="text-sm">Daily Spread</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-2xl text-gray-500 hover:bg-white/80 transition-all font-semibold" href="#">
+<span class="material-symbols-outlined">edit_calendar</span>
+<span class="text-sm">Task Log</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-2xl text-gray-500 hover:bg-white/80 transition-all font-semibold" href="#">
+<span class="material-symbols-outlined">track_changes</span>
+<span class="text-sm">Habit Tracker</span>
+</a>
+<div class="mt-6 mb-2 px-4 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Collections</div>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-2xl bg-primary/10 text-primary font-bold transition-all" href="#">
+<span class="material-symbols-outlined text-[18px]">edit_document</span>
+<span class="text-sm font-medium">Notes</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-xl text-gray-600 hover:bg-white/80 transition-all" href="#">
+<span class="material-symbols-outlined text-[18px]">lightbulb</span>
+<span class="text-sm font-medium">Idea Dump</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-xl text-gray-600 hover:bg-white/80 transition-all" href="#">
+<span class="material-symbols-outlined text-[18px]">palette</span>
+<span class="text-sm font-medium">Art Projects</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-2xl text-gray-600 hover:bg-white/80 transition-all font-medium" href="#">
+<span class="material-symbols-outlined text-[18px]">favorite</span>
+<span class="text-sm">Gratitude</span>
+</a>
+</div>
+<div class="mt-6 mb-2 px-4 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Labels</div>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 rounded-xl text-gray-500 hover:bg-white/80 transition-all" href="#">
+<span class="w-2.5 h-2.5 rounded-full bg-sticky-blue border border-blue-200"></span>
+<span class="text-sm font-medium">Work</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-xl text-gray-500 hover:bg-white/80 transition-all" href="#">
+<span class="w-2.5 h-2.5 rounded-full bg-sticky-purple border border-purple-200"></span>
+<span class="text-sm font-medium">Personal</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-xl text-gray-500 hover:bg-white/80 transition-all" href="#">
+<span class="w-2.5 h-2.5 rounded-full bg-sticky-green border border-green-200"></span>
+<span class="text-sm font-medium">Sunnah</span>
+</a>
+</div>
+</nav>
+<div class="p-6 border-t border-orange-50 bg-white/20">
+<a class="flex items-center gap-3 px-4 py-3 rounded-2xl text-gray-400 hover:text-primary transition-colors font-medium" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm">Preferences</span>
+</a>
+</div>
+</aside>
+<main class="flex-1 flex flex-col h-full overflow-hidden relative">
+<div class="absolute top-20 left-10 opacity-20 pointer-events-none rotate-[-15deg]">
+<span class="material-symbols-outlined text-[80px] text-green-400">local_cafe</span>
+</div>
+<div class="absolute bottom-10 left-[40%] opacity-20 pointer-events-none rotate-[20deg]">
+<span class="material-symbols-outlined text-[60px] text-yellow-300">edit</span>
+</div>
+<div class="absolute top-40 right-20 opacity-20 pointer-events-none rotate-[10deg]">
+<span class="material-symbols-outlined text-[70px] text-blue-300">push_pin</span>
+</div>
+<header class="h-20 flex items-center justify-between px-8 bg-transparent shrink-0 z-20">
+<div class="flex items-center gap-4">
+<div class="flex flex-col">
+<h2 class="text-4xl font-elegant font-bold text-gray-800 tracking-tight">Notes</h2>
+<p class="text-sm font-note text-gray-500 italic">Jotting down life's details.</p>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden md:flex bg-white/50 backdrop-blur shadow-sm rounded-2xl p-1 border border-orange-100">
+<label class="cursor-pointer">
+<input checked="" class="peer sr-only" name="mode" type="radio"/>
+<span class="block px-5 py-2 rounded-xl text-xs font-bold text-gray-400 peer-checked:bg-primary peer-checked:text-white transition-all">Life</span>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="mode" type="radio"/>
+<span class="block px-5 py-2 rounded-xl text-xs font-bold text-gray-400 peer-checked:bg-primary peer-checked:text-white transition-all">Muslim</span>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="mode" type="radio"/>
+<span class="block px-5 py-2 rounded-xl text-xs font-bold text-gray-400 peer-checked:bg-primary peer-checked:text-white transition-all">Work</span>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="mode" type="radio"/>
+<span class="block px-5 py-2 rounded-xl text-xs font-bold text-gray-400 peer-checked:bg-primary peer-checked:text-white transition-all">Creator</span>
+</label>
+</div>
+<button class="w-12 h-12 rounded-2xl bg-white border border-orange-100 text-gray-400 flex items-center justify-center shadow-sm relative group hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[24px]">search</span>
+</button>
+</div>
+</header>
+<div class="flex-1 overflow-auto custom-scrollbar p-4 md:p-8 flex justify-center items-start">
+<div class="relative w-full max-w-[1200px] h-full min-h-[850px] bg-page-bg shadow-notebook rounded-xl flex flex-col md:flex-row border border-gray-200">
+<div class="absolute left-1/2 top-0 bottom-0 w-px bg-gray-200 hidden md:block z-10"></div>
+<div class="absolute left-1/2 top-0 bottom-0 -translate-x-1/2 w-16 bg-gradient-to-r from-transparent via-gray-100/50 to-transparent pointer-events-none hidden md:block z-10 shadow-notebook-spine"></div>
+<div class="w-full md:w-1/2 p-6 md:p-10 relative border-b md:border-b-0 md:border-r border-gray-100 grid-lines overflow-y-auto custom-scrollbar">
+<div class="washi-tape -top-2 left-1/2 -translate-x-1/2 bg-blue-100/80 rotate-1"></div>
+<div class="flex justify-between items-start mb-6 z-10 relative">
+<div class="w-full text-center md:text-left md:pl-4">
+<h3 class="font-elegant text-4xl font-bold text-gray-700 mt-2">Recent Notes</h3>
+<div class="h-0.5 w-32 bg-blue-200 mx-auto md:mx-0 mt-3 rounded-full"></div>
+</div>
+</div>
+<div class="space-y-6 mt-8 relative z-10">
+<div class="bg-sticky-yellow p-5 rounded-lg shadow-sticky hover:shadow-sticky-hover transition-all cursor-pointer rotate-[-1deg] torn-paper relative border border-yellow-200">
+<div class="absolute -top-3 left-1/2 -translate-x-1/2">
+<span class="material-symbols-outlined text-gray-400 rotate-45 text-3xl opacity-50">push_pin</span>
+</div>
+<div class="flex justify-between items-start mb-2 mt-2">
+<h4 class="font-handwriting text-2xl text-gray-800 font-bold">Grocery List</h4>
+<span class="font-note text-sm text-gray-500">Oct 24</span>
+</div>
+<p class="font-note text-lg text-gray-600 line-clamp-2">Milk, eggs, bread, spinach, tomatoes, and some dark chocolate for the weekend.</p>
+<div class="mt-3 flex gap-2">
+<span class="px-2 py-0.5 rounded-md text-xs font-bold bg-white/50 text-yellow-700 border border-yellow-300">Personal</span>
+</div>
+</div>
+<div class="bg-sticky-pink p-5 rounded-lg shadow-sticky hover:shadow-sticky-hover transition-all cursor-pointer rotate-[2deg] torn-paper relative border border-pink-200">
+<div class="absolute -top-3 right-4">
+<span class="material-symbols-outlined text-gray-400 text-3xl opacity-50 transform -rotate-12">attach_file</span>
+</div>
+<div class="flex justify-between items-start mb-2 mt-2">
+<h4 class="font-handwriting text-2xl text-gray-800 font-bold">Project Ideas</h4>
+<span class="font-note text-sm text-gray-500">Oct 22</span>
+</div>
+<p class="font-note text-lg text-gray-600 line-clamp-2">Need to brainstorm the new UI layout for the dashboard. Maybe use a card-based design.</p>
+<div class="mt-3 flex gap-2">
+<span class="px-2 py-0.5 rounded-md text-xs font-bold bg-white/50 text-pink-700 border border-pink-300">Work</span>
+</div>
+</div>
+<div class="bg-sticky-green p-5 rounded-lg shadow-sticky hover:shadow-sticky-hover transition-all cursor-pointer rotate-[-2deg] torn-paper relative border border-green-200">
+<div class="absolute -top-3 left-6">
+<div class="washi-tape w-16 h-6 bg-green-300/60 rotate-12 left-0 top-0"></div>
+</div>
+<div class="flex justify-between items-start mb-2 mt-2">
+<h4 class="font-handwriting text-2xl text-gray-800 font-bold">Friday Reflection</h4>
+<span class="font-note text-sm text-gray-500">Oct 20</span>
+</div>
+<p class="font-note text-lg text-gray-600 line-clamp-2">Alhamdulillah for another week. Need to focus more on morning adkhar and reading Surah Kahf earlier.</p>
+<div class="mt-3 flex gap-2">
+<span class="px-2 py-0.5 rounded-md text-xs font-bold bg-white/50 text-green-700 border border-green-300">Sunnah</span>
+</div>
+</div>
+<div class="bg-sticky-blue p-5 rounded-lg shadow-sticky hover:shadow-sticky-hover transition-all cursor-pointer rotate-[1deg] torn-paper relative border border-blue-200">
+<div class="flex justify-between items-start mb-2">
+<h4 class="font-handwriting text-2xl text-gray-800 font-bold">Book Quotes</h4>
+<span class="font-note text-sm text-gray-500">Oct 18</span>
+</div>
+<p class="font-note text-lg text-gray-600 line-clamp-2">"The only way to do great work is to love what you do." - Steve Jobs</p>
+<div class="mt-3 flex gap-2">
+<span class="px-2 py-0.5 rounded-md text-xs font-bold bg-white/50 text-blue-700 border border-blue-300">Creator</span>
+</div>
+</div>
+</div>
+<button class="w-full mt-8 py-3 rounded-xl border-2 border-dashed border-gray-300 text-gray-500 font-note text-xl hover:bg-gray-50 hover:text-primary hover:border-primary transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">add</span> Create New Note
+                    </button>
+</div>
+<div class="w-full md:w-1/2 p-6 md:p-10 relative paper-lines overflow-hidden flex flex-col">
+<div class="washi-tape top-4 right-10 bg-green-100/70 rotate-[3deg]"></div>
+<div class="washi-tape bottom-10 -right-4 bg-yellow-100/70 rotate-[-15deg] w-40"></div>
+<div class="flex justify-between items-start mb-6 z-10 relative">
+<input class="bg-transparent border-none focus:ring-0 font-handwriting text-4xl font-bold text-gray-800 p-0 w-full placeholder-gray-300" placeholder="Note Title..." type="text" value="Project Ideas"/>
+<div class="flex items-center gap-2 ml-4 shrink-0">
+<button class="text-gray-400 hover:text-primary transition-colors"><span class="material-symbols-outlined text-2xl">more_horiz</span></button>
+</div>
+</div>
+<div class="flex items-center gap-3 mb-6 z-10 relative">
+<span class="font-note text-gray-400 text-lg">Tags:</span>
+<div class="flex gap-2">
+<span class="px-3 py-1 rounded-full text-sm font-note bg-pink-100 text-pink-700 border border-pink-200 cursor-pointer hover:bg-pink-200 transition-colors">Work</span>
+<span class="px-3 py-1 rounded-full text-sm font-note bg-gray-100 text-gray-500 border border-gray-200 cursor-pointer hover:bg-gray-200 transition-colors flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">add</span> Add Tag</span>
+</div>
+</div>
+<div class="relative w-full flex-1 z-10">
+<textarea class="w-full h-full bg-transparent border-none resize-none font-note text-2xl text-gray-800 leading-[2.5rem] focus:ring-0 custom-scrollbar" placeholder="Start writing here..."></textarea>
+</div>
+<div class="absolute bottom-6 left-1/2 -translate-x-1/2 text-center text-gray-400 font-note text-sm">
+                        Last edited: Today at 10:42 AM
+                    </div>
+</div>
+</div>
+</div>
+<button class="md:hidden fixed bottom-6 right-6 w-16 h-16 bg-primary text-white rounded-full shadow-lg flex items-center justify-center z-50 hover:scale-110 transition-all">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</main>
+
+</body></html>

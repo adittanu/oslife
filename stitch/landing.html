@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Life OS - Organize Your Entire Life</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&amp;family=Gochi+Hand&amp;family=Nunito:wght@400;600;800&amp;family=Patrick+Hand&amp;family=Homemade+Apple&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#EC4899",
+                        "journal-bg": "#FDFCF0",
+                        "page-bg": "#FFFDF5",
+                        "sticky-yellow": "#FEF9C3",
+                        "sticky-pink": "#FCE7F3",
+                        "sticky-blue": "#E0F2FE",
+                        "sticky-green": "#DCFCE7",
+                        "sticky-purple": "#F3E8FF",
+                        "text-journal": "#4B5563",
+                    },
+                    fontFamily: {
+                        "display": ["Nunito", "sans-serif"],
+                        "handwriting": ["Caveat", "cursive"],
+                        "note": ["Patrick Hand", "cursive"],
+                        "sketch": ["Gochi Hand", "cursive"],
+                        "elegant": ["Homemade Apple", "cursive"]
+                    },
+                    boxShadow: {
+                        'sticky': '2px 3px 10px rgba(0, 0, 0, 0.1)',
+                        'notebook': '0 10px 30px -5px rgba(0,0,0,0.1), 0 0 10px rgba(0,0,0,0.02)',
+                        'washi': '0 2px 4px rgba(0,0,0,0.1)'
+                    }
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .paper-texture {
+                background-image: url("https://www.transparenttextures.com/patterns/notebook-dark.png");
+            }
+            .paper-lines {
+                background-image: linear-gradient(#FBCFE8 1px, transparent 1px);
+                background-size: 100% 2.5rem;
+            }
+            .grid-lines {
+                background-image: 
+                    linear-gradient(to right, #f0f0f0 1px, transparent 1px),
+                    linear-gradient(to bottom, #f0f0f0 1px, transparent 1px);
+                background-size: 20px 20px;
+            }
+            .washi-tape-btn {
+                @apply relative px-10 py-4 font-bold text-white transition-transform hover:scale-105 active:scale-95;
+                background-color: #EC4899;
+                mask-image: url("data:image/svg+xml,%3Csvg width='200' height='50' viewBox='0 0 200 50' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,5 L5,0 L195,2 L200,8 L198,45 L190,50 L5,48 L0,40 Z' fill='black'/%3E%3C/svg%3E");
+                mask-size: 100% 100%;
+            }
+            .washi-tape-accent {
+                @apply absolute h-8 w-32 bg-pink-200/60 z-10 pointer-events-none;
+                mask-image: url("data:image/svg+xml,%3Csvg width='200' height='50' viewBox='0 0 200 50' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,0 L200,0 L195,50 L5,50 Z' fill='black'/%3E%3C/svg%3E");
+                mask-size: 100% 100%;
+            }
+            .notebook-spine {
+                @apply relative overflow-hidden;
+            }
+            .notebook-spine::before {
+                content: '';
+                @apply absolute left-0 top-0 bottom-0 w-4 bg-black/5 z-20;
+                box-shadow: inset -2px 0 5px rgba(0,0,0,0.05);
+            }
+        }
+    </style>
+</head>
+<body class="bg-journal-bg paper-texture text-text-journal font-display scroll-smooth">
+<nav class="fixed top-0 w-full z-50 bg-journal-bg/80 backdrop-blur-md border-b border-orange-100 px-6 py-4 flex justify-between items-center">
+<div class="flex items-center gap-3">
+<div class="bg-center bg-no-repeat bg-cover rounded-xl h-10 w-10 border-2 border-primary rotate-3 shadow-md" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA_k8zodvgRy8J2Vg_lS-vpqOiCOMN7YDmjiDQ6rPpf1E9BQdiL5yaBRegMph3ndGJG5iBGCoGeXXoiD8gBnHTIlWdkb-qemjG6P1UGMrF9IOotUALq9sL__D-Qeoaniq5p_wGKkKop7xzg6fNL1yz0jRGw44WbxxNv3fpKFrvWOx2Oz-KVXmDDkuTKFl84eLDUWsFz1JYQ3jVM-GAgy-vMes50uH8ukigGXHVXQ7sDPzC639P7W_Ukma5OSle2SLxGV7Rs8X5KEdc');"></div>
+<span class="text-primary text-2xl font-handwriting font-bold">Life OS</span>
+</div>
+<div class="hidden md:flex gap-8 font-semibold text-gray-600">
+<a class="hover:text-primary transition-colors" href="#modes">Modes</a>
+<a class="hover:text-primary transition-colors" href="#features">Fitur</a>
+<a class="hover:text-primary transition-colors" href="#pricing">Pricing</a>
+</div>
+<button class="bg-primary/10 text-primary px-6 py-2 rounded-full font-bold hover:bg-primary/20 transition-all">Login</button>
+</nav>
+<section class="pt-32 pb-20 px-6 relative overflow-hidden">
+<div class="absolute top-20 left-10 opacity-20 pointer-events-none rotate-[-15deg]">
+<span class="material-symbols-outlined text-[120px] text-green-400">potted_plant</span>
+</div>
+<div class="absolute top-40 right-20 opacity-20 pointer-events-none rotate-[10deg]">
+<span class="material-symbols-outlined text-[100px] text-blue-300">water_bottle</span>
+</div>
+<div class="max-w-4xl mx-auto text-center relative z-10">
+<h1 class="text-6xl md:text-8xl font-elegant text-gray-800 mb-8 leading-tight">Organize Your Entire Life</h1>
+<p class="text-xl md:text-2xl font-note text-gray-500 mb-12 max-w-2xl mx-auto">Sistem manajemen hidup all-in-one dengan estetika digital bullet journal untuk produktivitas yang lebih tenang.</p>
+<div class="flex flex-col items-center gap-4">
+<a class="washi-tape-btn text-xl" href="#pricing">Daftar Sekarang</a>
+<p class="text-sm font-handwriting text-gray-400 mt-2">Mulai gratis hari ini. Tanpa kartu kredit.</p>
+</div>
+</div>
+</section>
+<section class="py-20 px-6 bg-white/30" id="modes">
+<div class="max-w-7xl mx-auto">
+<div class="text-center mb-16">
+<h2 class="text-4xl font-handwriting font-bold text-gray-700">Pilih Mode Sesuai Kebutuhanmu</h2>
+<div class="h-1 w-24 bg-pink-200 mx-auto mt-4 rounded-full"></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+<div class="group cursor-pointer">
+<div class="bg-page-bg rounded-r-xl shadow-notebook notebook-spine aspect-[3/4] p-6 flex flex-col justify-between border-y border-r border-gray-100 transition-transform group-hover:-translate-y-2">
+<div class="washi-tape-accent -top-2 left-6 bg-blue-100/80 rotate-2"></div>
+<div>
+<span class="material-symbols-outlined text-blue-400 text-4xl mb-4">favorite</span>
+<h3 class="text-2xl font-elegant font-bold">Life Mode</h3>
+<p class="text-sm font-note mt-2">Daily tracker, gratitude journal, and habit building.</p>
+</div>
+<div class="grid-lines h-32 rounded-lg border border-gray-50 opacity-40"></div>
+</div>
+</div>
+<div class="group cursor-pointer">
+<div class="bg-page-bg rounded-r-xl shadow-notebook notebook-spine aspect-[3/4] p-6 flex flex-col justify-between border-y border-r border-gray-100 transition-transform group-hover:-translate-y-2">
+<div class="washi-tape-accent -top-2 left-6 bg-green-100/80 -rotate-1"></div>
+<div>
+<span class="material-symbols-outlined text-green-500 text-4xl mb-4">menu_book</span>
+<h3 class="text-2xl font-elegant font-bold">Muslim Mode</h3>
+<p class="text-sm font-note mt-2">Quran journal, prayer tracking, and sunnah list.</p>
+</div>
+<div class="grid-lines h-32 rounded-lg border border-gray-50 opacity-40"></div>
+</div>
+</div>
+<div class="group cursor-pointer">
+<div class="bg-page-bg rounded-r-xl shadow-notebook notebook-spine aspect-[3/4] p-6 flex flex-col justify-between border-y border-r border-gray-100 transition-transform group-hover:-translate-y-2">
+<div class="washi-tape-accent -top-2 left-6 bg-purple-100/80 rotate-3"></div>
+<div>
+<span class="material-symbols-outlined text-purple-400 text-4xl mb-4">business_center</span>
+<h3 class="text-2xl font-elegant font-bold">Work Mode</h3>
+<p class="text-sm font-note mt-2">Project management, meeting notes, and focus timer.</p>
+</div>
+<div class="grid-lines h-32 rounded-lg border border-gray-50 opacity-40"></div>
+</div>
+</div>
+<div class="group cursor-pointer">
+<div class="bg-page-bg rounded-r-xl shadow-notebook notebook-spine aspect-[3/4] p-6 flex flex-col justify-between border-y border-r border-gray-100 transition-transform group-hover:-translate-y-2">
+<div class="washi-tape-accent -top-2 left-6 bg-yellow-100/80 -rotate-2"></div>
+<div>
+<span class="material-symbols-outlined text-yellow-500 text-4xl mb-4">edit_note</span>
+<h3 class="text-2xl font-elegant font-bold">Creator Mode</h3>
+<p class="text-sm font-note mt-2">Content calendar, scriptwriting, and idea dump.</p>
+</div>
+<div class="grid-lines h-32 rounded-lg border border-gray-50 opacity-40"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="py-20 px-6" id="features">
+<div class="max-w-6xl mx-auto">
+<h2 class="text-4xl font-elegant text-center mb-16">Fitur All-in-One</h2>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
+<div class="flex flex-col items-center">
+<div class="w-20 h-20 bg-sticky-pink rounded-2xl flex items-center justify-center rotate-3 shadow-sticky mb-6">
+<span class="material-symbols-outlined text-4xl text-pink-600">task_alt</span>
+</div>
+<h4 class="font-bold text-lg">Task Log</h4>
+<p class="font-note text-gray-500">Kelola tugas harian dengan gaya bullet journal.</p>
+</div>
+<div class="flex flex-col items-center">
+<div class="w-20 h-20 bg-sticky-blue rounded-2xl flex items-center justify-center -rotate-2 shadow-sticky mb-6">
+<span class="material-symbols-outlined text-4xl text-blue-600">auto_graph</span>
+</div>
+<h4 class="font-bold text-lg">Habit Tracker</h4>
+<p class="font-note text-gray-500">Bangun kebiasaan baik dengan tracking visual.</p>
+</div>
+<div class="flex flex-col items-center">
+<div class="w-20 h-20 bg-sticky-green rounded-2xl flex items-center justify-center rotate-6 shadow-sticky mb-6">
+<span class="material-symbols-outlined text-4xl text-green-600">import_contacts</span>
+</div>
+<h4 class="font-bold text-lg">Quran Journal</h4>
+<p class="font-note text-gray-500">Tadabbur dan hafalan dalam satu tempat.</p>
+</div>
+<div class="flex flex-col items-center">
+<div class="w-20 h-20 bg-sticky-yellow rounded-2xl flex items-center justify-center -rotate-6 shadow-sticky mb-6">
+<span class="material-symbols-outlined text-4xl text-yellow-600">movie_edit</span>
+</div>
+<h4 class="font-bold text-lg">Scriptwriter</h4>
+<p class="font-note text-gray-500">Draft konten video Anda dengan mudah.</p>
+</div>
+</div>
+</div>
+</section>
+<section class="py-24 px-6 bg-white/50 relative overflow-hidden" id="pricing">
+<div class="absolute bottom-10 left-[10%] opacity-20 pointer-events-none rotate-[20deg]">
+<span class="material-symbols-outlined text-[100px] text-yellow-400">stars</span>
+</div>
+<div class="max-w-6xl mx-auto relative z-10">
+<div class="text-center mb-16">
+<h2 class="text-5xl font-elegant text-gray-800">Mulai Hidup Terorganisir</h2>
+<p class="font-handwriting text-2xl text-primary mt-2">Pilih paket yang sesuai untukmu</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="bg-page-bg p-8 rounded-2xl shadow-notebook border border-gray-100 flex flex-col relative">
+<div class="washi-tape-accent -top-3 left-1/2 -translate-x-1/2 bg-gray-200/80 w-24"></div>
+<h3 class="text-2xl font-bold mb-2">Free</h3>
+<div class="mb-6">
+<span class="text-4xl font-bold">Rp 0</span>
+<span class="text-gray-400">/selamanya</span>
+</div>
+<ul class="space-y-4 mb-10 font-note text-lg flex-1">
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-green-500">check_circle</span> 1 Mode (Life)</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-green-500">check_circle</span> Daily Task Log</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-green-500">check_circle</span> 3 Habit Trackers</li>
+</ul>
+<button class="w-full py-3 rounded-xl border-2 border-gray-200 font-bold hover:bg-gray-50 transition-colors">Mulai Gratis</button>
+</div>
+<div class="bg-page-bg p-8 rounded-2xl shadow-notebook border-2 border-primary flex flex-col relative scale-105 z-20">
+<div class="washi-tape-accent -top-3 left-1/2 -translate-x-1/2 bg-primary/20 w-32 rotate-1"></div>
+<div class="absolute -top-4 right-4 bg-primary text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">Populer</div>
+<h3 class="text-2xl font-bold mb-2 text-primary">Pro</h3>
+<div class="mb-6">
+<span class="text-4xl font-bold">Rp 49.000</span>
+<span class="text-gray-400">/bulan</span>
+</div>
+<ul class="space-y-4 mb-10 font-note text-lg flex-1">
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary">check_circle</span> Semua 4 Mode</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary">check_circle</span> Unlimited Trackers</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary">check_circle</span> Cloud Sync</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary">check_circle</span> Custom Sticker Pack</li>
+</ul>
+<button class="w-full py-4 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+                        Bayar dengan Mayar
+                    </button>
+</div>
+<div class="bg-page-bg p-8 rounded-2xl shadow-notebook border border-gray-100 flex flex-col relative">
+<div class="washi-tape-accent -top-3 left-1/2 -translate-x-1/2 bg-blue-100/80 w-24 -rotate-1"></div>
+<h3 class="text-2xl font-bold mb-2">Team</h3>
+<div class="mb-6">
+<span class="text-4xl font-bold">Rp 199.000</span>
+<span class="text-gray-400">/bulan</span>
+</div>
+<ul class="space-y-4 mb-10 font-note text-lg flex-1">
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-blue-500">check_circle</span> Hingga 5 User</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-blue-500">check_circle</span> Shared Workspaces</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-blue-500">check_circle</span> Admin Dashboard</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-blue-500">check_circle</span> Prioritas Support</li>
+</ul>
+<button class="w-full py-4 bg-gray-800 text-white rounded-xl font-bold hover:bg-gray-900 transition-colors flex items-center justify-center gap-2">
+                        Bayar dengan Mayar
+                    </button>
+</div>
+</div>
+</div>
+</section>
+<section class="py-20 px-6">
+<div class="max-w-4xl mx-auto">
+<h2 class="text-3xl font-elegant text-center mb-12">Apa Kata Pengguna Kami</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="bg-sticky-yellow p-6 shadow-sticky rotate-[-1deg] relative">
+<p class="font-note text-xl mb-4 italic">"Life OS benar-benar mengubah cara saya mengelola waktu. Desainnya sangat menenangkan!"</p>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-white border border-yellow-200"></div>
+<span class="font-bold font-handwriting text-lg">Siti Aminah</span>
+</div>
+</div>
+<div class="bg-sticky-pink p-6 shadow-sticky rotate-[2deg] relative">
+<p class="font-note text-xl mb-4 italic">"Sangat terbantu dengan Muslim Mode untuk menjaga rutinitas ibadah di tengah kesibukan kerja."</p>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-white border border-pink-200"></div>
+<span class="font-bold font-handwriting text-lg">Budi Santoso</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<footer class="bg-white border-t border-orange-100 pt-16 pb-8 px-6">
+<div class="max-w-7xl mx-auto">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+<div class="col-span-1 md:col-span-2">
+<div class="flex items-center gap-3 mb-6">
+<div class="bg-center bg-no-repeat bg-cover rounded-xl h-10 w-10 border-2 border-primary rotate-3 shadow-md" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA_k8zodvgRy8J2Vg_lS-vpqOiCOMN7YDmjiDQ6rPpf1E9BQdiL5yaBRegMph3ndGJG5iBGCoGeXXoiD8gBnHTIlWdkb-qemjG6P1UGMrF9IOotUALq9sL__D-Qeoaniq5p_wGKkKop7xzg6fNL1yz0jRGw44WbxxNv3fpKFrvWOx2Oz-KVXmDDkuTKFl84eLDUWsFz1JYQ3jVM-GAgy-vMes50uH8ukigGXHVXQ7sDPzC639P7W_Ukma5OSle2SLxGV7Rs8X5KEdc');"></div>
+<span class="text-primary text-2xl font-handwriting font-bold">Life OS</span>
+</div>
+<p class="text-gray-500 max-w-sm font-note text-lg">Membangun ekosistem produktivitas yang mindful, estetik, dan terintegrasi untuk masyarakat modern.</p>
+</div>
+<div>
+<h5 class="font-bold mb-6">Navigasi</h5>
+<ul class="space-y-4 text-gray-500">
+<li><a class="hover:text-primary" href="#">Tentang Kami</a></li>
+<li><a class="hover:text-primary" href="#">Fitur</a></li>
+<li><a class="hover:text-primary" href="#">Blog</a></li>
+<li><a class="hover:text-primary" href="#">Kontak</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-bold mb-6">Pembayaran Aman</h5>
+<div class="flex flex-col gap-4">
+<div class="flex items-center gap-2 grayscale hover:grayscale-0 transition-all opacity-70">
+<span class="text-xs font-bold text-gray-400">Powered by</span>
+<span class="font-black text-blue-600">Mayar.id</span>
+</div>
+<div class="flex gap-2">
+<div class="w-10 h-6 bg-gray-100 rounded border border-gray-200"></div>
+<div class="w-10 h-6 bg-gray-100 rounded border border-gray-200"></div>
+<div class="w-10 h-6 bg-gray-100 rounded border border-gray-200"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="border-t border-gray-100 pt-8 text-center text-sm text-gray-400 font-medium">
+                © 2024 Life OS. All rights reserved. Managed with heart.
+            </div>
+</div>
+</footer>
+
+</body></html>

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Life OS Task Log Journal</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&amp;family=Gochi+Hand&amp;family=Nunito:wght@400;600;800&amp;family=Patrick+Hand&amp;family=Homemade+Apple&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#EC4899",
+                        "journal-bg": "#FDFCF0",
+                        "page-bg": "#FFFDF5",
+                        "sticky-yellow": "#FEF9C3",
+                        "sticky-pink": "#FCE7F3",
+                        "sticky-blue": "#E0F2FE",
+                        "sticky-green": "#DCFCE7",
+                        "sticky-purple": "#F3E8FF",
+                        "text-journal": "#4B5563",
+                        "line-color": "#F3D2C1",
+                    },
+                    fontFamily: {
+                        "display": ["Nunito", "sans-serif"],
+                        "handwriting": ["Caveat", "cursive"],
+                        "note": ["Patrick Hand", "cursive"],
+                        "sketch": ["Gochi Hand", "cursive"],
+                        "elegant": ["Homemade Apple", "cursive"]
+                    },
+                    boxShadow: {
+                        'sticky': '2px 3px 10px rgba(0, 0, 0, 0.1)',
+                        'sticky-hover': '5px 8px 15px rgba(0, 0, 0, 0.12)',
+                        'notebook': '0 20px 40px -10px rgba(0,0,0,0.15), 0 0 20px rgba(0,0,0,0.05)',
+                        'notebook-spine': 'inset 15px 0 20px -10px rgba(0,0,0,0.05)',
+                        'photo': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 0 0 8px #fff',
+                        'photo-rotate': '2px 8px 10px rgba(0, 0, 0, 0.15), 0 0 0 8px #fff'
+                    }
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .paper-texture {
+                background-image: url("https://www.transparenttextures.com/patterns/notebook-dark.png");
+            }
+            .paper-lines {
+                background-image: linear-gradient(#FBCFE8 1px, transparent 1px);
+                background-size: 100% 2.5rem;
+                background-attachment: local;
+            }
+            .grid-lines {
+                background-image: 
+                    linear-gradient(to right, #f0f0f0 1px, transparent 1px),
+                    linear-gradient(to bottom, #f0f0f0 1px, transparent 1px);
+                background-size: 20px 20px;
+            }
+            .dot-grid {
+                background-image: radial-gradient(#d1d5db 1px, transparent 1px);
+                background-size: 20px 20px;
+            }
+            .custom-scrollbar::-webkit-scrollbar {
+                width: 6px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-track {
+                background: rgba(0,0,0,0.03);
+                border-radius: 10px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+                background: rgba(0,0,0,0.1);
+                border-radius: 10px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                background: rgba(0,0,0,0.2);
+            }
+            .washi-tape {
+                @apply absolute h-8 w-32 bg-pink-200/60 rotate-[-2deg] z-10;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                mask-image: url("data:image/svg+xml,%3Csvg width='200' height='50' viewBox='0 0 200 50' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,0 L200,0 L195,50 L5,50 Z' fill='black'/%3E%3C/svg%3E");
+            }
+            .task-checkbox:checked + label {
+                @apply line-through text-gray-400 opacity-70;
+            }
+        }
+    </style>
+</head>
+<body class="bg-journal-bg paper-texture text-text-journal font-display h-screen flex overflow-hidden">
+<aside class="w-64 bg-white/60 backdrop-blur-md flex flex-col border-r border-orange-100 hidden md:flex h-full shrink-0 z-30">
+<div class="p-8 flex items-center gap-3">
+<div class="bg-center bg-no-repeat bg-cover rounded-2xl h-12 w-12 border-2 border-primary rotate-3 shadow-md" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA_k8zodvgRy8J2Vg_lS-vpqOiCOMN7YDmjiDQ6rPpf1E9BQdiL5yaBRegMph3ndGJG5iBGCoGeXXoiD8gBnHTIlWdkb-qemjG6P1UGMrF9IOotUALq9sL__D-Qeoaniq5p_wGKkKop7xzg6fNL1yz0jRGw44WbxxNv3fpKFrvWOx2Oz-KVXmDDkuTKFl84eLDUWsFz1JYQ3jVM-GAgy-vMes50uH8ukigGXHVXQ7sDPzC639P7W_Ukma5OSle2SLxGV7Rs8X5KEdc");'></div>
+<div class="flex flex-col">
+<h1 class="text-primary text-xl font-handwriting font-bold leading-tight">My Journal</h1>
+<p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Life OS v2.4</p>
+</div>
+</div>
+<nav class="flex-1 px-4 py-2 flex flex-col gap-1 overflow-y-auto custom-scrollbar">
+<a class="flex items-center gap-3 px-4 py-3 rounded-2xl text-gray-500 hover:bg-white/80 transition-all font-semibold" href="#">
+<span class="material-symbols-outlined">auto_stories</span>
+<span class="text-sm">Daily Spread</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-2xl bg-primary/10 text-primary font-bold transition-all" href="#">
+<span class="material-symbols-outlined">edit_calendar</span>
+<span class="text-sm">Task Log</span>
+</a>
+<div class="mt-6 mb-2 px-4 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Collections</div>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-white/80 transition-all" href="#">
+<span class="material-symbols-outlined text-[18px]">lightbulb</span>
+<span class="text-sm font-medium">Idea Dump</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-xl text-gray-600 hover:bg-white/80 transition-all" href="#">
+<span class="material-symbols-outlined text-[18px]">palette</span>
+<span class="text-sm font-medium">Art Projects</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-2xl text-gray-600 hover:bg-white/80 transition-all font-medium" href="#">
+<span class="material-symbols-outlined text-[18px]">favorite</span>
+<span class="text-sm">Gratitude</span>
+</a>
+</div>
+<div class="mt-6 mb-2 px-4 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Labels</div>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 rounded-xl text-gray-500 hover:bg-white/80 transition-all" href="#">
+<span class="w-2.5 h-2.5 rounded-full bg-sticky-blue border border-blue-200"></span>
+<span class="text-sm font-medium">Work</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-xl text-gray-500 hover:bg-white/80 transition-all" href="#">
+<span class="w-2.5 h-2.5 rounded-full bg-sticky-purple border border-purple-200"></span>
+<span class="text-sm font-medium">Personal</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-xl text-gray-500 hover:bg-white/80 transition-all" href="#">
+<span class="w-2.5 h-2.5 rounded-full bg-sticky-green border border-green-200"></span>
+<span class="text-sm font-medium">Sunnah</span>
+</a>
+</div>
+</nav>
+<div class="p-6 border-t border-orange-50 bg-white/20">
+<a class="flex items-center gap-3 px-4 py-3 rounded-2xl text-gray-400 hover:text-primary transition-colors font-medium" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm">Preferences</span>
+</a>
+</div>
+</aside>
+<main class="flex-1 flex flex-col h-full overflow-hidden relative">
+<div class="absolute top-20 left-10 opacity-20 pointer-events-none rotate-[-15deg]">
+<span class="material-symbols-outlined text-[80px] text-yellow-400">schedule</span>
+</div>
+<div class="absolute bottom-10 left-[40%] opacity-20 pointer-events-none rotate-[20deg]">
+<span class="material-symbols-outlined text-[60px] text-pink-300">stars</span>
+</div>
+<header class="h-20 flex items-center justify-between px-8 bg-transparent shrink-0 z-20">
+<div class="flex items-center gap-4">
+<div class="flex flex-col">
+<h2 class="text-4xl font-elegant font-bold text-gray-800 tracking-tight">Task Log</h2>
+<p class="text-sm font-note text-gray-500 italic">Getting things done, one day at a time.</p>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden md:flex bg-white/50 backdrop-blur shadow-sm rounded-2xl p-1 border border-orange-100">
+<label class="cursor-pointer">
+<input checked="" class="peer sr-only" name="mode" type="radio"/>
+<span class="block px-5 py-2 rounded-xl text-xs font-bold text-gray-400 peer-checked:bg-primary peer-checked:text-white transition-all">Life</span>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="mode" type="radio"/>
+<span class="block px-5 py-2 rounded-xl text-xs font-bold text-gray-400 peer-checked:bg-primary peer-checked:text-white transition-all">Muslim</span>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="mode" type="radio"/>
+<span class="block px-5 py-2 rounded-xl text-xs font-bold text-gray-400 peer-checked:bg-primary peer-checked:text-white transition-all">Work</span>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="mode" type="radio"/>
+<span class="block px-5 py-2 rounded-xl text-xs font-bold text-gray-400 peer-checked:bg-primary peer-checked:text-white transition-all">Creator</span>
+</label>
+</div>
+<button class="w-12 h-12 rounded-2xl bg-white border border-orange-100 text-gray-400 flex items-center justify-center shadow-sm relative group hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[24px]">search</span>
+</button>
+</div>
+</header>
+<div class="flex-1 overflow-auto custom-scrollbar p-4 md:p-8 flex justify-center items-start">
+<div class="relative w-full max-w-6xl h-auto min-h-[800px] bg-page-bg shadow-notebook rounded-xl flex flex-col md:flex-row border border-gray-200">
+<div class="absolute left-1/2 top-0 bottom-0 w-px bg-gray-200 hidden md:block z-10"></div>
+<div class="absolute left-1/2 top-0 bottom-0 -translate-x-1/2 w-16 bg-gradient-to-r from-transparent via-gray-100/50 to-transparent pointer-events-none hidden md:block z-10 shadow-notebook-spine"></div>
+<div class="flex-1 p-8 md:p-12 relative border-r border-gray-100 paper-lines overflow-hidden">
+<div class="washi-tape -top-2 left-1/2 -translate-x-1/2 bg-blue-100/80 rotate-1"></div>
+<div class="flex justify-between items-start mb-8 z-10 relative">
+<div class="w-full text-center">
+<h3 class="font-elegant text-3xl font-bold text-gray-700 mt-2">Daily Task List</h3>
+<div class="h-0.5 w-32 bg-blue-200 mx-auto mt-2 rounded-full"></div>
+</div>
+</div>
+<div class="relative h-full w-full px-2 space-y-8 mt-10">
+<div class="flex items-center gap-4 group">
+<div class="relative">
+<input class="task-checkbox peer w-5 h-5 text-pink-500 bg-transparent border-2 border-gray-400 rounded-sm focus:ring-pink-500 focus:ring-offset-page-bg cursor-pointer" id="task1" type="checkbox"/>
+<span class="material-symbols-outlined absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none text-white opacity-0 peer-checked:opacity-100 text-[18px] font-bold">check</span>
+</div>
+<label class="font-handwriting text-3xl text-gray-700 cursor-pointer flex-1 transition-all flex items-center justify-between" for="task1">
+<span>Finish presentation deck for meeting</span>
+<span class="px-3 py-1 bg-sticky-blue text-blue-700 text-xs font-sans font-bold rounded-full transform rotate-[-2deg]">Work</span>
+</label>
+</div>
+<div class="flex items-center gap-4 group">
+<div class="relative">
+<input class="task-checkbox peer w-5 h-5 text-pink-500 bg-transparent border-2 border-gray-400 rounded-sm focus:ring-pink-500 focus:ring-offset-page-bg cursor-pointer" id="task2" type="checkbox"/>
+<span class="material-symbols-outlined absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none text-white opacity-0 peer-checked:opacity-100 text-[18px] font-bold">check</span>
+</div>
+<label class="font-handwriting text-3xl text-gray-700 cursor-pointer flex-1 transition-all flex items-center justify-between" for="task2">
+<span>Call mom</span>
+<span class="px-3 py-1 bg-sticky-purple text-purple-700 text-xs font-sans font-bold rounded-full transform rotate-[1deg]">Personal</span>
+</label>
+</div>
+<div class="flex items-center gap-4 group">
+<div class="relative">
+<input checked="" class="task-checkbox peer w-5 h-5 text-pink-500 bg-transparent border-2 border-gray-400 rounded-sm focus:ring-pink-500 focus:ring-offset-page-bg cursor-pointer" id="task3" type="checkbox"/>
+<span class="material-symbols-outlined absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none text-white opacity-0 peer-checked:opacity-100 text-[18px] font-bold">check</span>
+</div>
+<label class="font-handwriting text-3xl text-gray-700 cursor-pointer flex-1 transition-all flex items-center justify-between" for="task3">
+<span>Read Surah Al-Kahf</span>
+<span class="px-3 py-1 bg-sticky-green text-green-700 text-xs font-sans font-bold rounded-full transform rotate-[-1deg]">Sunnah</span>
+</label>
+</div>
+<div class="flex items-center gap-4 group">
+<div class="relative">
+<input class="task-checkbox peer w-5 h-5 text-pink-500 bg-transparent border-2 border-gray-400 rounded-sm focus:ring-pink-500 focus:ring-offset-page-bg cursor-pointer" id="task4" type="checkbox"/>
+<span class="material-symbols-outlined absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none text-white opacity-0 peer-checked:opacity-100 text-[18px] font-bold">check</span>
+</div>
+<label class="font-handwriting text-3xl text-gray-700 cursor-pointer flex-1 transition-all flex items-center justify-between" for="task4">
+<span>Grocery shopping</span>
+<span class="px-3 py-1 bg-sticky-purple text-purple-700 text-xs font-sans font-bold rounded-full transform rotate-[2deg]">Personal</span>
+</label>
+</div>
+<div class="flex items-center gap-4 mt-8">
+<span class="material-symbols-outlined text-gray-400">add</span>
+<input class="w-full bg-transparent border-none focus:ring-0 font-handwriting text-2xl text-gray-500 placeholder-gray-400" placeholder="Add a new task..." type="text"/>
+</div>
+<div class="absolute bottom-10 left-10">
+<img alt="Coffee cup doodle" class="w-20 opacity-40 mix-blend-multiply rotate-[-5deg]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxh5TfhyVlAszP-4nbiWB3U1QCy6om-TZJ1VuRIOCgAlVwm5LUtnM_rjvLdGtIo8euUDfHbYutqvvskbLLWr4KzNXR1-flONpCMy6USyLocGz5Ey6jLsNKcrb6KRqDXEXVsFsGjP4VHjho_HZWWpsq3Lc620H8rkFm3uQu-O_zbXGEr-LQyq7hFHcnosRiyVOnjibbkpQwpN2hOhwp3a7Z6H00vX2xU8pMAOvIbBMPz4Fxp-6wI9a7vHmHGyfK7bH0Rx5UpBDDvLA"/>
+</div>
+</div>
+</div>
+<div class="flex-1 p-8 md:p-12 relative dot-grid overflow-hidden">
+<div class="washi-tape top-4 right-10 bg-green-100/70 rotate-[3deg]"></div>
+<div class="mb-8 flex flex-col items-center">
+<h3 class="font-elegant text-3xl font-bold text-gray-700 mb-2">
+                            Habit Tracker
+                        </h3>
+</div>
+<div class="bg-white/60 p-6 rounded-xl shadow-sm border border-gray-100 mb-10 backdrop-blur-sm relative">
+<div class="washi-tape -top-3 -left-4 bg-yellow-200/60 rotate-[-5deg] w-20"></div>
+<table class="w-full text-left font-handwriting text-xl text-gray-700">
+<thead>
+<tr>
+<th class="pb-4 font-note text-lg text-gray-500 w-1/2">Habit</th>
+<th class="pb-4 text-center text-sm font-sans text-gray-400 w-8">M</th>
+<th class="pb-4 text-center text-sm font-sans text-gray-400 w-8">T</th>
+<th class="pb-4 text-center text-sm font-sans text-gray-400 w-8">W</th>
+<th class="pb-4 text-center text-sm font-sans text-gray-400 w-8">T</th>
+<th class="pb-4 text-center text-sm font-sans text-gray-400 w-8">F</th>
+<th class="pb-4 text-center text-sm font-sans text-gray-400 w-8">S</th>
+<th class="pb-4 text-center text-sm font-sans text-gray-400 w-8">S</th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-b border-gray-100/50">
+<td class="py-2">Drink Water (8 glasses)</td>
+<td class="text-center"><span class="material-symbols-outlined text-blue-400 text-lg">water_drop</span></td>
+<td class="text-center"><span class="material-symbols-outlined text-blue-400 text-lg">water_drop</span></td>
+<td class="text-center"><span class="material-symbols-outlined text-blue-400 text-lg">water_drop</span></td>
+<td class="text-center"><span class="w-2 h-2 rounded-full bg-gray-200 inline-block"></span></td>
+<td class="text-center"><span class="w-2 h-2 rounded-full bg-gray-200 inline-block"></span></td>
+<td class="text-center"><span class="w-2 h-2 rounded-full bg-gray-200 inline-block"></span></td>
+<td class="text-center"><span class="w-2 h-2 rounded-full bg-gray-200 inline-block"></span></td>
+</tr>
+<tr class="border-b border-gray-100/50">
+<td class="py-2">Read 10 pages</td>
+<td class="text-center"><span class="material-symbols-outlined text-green-500 text-lg">check_circle</span></td>
+<td class="text-center"><span class="w-2 h-2 rounded-full bg-gray-200 inline-block"></span></td>
+<td class="text-center"><span class="material-symbols-outlined text-green-500 text-lg">check_circle</span></td>
+<td class="text-center"><span class="w-2 h-2 rounded-full bg-gray-200 inline-block"></span></td>
+<td class="text-center"><span class="w-2 h-2 rounded-full bg-gray-200 inline-block"></span></td>
+<td class="text-center"><span class="w-2 h-2 rounded-full bg-gray-200 inline-block"></span></td>
+<td class="text-center"><span class="w-2 h-2 rounded-full bg-gray-200 inline-block"></span></td>
+</tr>
+<tr>
+<td class="py-2">Exercise 30 mins</td>
+<td class="text-center"><span class="w-2 h-2 rounded-full bg-gray-200 inline-block"></span></td>
+<td class="text-center"><span class="material-symbols-outlined text-primary text-lg">fitness_center</span></td>
+<td class="text-center"><span class="w-2 h-2 rounded-full bg-gray-200 inline-block"></span></td>
+<td class="text-center"><span class="w-2 h-2 rounded-full bg-gray-200 inline-block"></span></td>
+<td class="text-center"><span class="w-2 h-2 rounded-full bg-gray-200 inline-block"></span></td>
+<td class="text-center"><span class="w-2 h-2 rounded-full bg-gray-200 inline-block"></span></td>
+<td class="text-center"><span class="w-2 h-2 rounded-full bg-gray-200 inline-block"></span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="mb-4 flex flex-col items-center">
+<h3 class="font-elegant text-2xl font-bold text-gray-700">Quick Notes</h3>
+</div>
+<div class="relative w-full h-48 bg-sticky-yellow p-6 shadow-sticky transform rotate-[1deg] group transition-transform hover:rotate-0">
+<div class="washi-tape -top-4 left-1/2 -translate-x-1/2 bg-pink-200/50 rotate-[-2deg] w-24 z-20 shadow-sm mix-blend-multiply"></div>
+<textarea class="w-full h-full bg-transparent border-none resize-none font-note text-xl text-gray-800 leading-relaxed focus:ring-0 custom-scrollbar" placeholder="Jot down random thoughts here..."></textarea>
+</div>
+<div class="absolute bottom-12 right-12 opacity-60 z-0 rotate-12">
+<svg height="80" viewBox="0 0 100 100" width="80">
+<polygon fill="#FCD34D" points="50,5 61,35 95,35 68,54 78,85 50,65 22,85 32,54 5,35 39,35"></polygon>
+</svg>
+</div>
+</div>
+</div>
+</div>
+<button class="md:hidden fixed bottom-6 right-6 w-16 h-16 bg-primary text-white rounded-full shadow-lg flex items-center justify-center z-50 hover:scale-110 transition-all">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</main>
+</body></html>

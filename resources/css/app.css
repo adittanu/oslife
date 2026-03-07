@@ -1,0 +1,133 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    body {
+        zoom: 0.8;
+    }
+}
+
+@layer utilities {
+    .paper-texture {
+        background-image: url("https://www.transparenttextures.com/patterns/notebook-dark.png");
+    }
+    .dot-grid {
+        background-image: radial-gradient(#d1d5db 1px, transparent 1px);
+        background-size: 24px 24px;
+    }
+    .torn-edge-bottom {
+        mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 1000 100' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,0 L1000,0 L1000,80 Q950,100 900,80 T800,80 T700,90 T600,75 T500,85 T400,70 T300,90 T200,75 T100,85 T0,70 Z' fill='black'/%3E%3C/svg%3E");
+        mask-size: 100% 100%;
+    }
+    .torn-paper {
+        mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2,2 L98,4 L96,96 L4,98 Z' fill='black'/%3E%3C/svg%3E");
+        mask-size: 100% 100%;
+    }
+    .washi-tape-pink {
+        @apply absolute h-8 w-32 bg-pink-300/50 rotate-[-5deg] z-20 pointer-events-none;
+        mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 50' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,5 L200,0 L195,50 L5,45 Z' fill='black'/%3E%3C/svg%3E");
+    }
+    .washi-tape-yellow {
+        @apply absolute h-6 w-24 bg-yellow-200/60 rotate-[12deg] z-20 pointer-events-none;
+        mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 50' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5,0 L195,5 L200,45 L0,50 Z' fill='black'/%3E%3C/svg%3E");
+    }
+    .polaroid {
+        @apply bg-white p-4 pb-12 shadow-polaroid transition-transform duration-300;
+    }
+    .desk-item {
+        @apply absolute transition-all duration-500 ease-out pointer-events-none;
+    }
+    .paper-lines {
+        background-image: linear-gradient(#FBCFE8 1px, transparent 1px);
+        background-size: 100% 2.5rem;
+        background-attachment: local;
+    }
+    .grid-lines {
+        background-image: 
+            linear-gradient(to right, #f0f0f0 1px, transparent 1px),
+            linear-gradient(to bottom, #f0f0f0 1px, transparent 1px);
+        background-size: 20px 20px;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(0,0,0,0.03);
+        border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(0,0,0,0.1);
+        border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(0,0,0,0.2);
+    }
+    .washi-tape {
+        @apply absolute h-8 w-32 bg-pink-200/60 rotate-[-2deg] z-10;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        mask-image: url("data:image/svg+xml,%3Csvg width='200' height='50' viewBox='0 0 200 50' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,0 L200,0 L195,50 L5,50 Z' fill='black'/%3E%3C/svg%3E");
+    }
+    .sticky-note-tilt-1 { transform: rotate(-1deg); }
+    .sticky-note-tilt-2 { transform: rotate(1.5deg); }
+    .sticky-note-tilt-3 { transform: rotate(-0.5deg); }
+    .torn-paper-clip {
+        clip-path: polygon(0% 0%, 100% 0%, 100% 90%, 98% 92%, 96% 90%, 94% 93%, 92% 90%, 90% 92%, 88% 90%, 86% 92%, 84% 90%, 82% 92%, 80% 90%, 78% 92%, 76% 90%, 74% 92%, 72% 90%, 70% 92%, 68% 90%, 66% 92%, 64% 90%, 62% 92%, 60% 90%, 58% 92%, 56% 90%, 54% 92%, 52% 90%, 50% 92%, 48% 90%, 46% 92%, 44% 90%, 42% 92%, 40% 90%, 38% 92%, 36% 90%, 34% 92%, 32% 90%, 30% 92%, 28% 90%, 26% 92%, 24% 90%, 22% 92%, 20% 90%, 18% 92%, 16% 90%, 14% 92%, 12% 90%, 10% 92%, 8% 90%, 6% 92%, 4% 90%, 2% 92%, 0% 90%);
+    }
+    .task-checkbox:checked + label {
+        @apply line-through text-gray-400 opacity-70;
+    }
+    .hand-drawn-bar {
+        border-radius: 10px 10px 0 0;
+        border: 2px solid rgba(0,0,0,0.1);
+        border-bottom: none;
+        background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255,255,255,0.2) 5px, rgba(255,255,255,0.2) 10px);
+    }
+    .tracker-cell input[type="checkbox"] {
+        @apply sr-only;
+    }
+    .tracker-cell label {
+        @apply w-6 h-6 md:w-8 md:h-8 rounded border-2 border-gray-300 flex items-center justify-center cursor-pointer transition-colors shadow-sm bg-white;
+    }
+    .tracker-cell input[type="checkbox"]:checked + label {
+        @apply border-transparent;
+    }
+    .tracker-cell.water input[type="checkbox"]:checked + label {
+        @apply bg-blue-400;
+    }
+    .tracker-cell.reading input[type="checkbox"]:checked + label {
+        @apply bg-green-400;
+    }
+    .tracker-cell.prayer input[type="checkbox"]:checked + label {
+        @apply bg-purple-400;
+    }
+    .tracker-cell.exercise input[type="checkbox"]:checked + label {
+        @apply bg-pink-400;
+    }
+    .tracker-cell input[type="checkbox"]:checked + label::after {
+        content: '';
+        @apply block w-2 h-3 md:w-3 md:h-4 border-r-2 border-b-2 border-white rotate-45 mb-1;
+    }
+    .torn-paper {
+        clip-path: polygon(0 0, 100% 0, 100% 95%, 95% 100%, 90% 95%, 85% 100%, 80% 95%, 75% 100%, 70% 95%, 65% 100%, 60% 95%, 55% 100%, 50% 95%, 45% 100%, 40% 95%, 35% 100%, 30% 95%, 25% 100%, 20% 95%, 15% 100%, 10% 95%, 5% 100%, 0 95%);
+    }
+    .washi-tape-btn {
+        @apply relative px-10 py-4 font-bold text-white transition-transform hover:scale-105 active:scale-95;
+        background-color: #EC4899;
+        mask-image: url("data:image/svg+xml,%3Csvg width='200' height='50' viewBox='0 0 200 50' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,5 L5,0 L195,2 L200,8 L198,45 L190,50 L5,48 L0,40 Z' fill='black'/%3E%3C/svg%3E");
+        mask-size: 100% 100%;
+    }
+    .washi-tape-accent {
+        @apply absolute h-8 w-32 bg-pink-200/60 z-10 pointer-events-none;
+        mask-image: url("data:image/svg+xml,%3Csvg width='200' height='50' viewBox='0 0 200 50' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,0 L200,0 L195,50 L5,50 Z' fill='black'/%3E%3C/svg%3E");
+        mask-size: 100% 100%;
+    }
+    .notebook-spine {
+        @apply relative overflow-hidden;
+    }
+    .notebook-spine::before {
+        content: '';
+        @apply absolute left-0 top-0 bottom-0 w-4 bg-black/5 z-20;
+        box-shadow: inset -2px 0 5px rgba(0,0,0,0.05);
+    }
+}
