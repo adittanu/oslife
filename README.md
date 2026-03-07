@@ -1,59 +1,136 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Life OS
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Life OS is a personal journaling and life management app built with Laravel, Inertia, React, and Tailwind CSS. The project explores a digital bullet journal experience with a scrapbook-style interface for planning, reflection, notes, habits, gratitude, and personal finance tracking.
 
-## About Laravel
+## Preview
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+![Life OS landing page](./stitch/landing.png)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## What It Includes
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- Landing page for the product concept
+- Daily spread journal view
+- Task log view
+- Habit tracker view
+- Gratitude journal view
+- Notes workspace
+- Idea dump workspace
+- Finance tracker view
+- Laravel Breeze-style authentication scaffolding
 
-## Learning Laravel
+## Tech Stack
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- PHP 8.2+
+- Laravel 12
+- Inertia.js
+- React 18
+- Vite
+- Tailwind CSS
+- SQLite for local development
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Project Status
 
-## Laravel Sponsors
+This repository is currently in an early prototype stage.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- The UI is the most complete part of the project.
+- Most journal pages are still static and not connected to persistent data models yet.
+- Authentication scaffolding exists, but some default Breeze redirects still need to be aligned with the current routes.
 
-### Premium Partners
+## Local Setup
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 1. Install dependencies
 
-## Contributing
+```bash
+composer install
+npm install
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 2. Prepare environment
 
-## Code of Conduct
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+On Windows PowerShell, use:
 
-## Security Vulnerabilities
+```powershell
+Copy-Item .env.example .env
+php artisan key:generate
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 3. Create the database and run migrations
+
+```bash
+New-Item -ItemType File database/database.sqlite
+php artisan migrate
+```
+
+If the SQLite file already exists, just run the migration command.
+
+### 4. Start the app
+
+Run the backend and frontend in separate terminals:
+
+```bash
+php artisan serve
+npm run dev
+```
+
+Or use the combined Composer script:
+
+```bash
+composer run dev
+```
+
+## Available Scripts
+
+- `composer run dev` - run Laravel server, queue worker, logs, and Vite together
+- `npm run dev` - start Vite dev server
+- `npm run build` - create a production frontend build
+- `php artisan test` - run the test suite
+
+## Routes
+
+Main pages currently available:
+
+- `/`
+- `/daily-spread`
+- `/task-log`
+- `/habit-tracker`
+- `/gratitude`
+- `/notes`
+- `/idea-dump`
+- `/finances`
+
+Authentication and profile routes are also included through Laravel Breeze/Inertia scaffolding.
+
+## Repository Structure
+
+```text
+app/           Laravel controllers, middleware, models, requests
+config/        Laravel configuration
+database/      Migrations, factories, seeders, SQLite db for local use
+resources/     React pages, layouts, components, and Tailwind CSS
+routes/        Web and auth routes
+stitch/        Source design exports and mockup assets
+tests/         PHPUnit feature and unit tests
+```
+
+## Notes For Contributors
+
+- `.env`, `vendor`, `node_modules`, build artifacts, and the local SQLite database are ignored from Git.
+- The `stitch/` directory contains design references used to shape the UI.
+- If you want to make the project production-ready, the highest-value next step is to connect one module end-to-end with real persistence.
+
+## Next Suggested Milestones
+
+- Add a real dashboard route and align auth redirects
+- Persist task, note, gratitude, and finance data to the database
+- Replace hardcoded journal content with user data
+- Add CRUD flows for at least one module
+- Expand automated test coverage beyond the default scaffold
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+No dedicated license file has been added yet.
