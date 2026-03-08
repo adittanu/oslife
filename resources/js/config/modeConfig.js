@@ -5,7 +5,7 @@
 export function detectMode(user, url) {
     if (url?.startsWith('/muslim')) return 'muslim';
     if (url?.startsWith('/creator')) return 'creator';
-    // future: if (url?.startsWith('/work')) return 'work';
+    if (url?.startsWith('/work')) return 'work';
     return user?.default_mode || 'life';
 }
 
@@ -72,6 +72,28 @@ export const modeConfig = {
         collections: [
             { href: '/creator/brand-kit', icon: 'palette', label: 'Brand Kit' },
             { href: '/creator/collab-notes', icon: 'group', label: 'Collab Notes' },
+        ],
+        tools: [
+            { href: '/focus-timer', icon: 'timer', label: 'Focus Timer' },
+            { href: '/weekly-review', icon: 'rate_review', label: 'Weekly Review' },
+        ],
+    },
+    work: {
+        label: 'Work OS v2.4',
+        brandTitle: 'My Journal',
+        defaultTheme: 'blue',
+        homePath: '/work/dashboard',
+        main: [
+            { href: '/work/dashboard', icon: 'dashboard', label: 'Dashboard' },
+            { href: '/work/clients', icon: 'people', label: 'Client Tracker' },
+            { href: '/work/pipeline', icon: 'view_kanban', label: 'Project Pipeline' },
+            { href: '/work/time-tracking', icon: 'schedule', label: 'Time Tracking' },
+        ],
+        collections: [
+            { href: '/work/invoices', icon: 'receipt_long', label: 'Invoice Log' },
+            { href: '/work/income', icon: 'account_balance_wallet', label: 'Income Tracker' },
+            { href: '/work/meeting-notes', icon: 'record_voice_over', label: 'Meeting Notes' },
+            { href: '/work/contracts', icon: 'description', label: 'Contract Templates' },
         ],
         tools: [
             { href: '/focus-timer', icon: 'timer', label: 'Focus Timer' },

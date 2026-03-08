@@ -104,4 +104,14 @@ Route::get('/creator/analytics', fn() => Inertia::render('Creator/Analytics'));
 Route::get('/creator/brand-kit', fn() => Inertia::render('Creator/BrandKit'));
 Route::get('/creator/collab-notes', fn() => Inertia::render('Creator/CollabNotes'));
 
+// Work/Freelancer Mode Pages
+Route::get('/work/dashboard', fn() => Inertia::render('Work/Dashboard'));
+Route::get('/work/clients', fn() => Inertia::render('Work/Clients'));
+Route::get('/work/pipeline', fn() => Inertia::render('Work/Pipeline'));
+Route::get('/work/time-tracking', fn() => Inertia::render('Work/TimeTracking'));
+Route::get('/work/invoices', fn() => Inertia::render('Work/Invoices'));
+Route::get('/work/income', fn() => Inertia::render('Work/Income'));
+Route::get('/work/meeting-notes', fn() => Inertia::render('Work/MeetingNotes'));
+Route::get('/work/contracts', fn() => Inertia::render('Work/Contracts'));
+
 require __DIR__.'/auth.php';

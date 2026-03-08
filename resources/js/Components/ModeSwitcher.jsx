@@ -6,6 +6,7 @@ const modes = [
     { value: 'life', label: 'Life' },
     { value: 'muslim', label: 'Muslim' },
     { value: 'creator', label: 'Creator' },
+    { value: 'work', label: 'Work' },
 ];
 
 export default function ModeSwitcher({ className = '', compact = false }) {
@@ -30,7 +31,7 @@ export default function ModeSwitcher({ className = '', compact = false }) {
                     <button
                         key={value}
                         onClick={() => switchMode(value)}
-                        className={`${compact ? 'px-2 py-1.5 text-[11px]' : 'px-5 py-2 text-xs'} rounded-xl font-bold transition-all ${
+                        className={`${compact ? 'px-2 py-1.5 text-[11px]' : 'px-3 py-2 text-xs'} rounded-xl font-bold transition-all ${
                             currentMode === value
                                 ? 'bg-primary text-white shadow-sm'
                                 : 'text-gray-400 hover:text-gray-600'

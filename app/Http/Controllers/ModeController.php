@@ -20,7 +20,7 @@ class ModeController extends Controller
             'life' => '/daily-spread',
             'muslim' => '/muslim/daily-spread',
             'creator' => '/creator/content-calendar',
-            'work' => '/daily-spread',
+            'work' => '/work/dashboard',
         ];
 
         return redirect($homePages[$request->mode]);
