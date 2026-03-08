@@ -4,6 +4,7 @@
  */
 export function detectMode(user, url) {
     if (url?.startsWith('/muslim')) return 'muslim';
+    if (url?.startsWith('/creator')) return 'creator';
     // future: if (url?.startsWith('/work')) return 'work';
     return user?.default_mode || 'life';
 }
@@ -55,6 +56,26 @@ export const modeConfig = {
         tools: [
             { href: '/muslim/habit-tracker', icon: 'track_changes', label: 'Habit Islami' },
             { href: '/muslim/weekly-muhasabah', icon: 'rate_review', label: 'Weekly Muhasabah' },
+        ],
+    },
+    creator: {
+        label: 'Creator OS v2.4',
+        brandTitle: 'My Journal',
+        defaultTheme: 'orange',
+        homePath: '/creator/content-calendar',
+        main: [
+            { href: '/creator/content-calendar', icon: 'calendar_month', label: 'Content Calendar' },
+            { href: '/creator/content-ideas', icon: 'lightbulb', label: 'Content Ideas' },
+            { href: '/creator/script-writer', icon: 'edit_note', label: 'Script Writer' },
+            { href: '/creator/analytics', icon: 'monitoring', label: 'Analytics' },
+        ],
+        collections: [
+            { href: '/creator/brand-kit', icon: 'palette', label: 'Brand Kit' },
+            { href: '/creator/collab-notes', icon: 'group', label: 'Collab Notes' },
+        ],
+        tools: [
+            { href: '/focus-timer', icon: 'timer', label: 'Focus Timer' },
+            { href: '/weekly-review', icon: 'rate_review', label: 'Weekly Review' },
         ],
     },
 };

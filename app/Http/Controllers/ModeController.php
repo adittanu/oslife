@@ -9,7 +9,7 @@ class ModeController extends Controller
     public function update(Request $request)
     {
         $request->validate([
-            'mode' => 'required|in:life,muslim,work',
+            'mode' => 'required|in:life,muslim,creator,work',
         ]);
 
         $request->user()->update([
@@ -19,6 +19,7 @@ class ModeController extends Controller
         $homePages = [
             'life' => '/daily-spread',
             'muslim' => '/muslim/daily-spread',
+            'creator' => '/creator/content-calendar',
             'work' => '/daily-spread',
         ];
 

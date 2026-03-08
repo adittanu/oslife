@@ -96,4 +96,12 @@ Route::get('/muslim/ramadan-planner', fn() => Inertia::render('Muslim/RamadanPla
 Route::get('/muslim/habit-tracker', fn() => Inertia::render('Muslim/HabitTracker'));
 Route::get('/muslim/weekly-muhasabah', fn() => Inertia::render('Muslim/WeeklyMuhasabah'));
 
+// Creator Mode Pages
+Route::get('/creator/content-calendar', fn() => Inertia::render('Creator/ContentCalendar'));
+Route::get('/creator/content-ideas', fn() => Inertia::render('Creator/ContentIdeas'));
+Route::get('/creator/script-writer', fn() => Inertia::render('Creator/ScriptWriter'));
+Route::get('/creator/analytics', fn() => Inertia::render('Creator/Analytics'));
+Route::get('/creator/brand-kit', fn() => Inertia::render('Creator/BrandKit'));
+Route::get('/creator/collab-notes', fn() => Inertia::render('Creator/CollabNotes'));
+
 require __DIR__.'/auth.php';

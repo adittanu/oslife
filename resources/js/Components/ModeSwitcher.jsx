@@ -5,7 +5,7 @@ import { detectMode, modeConfig } from '@/config/modeConfig';
 const modes = [
     { value: 'life', label: 'Life' },
     { value: 'muslim', label: 'Muslim' },
-    { value: 'work', label: 'Work' },
+    { value: 'creator', label: 'Creator' },
 ];
 
 export default function ModeSwitcher({ className = '', compact = false }) {
