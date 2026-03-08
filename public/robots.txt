@@ -1,2 +1,8 @@
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /daily-spread
+Disallow: /profile
+Disallow: /preferences
+Disallow: /checkout
+
+Sitemap: https://lifeos.app/sitemap.xml

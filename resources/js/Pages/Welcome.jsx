@@ -76,7 +76,14 @@ export default function Welcome({ auth }) {
     const [openFaq, setOpenFaq] = useState(null);
     return (
         <>
-            <Head title="Life OS - Organize Your Entire Life" />
+            <Head>
+                <title>Life OS - Organize Your Entire Life</title>
+                <meta name="description" content="All-in-one life management system dengan estetika digital bullet journal. 4 Mode: Life, Muslim, Creator, Work dalam satu platform." />
+                <meta property="og:title" content="Life OS - Organize Your Entire Life" />
+                <meta property="og:description" content="All-in-one life management system dengan estetika digital bullet journal. 4 Mode dalam satu platform." />
+                <meta property="og:url" content="https://lifeos.app" />
+                <link rel="canonical" href="https://lifeos.app" />
+            </Head>
             <div className="bg-journal-bg paper-texture text-text-journal font-display scroll-smooth overflow-x-hidden">
                 <nav className="fixed top-0 w-full z-50 bg-journal-bg/80 backdrop-blur-md border-b border-orange-100 px-6 py-4 flex justify-between items-center">
                     <div className="flex items-center gap-3">

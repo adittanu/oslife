@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\TourController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ModeController;
 use App\Http\Controllers\PreferencesController;
@@ -8,6 +9,17 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
+Route::get('/sitemap.xml', function () {
+    $urls = [
+        ['loc' => url('/'), 'priority' => '1.0', 'changefreq' => 'weekly'],
+        ['loc' => url('/login'), 'priority' => '0.8', 'changefreq' => 'monthly'],
+        ['loc' => url('/register'), 'priority' => '0.8', 'changefreq' => 'monthly'],
+    ];
+
+    return response()->view('sitemap', ['urls' => $urls], 200)
+        ->header('Content-Type', 'application/xml');
+});
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -85,6 +97,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/api/chat/conversations', [ChatController::class, 'conversations']);
     Route::get('/api/chat/{conversationId}/messages', [ChatController::class, 'messages']);
     Route::post('/api/chat/send', [ChatController::class, 'send']);
+
+    Route::post('/api/tour/seen', [TourController::class, 'markSeen']);
 });
 
 // Muslim Mode Pages
