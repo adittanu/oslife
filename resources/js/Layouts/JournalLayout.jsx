@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import Sidebar from '@/Components/Sidebar';
 import Header from '@/Components/Header';
 import ThemeProvider from '@/Components/ThemeProvider';
 import MobileSidebar from '@/Components/MobileSidebar';
+import ChatWidget from '@/Components/ChatWidget';
 
 export default function JournalLayout({ children, pageTitle, headerTitle, headerSubtitle, titleFontClass, bgIcon }) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -33,6 +34,8 @@ export default function JournalLayout({ children, pageTitle, headerTitle, header
 
                 {children}
             </main>
+
+            {usePage().props.auth?.user && <ChatWidget />}
         </div>
         </ThemeProvider>
     );

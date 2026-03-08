@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'ai' => [
+        'base_url' => env('AI_BASE_URL', 'https://coding-intl.dashscope.aliyuncs.com/v1'),
+        'api_key' => env('AI_API_KEY'),
+        'model' => env('AI_MODEL', 'qwen3.5-plus'),
+    ],
+
 ];

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ModeController;
 use App\Http\Controllers\PreferencesController;
@@ -80,6 +81,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/preferences/journal', [PreferencesController::class, 'updateJournalSettings'])->name('preferences.journal');
 
     Route::post('/api/mode', [ModeController::class, 'update']);
+
+    Route::get('/api/chat/conversations', [ChatController::class, 'conversations']);
+    Route::get('/api/chat/{conversationId}/messages', [ChatController::class, 'messages']);
+    Route::post('/api/chat/send', [ChatController::class, 'send']);
 });
 
 // Muslim Mode Pages
