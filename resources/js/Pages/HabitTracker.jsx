@@ -7,7 +7,7 @@ export default function HabitTracker() {
             pageTitle="Life OS Detailed Habit Tracker Page"
             headerTitle="Habit Tracker"
             headerSubtitle="Building better routines, one day at a time."
-            titleFontClass="font-elegant"
+            titleFontClass="font-handwriting"
             bgIcon={<span className="material-symbols-outlined text-[80px] text-green-400 rotate-[-15deg]">potted_plant</span>}
         >
             <div className="absolute bottom-10 left-[40%] opacity-20 pointer-events-none rotate-[20deg]">
@@ -26,7 +26,7 @@ export default function HabitTracker() {
                         <div className="washi-tape -top-2 left-1/2 -translate-x-1/2 bg-blue-100/80 rotate-1"></div>
                         <div className="flex justify-between items-start mb-6 z-10 relative">
                             <div className="w-full text-center xl:text-left xl:pl-4">
-                                <h3 className="font-elegant text-4xl font-bold text-gray-700 mt-2">Functional Tracker</h3>
+                                <h3 className="font-handwriting text-4xl font-bold text-gray-700 mt-2">Functional Tracker</h3>
                                 <div className="h-0.5 w-48 bg-blue-200 mx-auto xl:mx-0 mt-3 rounded-full"></div>
                             </div>
                         </div>
@@ -141,7 +141,7 @@ export default function HabitTracker() {
                     <div className="w-full xl:w-1/3 p-6 md:p-10 relative paper-lines overflow-hidden flex flex-col">
                         <div className="washi-tape top-4 right-10 bg-green-100/70 rotate-[3deg]"></div>
                         <div className="mb-8 flex flex-col items-center">
-                            <h3 className="font-elegant text-3xl font-bold text-gray-700 mb-2 mt-4 xl:mt-0">Habit Insights</h3>
+                            <h3 className="font-handwriting text-3xl font-bold text-gray-700 mb-2 mt-4 xl:mt-0">Habit Insights</h3>
                         </div>
                         <div className="absolute top-12 right-6 xl:right-8 z-20">
                             <div className="w-20 h-20 md:w-24 md:h-24 bg-yellow-400 rounded-full flex flex-col items-center justify-center shadow-[0_4px_10px_rgba(250,204,21,0.5)] rotate-12 border-[3px] border-yellow-200 text-yellow-900 font-black">
@@ -177,7 +177,7 @@ export default function HabitTracker() {
                             </div>
                         </div>
                         <div className="mb-4 flex flex-col items-center">
-                            <h3 className="font-elegant text-2xl font-bold text-gray-700">Reflection</h3>
+                            <h3 className="font-handwriting text-2xl font-bold text-gray-700">Reflection</h3>
                         </div>
                         <div className="relative w-full flex-1 min-h-[200px] bg-transparent p-4 transform group transition-transform">
                             <textarea className="w-full h-full bg-transparent border-none outline-none resize-none font-note text-2xl text-gray-800 leading-[2.5rem] focus:ring-0 custom-scrollbar" placeholder="Thoughts on progress this month..."></textarea>

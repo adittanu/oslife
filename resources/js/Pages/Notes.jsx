@@ -7,7 +7,7 @@ export default function Notes() {
             pageTitle="Life OS Notes Collection Page"
             headerTitle="Notes"
             headerSubtitle="Jotting down life's details."
-            titleFontClass="font-elegant"
+            titleFontClass="font-handwriting"
             bgIcon={<span className="material-symbols-outlined text-[80px] text-green-400 rotate-[-15deg]">local_cafe</span>}
         >
             <div className="absolute top-40 right-20 opacity-20 pointer-events-none rotate-[10deg]">
@@ -26,7 +26,7 @@ export default function Notes() {
                         <div className="washi-tape -top-2 left-1/2 -translate-x-1/2 bg-blue-100/80 rotate-1"></div>
                         <div className="flex justify-between items-start mb-6 z-10 relative">
                             <div className="w-full text-center md:text-left md:pl-4">
-                                <h3 className="font-elegant text-4xl font-bold text-gray-700 mt-2">Recent Notes</h3>
+                                <h3 className="font-handwriting text-4xl font-bold text-gray-700 mt-2">Recent Notes</h3>
                                 <div className="h-0.5 w-32 bg-blue-200 mx-auto md:mx-0 mt-3 rounded-full"></div>
                             </div>
                         </div>

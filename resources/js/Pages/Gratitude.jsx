@@ -7,7 +7,7 @@ export default function Gratitude() {
             pageTitle="Life OS Gratitude Journal Page"
             headerTitle="Gratitude Journal"
             headerSubtitle="Cultivating thankfulness every single day."
-            titleFontClass="font-elegant"
+            titleFontClass="font-handwriting"
             bgIcon={<span className="material-symbols-outlined text-[120px] text-pink-300 rotate-12">spa</span>}
         >
             <div className="flex-1 overflow-auto custom-scrollbar p-4 md:p-8 flex justify-center items-start">
@@ -25,14 +25,14 @@ export default function Gratitude() {
                         <div className="washi-tape -top-2 left-1/2 -translate-x-1/2 bg-pink-100/80 rotate-1"></div>
                         <div className="flex justify-between items-start mb-8 z-10 relative">
                             <div className="w-full text-center">
-                                <h3 className="font-elegant text-3xl font-bold text-gray-700 mt-2">Things I'm Grateful For</h3>
+                                <h3 className="font-handwriting text-3xl font-bold text-gray-700 mt-2">Things I'm Grateful For</h3>
                                 <div className="h-0.5 w-32 bg-pink-200 mx-auto mt-2 rounded-full"></div>
                             </div>
                         </div>
                         
                         <div className="relative h-full w-full px-2 space-y-10 mt-10">
                             <div className="flex gap-4 items-baseline group">
-                                <span className="font-elegant text-2xl text-pink-400 w-8">1.</span>
+                                <span className="font-handwriting text-2xl text-pink-400 w-8">1.</span>
                                 <p className="font-handwriting text-3xl text-gray-600 border-b border-transparent leading-relaxed w-full">
                                     The smell of fresh coffee this morning <span className="material-symbols-outlined text-lg text-yellow-600 align-middle ml-1">coffee</span>
                                 </p>
@@ -41,7 +41,7 @@ export default function Gratitude() {
                                 </div>
                             </div>
                             <div className="flex gap-4 items-baseline group">
-                                <span className="font-elegant text-2xl text-pink-400 w-8">2.</span>
+                                <span className="font-handwriting text-2xl text-pink-400 w-8">2.</span>
                                 <p className="font-handwriting text-3xl text-gray-600 border-b border-transparent leading-relaxed w-full">
                                     A supportive message from Mom.
                                 </p>
@@ -50,7 +50,7 @@ export default function Gratitude() {
                                 </div>
                             </div>
                             <div className="flex gap-4 items-baseline group">
-                                <span className="font-elegant text-2xl text-pink-400 w-8">3.</span>
+                                <span className="font-handwriting text-2xl text-pink-400 w-8">3.</span>
                                 <p className="font-handwriting text-3xl text-gray-600 border-b border-transparent leading-relaxed w-full">
                                     Finally finishing that difficult project at work!
                                 </p>
@@ -59,13 +59,13 @@ export default function Gratitude() {
                                 </div>
                             </div>
                             <div className="flex gap-4 items-baseline group">
-                                <span className="font-elegant text-2xl text-pink-400 w-8">4.</span>
+                                <span className="font-handwriting text-2xl text-pink-400 w-8">4.</span>
                                 <p className="font-handwriting text-3xl text-gray-600 border-b border-transparent leading-relaxed w-full">
                                     The sun coming out after the rain.
                                 </p>
                             </div>
                             <div className="flex gap-4 items-baseline group">
-                                <span className="font-elegant text-2xl text-pink-400 w-8">5.</span>
+                                <span className="font-handwriting text-2xl text-pink-400 w-8">5.</span>
                                 <p className="font-handwriting text-3xl text-gray-400 border-b border-dotted border-gray-300 leading-relaxed w-full italic opacity-50">
                                     Write something...
                                 </p>
@@ -79,7 +79,7 @@ export default function Gratitude() {
                     <div className="flex-1 p-8 md:p-12 relative bg-opacity-50">
                         <div className="washi-tape top-0 right-10 bg-purple-100/70 rotate-[3deg]"></div>
                         <div className="mb-12 flex flex-col items-center">
-                            <h3 className="font-elegant text-3xl font-bold text-gray-700 mb-2 flex items-center gap-2">
+                            <h3 className="font-handwriting text-3xl font-bold text-gray-700 mb-2 flex items-center gap-2">
                                 Moments of Joy
                             </h3>
                             <span className="font-note text-gray-400 text-sm">Snapshots of happiness</span>

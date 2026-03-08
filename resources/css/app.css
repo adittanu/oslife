@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 @layer base {
+    :root {
+        --color-primary-rgb: 236 72 153;
+        --color-primary: #EC4899;
+    }
     body {
         zoom: 0.8;
     }
@@ -113,7 +117,7 @@
     }
     .washi-tape-btn {
         @apply relative px-10 py-4 font-bold text-white transition-transform hover:scale-105 active:scale-95;
-        background-color: #EC4899;
+        background-color: var(--color-primary, #EC4899);
         mask-image: url("data:image/svg+xml,%3Csvg width='200' height='50' viewBox='0 0 200 50' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,5 L5,0 L195,2 L200,8 L198,45 L190,50 L5,48 L0,40 Z' fill='black'/%3E%3C/svg%3E");
         mask-size: 100% 100%;
     }

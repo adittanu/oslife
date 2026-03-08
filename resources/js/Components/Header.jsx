@@ -1,32 +1,31 @@
 import React from 'react';
+import ModeSwitcher from '@/Components/ModeSwitcher';
 
-export default function Header({ title, subtitle, titleFontClass = "font-elegant" }) {
+export default function Header({ title, subtitle, titleFontClass = "font-elegant", onMenuToggle }) {
     return (
-        <header className="h-20 flex items-center justify-between px-8 bg-transparent shrink-0 z-20">
-            <div className="flex items-center gap-4">
-                <div className="flex flex-col">
-                    <h2 className={`text-4xl ${titleFontClass} font-bold text-gray-800 tracking-tight`}>{title}</h2>
-                    <p className="text-sm font-note text-gray-500 italic">{subtitle}</p>
+        <header className="shrink-0 z-20">
+            <div className="h-20 flex items-center justify-between px-4 md:px-8 bg-transparent">
+                <div className="flex items-center gap-3">
+                    {/* Mobile hamburger */}
+                    <button
+                        onClick={onMenuToggle}
+                        className="md:hidden w-10 h-10 rounded-xl bg-white/80 border border-orange-100 flex items-center justify-center text-gray-500 hover:text-primary transition-colors shadow-sm"
+                    >
+                        <span className="material-symbols-outlined">menu</span>
+                    </button>
+
+                    <div className="flex flex-col">
+                        <h2 className={`text-2xl md:text-4xl ${titleFontClass} font-bold text-gray-800 tracking-tight`}>{title}</h2>
+                        <p className="text-xs md:text-sm font-note text-gray-500 italic">{subtitle}</p>
+                    </div>
                 </div>
-            </div>
-            <div className="flex items-center gap-6">
-                <div className="hidden md:flex bg-white/50 backdrop-blur shadow-sm rounded-2xl p-1 border border-orange-100">
-                    <label className="cursor-pointer">
-                        <input defaultChecked className="peer sr-only" name="mode" type="radio"/>
-                        <span className="block px-5 py-2 rounded-xl text-xs font-bold text-gray-400 peer-checked:bg-primary peer-checked:text-white transition-all">Life</span>
-                    </label>
-                    <label className="cursor-pointer">
-                        <input className="peer sr-only" name="mode" type="radio"/>
-                        <span className="block px-5 py-2 rounded-xl text-xs font-bold text-gray-400 peer-checked:bg-primary peer-checked:text-white transition-all">Muslim</span>
-                    </label>
-                    <label className="cursor-pointer">
-                        <input className="peer sr-only" name="mode" type="radio"/>
-                        <span className="block px-5 py-2 rounded-xl text-xs font-bold text-gray-400 peer-checked:bg-primary peer-checked:text-white transition-all">Work</span>
-                    </label>
+                <div className="flex items-center gap-3 md:gap-6">
+                    {/* Desktop mode switcher */}
+                    <ModeSwitcher className="hidden md:flex bg-white/50 backdrop-blur shadow-sm rounded-2xl p-1 border border-orange-100" />
+                    <button className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-white border border-orange-100 text-gray-400 flex items-center justify-center shadow-sm relative group hover:text-primary transition-colors">
+                        <span className="material-symbols-outlined text-[22px] md:text-[24px]">search</span>
+                    </button>
                 </div>
-                <button className="w-12 h-12 rounded-2xl bg-white border border-orange-100 text-gray-400 flex items-center justify-center shadow-sm relative group hover:text-primary transition-colors">
-                    <span className="material-symbols-outlined text-[24px]">search</span>
-                </button>
             </div>
         </header>
     );

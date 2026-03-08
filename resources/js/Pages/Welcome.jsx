@@ -165,9 +165,9 @@ export default function Welcome({ auth }) {
                                         <li className="flex items-center gap-2"><span className="material-symbols-outlined text-green-500">check_circle</span> Daily Task Log</li>
                                         <li className="flex items-center gap-2"><span className="material-symbols-outlined text-green-500">check_circle</span> 3 Habit Trackers</li>
                                     </ul>
-                                    <button className="w-full py-3 rounded-xl border-2 border-gray-200 font-bold hover:bg-gray-50 transition-colors">Mulai Gratis</button>
+                                    <Link href="/checkout/free" className="block w-full py-3 rounded-xl border-2 border-gray-200 font-bold hover:bg-gray-50 transition-colors text-center">Mulai Gratis</Link>
                                 </div>
-                                
+
                                 {/* Pro Plan */}
                                 <div className="bg-page-bg p-8 rounded-2xl shadow-notebook border-2 border-primary flex flex-col relative md:scale-105 z-20">
                                     <div className="washi-tape-accent -top-3 left-1/2 -translate-x-1/2 bg-primary/20 w-32 rotate-1"></div>
@@ -179,15 +179,15 @@ export default function Welcome({ auth }) {
                                     </div>
                                     <ul className="space-y-4 mb-10 font-note text-lg flex-1">
                                         <li className="flex items-center gap-2"><span className="material-symbols-outlined text-primary">check_circle</span> Semua 4 Mode</li>
-                                        <li className="flex items-center gap-2"><span class="material-symbols-outlined text-primary">check_circle</span> Unlimited Trackers</li>
+                                        <li className="flex items-center gap-2"><span className="material-symbols-outlined text-primary">check_circle</span> Unlimited Trackers</li>
                                         <li className="flex items-center gap-2"><span className="material-symbols-outlined text-primary">check_circle</span> Cloud Sync</li>
                                         <li className="flex items-center gap-2"><span className="material-symbols-outlined text-primary">check_circle</span> Custom Sticker Pack</li>
                                     </ul>
-                                    <button className="w-full py-4 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+                                    <Link href="/checkout/pro" className="block w-full py-4 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity text-center">
                                         Bayar dengan Mayar
-                                    </button>
+                                    </Link>
                                 </div>
-                                
+
                                 {/* Team Plan */}
                                 <div className="bg-page-bg p-8 rounded-2xl shadow-notebook border border-gray-100 flex flex-col relative">
                                     <div className="washi-tape-accent -top-3 left-1/2 -translate-x-1/2 bg-blue-100/80 w-24 -rotate-1"></div>
@@ -202,9 +202,9 @@ export default function Welcome({ auth }) {
                                         <li className="flex items-center gap-2"><span className="material-symbols-outlined text-blue-500">check_circle</span> Admin Dashboard</li>
                                         <li className="flex items-center gap-2"><span className="material-symbols-outlined text-blue-500">check_circle</span> Prioritas Support</li>
                                     </ul>
-                                    <button className="w-full py-4 bg-gray-800 text-white rounded-xl font-bold hover:bg-gray-900 transition-colors flex items-center justify-center gap-2">
+                                    <Link href="/checkout/team" className="block w-full py-4 bg-gray-800 text-white rounded-xl font-bold hover:bg-gray-900 transition-colors text-center">
                                         Bayar dengan Mayar
-                                    </button>
+                                    </Link>
                                 </div>
                             </div>
                         </div>

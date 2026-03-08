@@ -7,7 +7,7 @@ export default function Finances() {
             pageTitle="Life OS Finance Tracker Page"
             headerTitle="Finances"
             headerSubtitle="Tracking my pennies & pounds."
-            titleFontClass="font-elegant"
+            titleFontClass="font-handwriting"
             bgIcon={<span className="material-symbols-outlined text-[80px] text-green-400 rotate-[-15deg]">payments</span>}
         >
             <div className="absolute bottom-10 left-[40%] opacity-20 pointer-events-none rotate-[20deg]">
@@ -26,7 +26,7 @@ export default function Finances() {
                         <div className="washi-tape -top-2 left-1/2 -translate-x-1/2 bg-blue-100/80 rotate-1"></div>
                         <div className="flex justify-between items-start mb-6 z-10 relative">
                             <div className="w-full text-center md:text-left md:pl-4">
-                                <h3 className="font-elegant text-4xl font-bold text-gray-700 mt-2">Monthly Budget &amp; Spending</h3>
+                                <h3 className="font-handwriting text-4xl font-bold text-gray-700 mt-2">Monthly Budget &amp; Spending</h3>
                                 <div className="h-0.5 w-48 bg-blue-200 mx-auto md:mx-0 mt-3 rounded-full"></div>
                             </div>
                         </div>
@@ -94,7 +94,7 @@ export default function Finances() {
                         </div>
                         
                         <div className="flex justify-between items-start mb-6 z-10 relative mt-4">
-                            <h3 className="font-elegant text-4xl font-bold text-gray-700">Transaction Log</h3>
+                            <h3 className="font-handwriting text-4xl font-bold text-gray-700">Transaction Log</h3>
                         </div>
                         
                         <div className="relative w-full flex-1 z-10 mt-4">

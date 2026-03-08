@@ -14,7 +14,7 @@ export default {
     theme: {
         extend: {
             colors: {
-                "primary": "#EC4899",
+                "primary": "rgb(var(--color-primary-rgb, 236 72 153) / <alpha-value>)",
                 "desk-bg": "#F5F1E9",
                 "journal-bg": "#FDFCF0",
                 "page-bg": "#FFFDF5",

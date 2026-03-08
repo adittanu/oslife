@@ -1,8 +1,4 @@
-import Checkbox from '@/Components/Checkbox';
 import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
@@ -15,7 +11,6 @@ export default function Login({ status, canResetPassword }) {
 
     const submit = (e) => {
         e.preventDefault();
-
         post(route('login'), {
             onFinish: () => reset('password'),
         });
@@ -23,77 +18,91 @@ export default function Login({ status, canResetPassword }) {
 
     return (
         <GuestLayout>
-            <Head title="Log in" />
+            <Head title="Masuk" />
+
+            <div className="mb-6">
+                <h2 className="text-2xl font-handwriting font-bold text-gray-800">Selamat Datang Kembali</h2>
+                <p className="text-sm font-note text-gray-500 mt-1">Masuk ke journal kamu</p>
+            </div>
 
             {status && (
-                <div className="mb-4 text-sm font-medium text-green-600">
+                <div className="mb-4 text-sm font-medium text-green-600 bg-green-50 px-4 py-3 rounded-xl">
                     {status}
                 </div>
             )}
 
             <form onSubmit={submit}>
                 <div>
-                    <InputLabel htmlFor="email" value="Email" />
-
-                    <TextInput
+                    <label htmlFor="email" className="block text-sm font-semibold text-gray-600 mb-1.5">
+                        Email
+                    </label>
+                    <input
                         id="email"
                         type="email"
                         name="email"
                         value={data.email}
-                        className="mt-1 block w-full"
+                        className="w-full px-4 py-3 rounded-xl border-2 border-orange-100 bg-white/80 text-gray-700 font-note text-lg focus:border-primary focus:ring-primary/20 focus:ring-2 transition-colors placeholder:text-gray-300"
+                        placeholder="nama@email.com"
                         autoComplete="username"
-                        isFocused={true}
+                        autoFocus
                         onChange={(e) => setData('email', e.target.value)}
                     />
-
-                    <InputError message={errors.email} className="mt-2" />
+                    <InputError message={errors.email} className="mt-1.5" />
                 </div>
 
                 <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
-
-                    <TextInput
+                    <label htmlFor="password" className="block text-sm font-semibold text-gray-600 mb-1.5">
+                        Password
+                    </label>
+                    <input
                         id="password"
                         type="password"
                         name="password"
                         value={data.password}
-                        className="mt-1 block w-full"
+                        className="w-full px-4 py-3 rounded-xl border-2 border-orange-100 bg-white/80 text-gray-700 font-note text-lg focus:border-primary focus:ring-primary/20 focus:ring-2 transition-colors placeholder:text-gray-300"
+                        placeholder="••••••••"
                         autoComplete="current-password"
                         onChange={(e) => setData('password', e.target.value)}
                     />
-
-                    <InputError message={errors.password} className="mt-2" />
+                    <InputError message={errors.password} className="mt-1.5" />
                 </div>
 
-                <div className="mt-4 block">
-                    <label className="flex items-center">
-                        <Checkbox
+                <div className="mt-4 flex items-center justify-between">
+                    <label className="flex items-center cursor-pointer">
+                        <input
+                            type="checkbox"
                             name="remember"
                             checked={data.remember}
-                            onChange={(e) =>
-                                setData('remember', e.target.checked)
-                            }
+                            onChange={(e) => setData('remember', e.target.checked)}
+                            className="rounded-md border-orange-200 text-primary focus:ring-primary/30 transition-colors"
                         />
-                        <span className="ms-2 text-sm text-gray-600">
-                            Remember me
-                        </span>
+                        <span className="ms-2 text-sm text-gray-500 font-medium">Ingat saya</span>
                     </label>
-                </div>
 
-                <div className="mt-4 flex items-center justify-end">
                     {canResetPassword && (
                         <Link
                             href={route('password.request')}
-                            className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                            className="text-sm text-primary/70 hover:text-primary font-medium transition-colors"
                         >
-                            Forgot your password?
+                            Lupa password?
                         </Link>
                     )}
-
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Log in
-                    </PrimaryButton>
                 </div>
+
+                <button
+                    type="submit"
+                    disabled={processing}
+                    className="w-full mt-6 washi-tape-btn text-center text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    {processing ? 'Memproses...' : 'Masuk'}
+                </button>
+
+                <p className="text-center mt-6 text-sm text-gray-500 font-medium">
+                    Belum punya akun?{' '}
+                    <Link href={route('register')} className="text-primary font-bold hover:underline">
+                        Daftar sekarang
+                    </Link>
+                </p>
             </form>
         </GuestLayout>
     );

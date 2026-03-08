@@ -7,7 +7,7 @@ export default function TaskLog() {
             pageTitle="Life OS Task Log Journal"
             headerTitle="Task Log"
             headerSubtitle="Getting things done, one day at a time."
-            titleFontClass="font-elegant"
+            titleFontClass="font-handwriting"
             bgIcon={<span className="material-symbols-outlined text-[80px] text-yellow-400 rotate-[-15deg]">schedule</span>}
         >
             <div className="absolute bottom-10 left-[40%] opacity-20 pointer-events-none rotate-[20deg]">
@@ -23,7 +23,7 @@ export default function TaskLog() {
                         <div className="washi-tape -top-2 left-1/2 -translate-x-1/2 bg-blue-100/80 rotate-1"></div>
                         <div className="flex justify-between items-start mb-8 z-10 relative">
                             <div className="w-full text-center">
-                                <h3 className="font-elegant text-3xl font-bold text-gray-700 mt-2">Daily Task List</h3>
+                                <h3 className="font-handwriting text-3xl font-bold text-gray-700 mt-2">Daily Task List</h3>
                                 <div className="h-0.5 w-32 bg-blue-200 mx-auto mt-2 rounded-full"></div>
                             </div>
                         </div>
@@ -68,7 +68,7 @@ export default function TaskLog() {
                     <div className="flex-1 p-8 md:p-12 relative dot-grid overflow-hidden">
                         <div className="washi-tape top-4 right-10 bg-green-100/70 rotate-[3deg]"></div>
                         <div className="mb-8 flex flex-col items-center">
-                            <h3 className="font-elegant text-3xl font-bold text-gray-700 mb-2">Habit Tracker</h3>
+                            <h3 className="font-handwriting text-3xl font-bold text-gray-700 mb-2">Habit Tracker</h3>
                         </div>
 
                         <div className="bg-white/60 p-6 rounded-xl shadow-sm border border-gray-100 mb-10 backdrop-blur-sm relative">
@@ -118,7 +118,7 @@ export default function TaskLog() {
                         </div>
 
                         <div className="mb-4 flex flex-col items-center">
-                            <h3 className="font-elegant text-2xl font-bold text-gray-700">Quick Notes</h3>
+                            <h3 className="font-handwriting text-2xl font-bold text-gray-700">Quick Notes</h3>
                         </div>
                         
                         <div className="relative w-full h-48 bg-sticky-yellow p-6 shadow-sticky transform rotate-[1deg] group transition-transform hover:rotate-0">
