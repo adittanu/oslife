@@ -39,7 +39,7 @@ export default function Dzikir() {
             headerTitle="Dzikir Counter"
             headerSubtitle="Remember Allah always"
             titleFontClass="font-handwriting"
-            bgIcon={<span className="material-symbols-outlined text-[120px] text-primary rotate-12">prayer_times</span>}
+            bgIcon={<span className="material-symbols-outlined text-[120px] text-primary rotate-12">pace</span>}
         >
             <div className="flex-1 overflow-auto custom-scrollbar p-4 md:p-8">
                 {/* Decorative elements */}

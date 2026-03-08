@@ -5,7 +5,7 @@ export default function DailySpread() {
     const sholatSchedule = [
         { name: 'Subuh', time: '04:32', icon: 'dark_mode', done: true, color: 'bg-indigo-100', borderColor: 'border-indigo-200' },
         { name: 'Dzuhur', time: '11:55', icon: 'light_mode', done: true, color: 'bg-yellow-100', borderColor: 'border-yellow-200' },
-        { name: 'Ashar', time: '15:12', icon: 'sunny_snowing', done: false, color: 'bg-orange-100', borderColor: 'border-orange-200' },
+        { name: 'Ashar', time: '15:12', icon: 'partly_cloudy_day', done: false, color: 'bg-orange-100', borderColor: 'border-orange-200' },
         { name: 'Maghrib', time: '17:48', icon: 'wb_twilight', done: false, color: 'bg-rose-100', borderColor: 'border-rose-200' },
         { name: 'Isya', time: '19:02', icon: 'nights_stay', done: false, color: 'bg-purple-100', borderColor: 'border-purple-200' },
     ];
@@ -36,7 +36,7 @@ export default function DailySpread() {
                     {/* Decorative elements */}
                     <div className="absolute -top-5 -right-5 rotate-12 z-20 drop-shadow-md">
                         <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center border-2 border-green-200 border-dashed">
-                            <span className="material-symbols-outlined text-3xl text-green-600">crescent_moon</span>
+                            <span className="material-symbols-outlined text-3xl text-green-600">nights_stay</span>
                         </div>
                     </div>
                     <div className="absolute -bottom-4 left-10 -rotate-6 z-20">

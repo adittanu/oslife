@@ -53,7 +53,7 @@ export default function IslamicCalendar() {
 
                     {/* Decorative crescent */}
                     <div className="absolute -top-2 right-20 z-20 opacity-60 rotate-12">
-                        <span className="material-symbols-outlined text-5xl text-amber-400 drop-shadow-md">crescent_moon</span>
+                        <span className="material-symbols-outlined text-5xl text-amber-400 drop-shadow-md">nights_stay</span>
                     </div>
 
                     {/* Calendar Grid */}

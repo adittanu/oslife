@@ -45,7 +45,7 @@ export const modeConfig = {
             { href: '/muslim/quran-journal', icon: 'menu_book', label: "Al-Qur'an Journal" },
         ],
         collections: [
-            { href: '/muslim/dzikir', icon: 'prayer_times', label: 'Dzikir Counter' },
+            { href: '/muslim/dzikir', icon: 'pace', label: 'Dzikir Counter' },
             { href: '/muslim/doa', icon: 'volunteer_activism', label: 'Doa Collection' },
             { href: '/muslim/kajian-notes', icon: 'school', label: 'Kajian Notes' },
             { href: '/muslim/muhasabah', icon: 'self_improvement', label: 'Muhasabah' },
