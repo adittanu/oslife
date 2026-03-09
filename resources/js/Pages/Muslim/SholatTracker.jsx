@@ -1,35 +1,150 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { router, usePage } from '@inertiajs/react';
+import axios from 'axios';
 import JournalLayout from '@/Layouts/JournalLayout';
 
-export default function SholatTracker() {
-    const prayers = ['Subuh', 'Dzuhur', 'Ashar', 'Maghrib', 'Isya'];
-    const daysOfWeek = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Ahad'];
+const PRAYERS = ['Subuh', 'Dzuhur', 'Ashar', 'Maghrib', 'Isya'];
+const DAYS = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Ahad'];
 
-    // 0 = missed, 1 = done alone, 2 = done in jamaah
-    const weeklyData = [
-        [2, 2, 1, 2, 2, 2, 0], // Subuh
-        [2, 1, 2, 2, 2, 1, 2], // Dzuhur
-        [1, 2, 2, 1, 2, 2, 2], // Ashar
-        [2, 2, 2, 2, 2, 2, 2], // Maghrib
-        [2, 2, 1, 2, 0, 2, 0], // Isya
-    ];
+const SUNNAH_PRAYERS = [
+    { name: 'Tahajud', icon: 'dark_mode', color: 'bg-indigo-100', iconColor: 'text-indigo-500' },
+    { name: 'Dhuha', icon: 'wb_sunny', color: 'bg-amber-100', iconColor: 'text-amber-500' },
+    { name: 'Rawatib Qabliyah', icon: 'arrow_back', color: 'bg-teal-100', iconColor: 'text-teal-500' },
+    { name: 'Rawatib Ba\'diyah', icon: 'arrow_forward', color: 'bg-rose-100', iconColor: 'text-rose-500' },
+];
 
-    const sunnahPrayers = [
-        { name: 'Tahajud', icon: 'dark_mode', days: [true, false, true, false, true, true, true], color: 'bg-indigo-100', iconColor: 'text-indigo-500' },
-        { name: 'Dhuha', icon: 'wb_sunny', days: [true, true, false, true, true, false, true], color: 'bg-amber-100', iconColor: 'text-amber-500' },
-        { name: 'Rawatib Qabliyah', icon: 'arrow_back', days: [true, true, true, true, true, true, true], color: 'bg-teal-100', iconColor: 'text-teal-500' },
-        { name: 'Rawatib Ba\'diyah', icon: 'arrow_forward', days: [true, true, true, false, true, true, true], color: 'bg-rose-100', iconColor: 'text-rose-500' },
-    ];
+const getStatusInfo = (status) => {
+    if (status === 'jamaah') return { icon: 'check_circle', color: 'text-green-500', bg: 'bg-green-50' };
+    if (status === 'alone') return { icon: 'check', color: 'text-yellow-500', bg: 'bg-yellow-50' };
+    return { icon: 'close', color: 'text-red-300', bg: 'bg-red-50/50' };
+};
 
-    const getStatusIcon = (status) => {
-        if (status === 2) return { icon: 'check_circle', color: 'text-green-500', bg: 'bg-green-50' };
-        if (status === 1) return { icon: 'check', color: 'text-yellow-500', bg: 'bg-yellow-50' };
-        return { icon: 'close', color: 'text-red-300', bg: 'bg-red-50/50' };
+export default function SholatTracker({ weekStart, weeklyLogs, sunnahLogs }) {
+    const { auth } = usePage().props;
+    const isAuth = !!auth?.user;
+
+    // Calculate week dates
+    const getWeekDates = (startDate) => {
+        const dates = [];
+        const d = new Date(startDate);
+        for (let i = 0; i < 7; i++) {
+            const date = new Date(d);
+            date.setDate(d.getDate() + i);
+            dates.push(date.toISOString().split('T')[0]);
+        }
+        return dates;
     };
 
-    const totalPrayers = weeklyData.flat().length;
-    const completedPrayers = weeklyData.flat().filter(s => s > 0).length;
-    const jamaahPrayers = weeklyData.flat().filter(s => s === 2).length;
+    const [currentWeekStart, setCurrentWeekStart] = useState(weekStart || new Date().toISOString().split('T')[0]);
+    const weekDates = getWeekDates(currentWeekStart);
+
+    // Parse logs into usable format
+    const [gridData, setGridData] = useState(() => {
+        const data = {};
+        PRAYERS.forEach(prayer => {
+            data[prayer] = {};
+            weekDates.forEach(date => {
+                const log = weeklyLogs?.find(l => l.prayer_name === prayer && l.date === date);
+                data[prayer][date] = log?.status || null;
+            });
+        });
+        return data;
+    });
+
+    const [sunnahData, setSunnahData] = useState(() => {
+        const data = {};
+        SUNNAH_PRAYERS.forEach(sp => {
+            data[sp.name] = {};
+            weekDates.forEach(date => {
+                const log = sunnahLogs?.find(l => l.prayer_name === sp.name && l.date === date);
+                data[sp.name][date] = log?.done || false;
+            });
+        });
+        return data;
+    });
+
+    useEffect(() => {
+        const data = {};
+        PRAYERS.forEach(prayer => {
+            data[prayer] = {};
+            weekDates.forEach(date => {
+                const log = weeklyLogs?.find(l => l.prayer_name === prayer && l.date === date);
+                data[prayer][date] = log?.status || null;
+            });
+        });
+        setGridData(data);
+
+        const sData = {};
+        SUNNAH_PRAYERS.forEach(sp => {
+            sData[sp.name] = {};
+            weekDates.forEach(date => {
+                const log = sunnahLogs?.find(l => l.prayer_name === sp.name && l.date === date);
+                sData[sp.name][date] = log?.done || false;
+            });
+        });
+        setSunnahData(sData);
+    }, [weeklyLogs, sunnahLogs, weekDates]);
+
+    const saveRef = useRef(null);
+    const autoSaveLog = useCallback((date, prayerName, status) => {
+        if (!isAuth) return;
+        clearTimeout(saveRef.current);
+        saveRef.current = setTimeout(() => {
+            axios.post('/api/muslim/sholat-tracker/log', {
+                date,
+                prayer_name: prayerName,
+                status,
+            });
+        }, 500);
+    }, [isAuth]);
+
+    const autoSaveSunnah = useCallback((date, prayerName, done) => {
+        if (!isAuth) return;
+        clearTimeout(saveRef.current);
+        saveRef.current = setTimeout(() => {
+            axios.post('/api/muslim/sholat-tracker/sunnah', {
+                date,
+                prayer_name: prayerName,
+                done,
+            });
+        }, 500);
+    }, [isAuth]);
+
+    const cycleStatus = (prayer, date) => {
+        const current = gridData[prayer][date];
+        const next = current === null ? 'missed' : current === 'missed' ? 'alone' : current === 'alone' ? 'jamaah' : null;
+        setGridData(prev => ({
+            ...prev,
+            [prayer]: { ...prev[prayer], [date]: next }
+        }));
+        if (next !== null) {
+            autoSaveLog(date, prayer, next);
+        }
+    };
+
+    const toggleSunnah = (prayer, date) => {
+        const current = sunnahData[prayer]?.[date] || false;
+        setSunnahData(prev => ({
+            ...prev,
+            [prayer]: { ...prev[prayer], [date]: !current }
+        }));
+        autoSaveSunnah(date, prayer, !current);
+    };
+
+    const navigateWeek = (offset) => {
+        const d = new Date(currentWeekStart);
+        d.setDate(d.getDate() + offset * 7);
+        const newStart = d.toISOString().split('T')[0];
+        router.visit(`/muslim/sholat-tracker?week_start=${newStart}`, { preserveState: false });
+    };
+
+    // Calculate stats
+    const totalPrayers = PRAYERS.length * 7;
+    const completedPrayers = Object.values(gridData).flatMap(Object.values).filter(s => s !== null).length;
+    const jamaahPrayers = Object.values(gridData).flatMap(Object.values).filter(s => s === 'jamaah').length;
+
+    // Check if there's any data
+    const hasData = completedPrayers > 0;
 
     return (
         <JournalLayout
@@ -49,11 +164,27 @@ export default function SholatTracker() {
                     <div className="w-full xl:w-2/3 p-6 md:p-10 relative border-b xl:border-b-0 xl:border-r border-gray-100 grid-lines overflow-hidden flex flex-col">
                         <div className="washi-tape -top-2 left-1/2 -translate-x-1/2 bg-emerald-100/80 rotate-1"></div>
 
+                        {/* Week Navigation */}
                         <div className="flex justify-between items-start mb-6 z-10 relative">
-                            <div className="w-full text-center xl:text-left xl:pl-4">
-                                <h3 className="font-handwriting text-4xl font-bold text-gray-700 mt-2">Sholat Wajib Mingguan</h3>
-                                <p className="font-note text-gray-400 mt-1">Pekan ke-3, Ramadan 1447 H</p>
-                                <div className="h-0.5 w-48 bg-primary/30 mx-auto xl:mx-0 mt-3 rounded-full"></div>
+                            <div className="w-full flex items-center justify-between">
+                                <button
+                                    onClick={() => navigateWeek(-1)}
+                                    className="w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-sm border border-gray-200 hover:bg-primary/10 transition-colors"
+                                >
+                                    <span className="material-symbols-outlined text-gray-600">chevron_left</span>
+                                </button>
+                                <div className="text-center">
+                                    <h3 className="font-handwriting text-4xl font-bold text-gray-700 mt-2">Sholat Wajib Mingguan</h3>
+                                    <p className="font-note text-gray-400 mt-1">
+                                        {new Date(weekDates[0]).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} - {new Date(weekDates[6]).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => navigateWeek(1)}
+                                    className="w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-sm border border-gray-200 hover:bg-primary/10 transition-colors"
+                                >
+                                    <span className="material-symbols-outlined text-gray-600">chevron_right</span>
+                                </button>
                             </div>
                         </div>
 
@@ -64,14 +195,17 @@ export default function SholatTracker() {
                                     <thead>
                                         <tr>
                                             <th className="text-left font-display font-semibold text-gray-500 pb-4 w-32 text-base">Sholat</th>
-                                            {daysOfWeek.map((day, i) => (
-                                                <th key={i} className={`text-center font-display font-bold text-base pb-4 w-20 ${i === 4 ? 'text-primary' : 'text-gray-400'}`}>{day}</th>
+                                            {weekDates.map((date, i) => (
+                                                <th key={date} className={`text-center font-display font-bold text-base pb-4 w-20 ${i === 4 ? 'text-primary' : 'text-gray-400'}`}>
+                                                    <div>{DAYS[i]}</div>
+                                                    <div className="font-note text-sm font-normal text-gray-300">{new Date(date).getDate()}</div>
+                                                </th>
                                             ))}
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {prayers.map((prayer, pi) => (
-                                            <tr key={pi} className="border-t-2 border-dashed border-gray-100 group hover:bg-gray-50/50 transition-colors">
+                                        {PRAYERS.map((prayer, pi) => (
+                                            <tr key={prayer} className="border-t-2 border-dashed border-gray-100 group hover:bg-gray-50/50 transition-colors">
                                                 <td className="py-5">
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
@@ -80,12 +214,20 @@ export default function SholatTracker() {
                                                         <span className="font-display font-bold text-gray-700 text-base tracking-wide">{prayer}</span>
                                                     </div>
                                                 </td>
-                                                {weeklyData[pi].map((status, di) => {
-                                                    const s = getStatusIcon(status);
+                                                {weekDates.map((date, di) => {
+                                                    const status = gridData[prayer]?.[date];
+                                                    const s = getStatusInfo(status);
                                                     return (
-                                                        <td key={di} className="text-center py-5 px-1">
-                                                            <div className={`w-10 h-10 mx-auto rounded-xl ${s.bg} flex items-center justify-center transition-transform hover:scale-110 cursor-pointer`}>
-                                                                <span className={`material-symbols-outlined text-xl ${s.color}`}>{s.icon}</span>
+                                                        <td key={date} className="text-center py-5 px-1">
+                                                            <div
+                                                                className={`w-10 h-10 mx-auto rounded-xl ${status ? s.bg : 'bg-gray-50'} flex items-center justify-center transition-transform hover:scale-110 cursor-pointer border ${status ? 'border-gray-200' : 'border-gray-100 border-dashed'}`}
+                                                                onClick={() => cycleStatus(prayer, date)}
+                                                            >
+                                                                {status ? (
+                                                                    <span className={`material-symbols-outlined text-xl ${s.color}`}>{s.icon}</span>
+                                                                ) : (
+                                                                    <span className="material-symbols-outlined text-xl text-gray-300">radio_button_unchecked</span>
+                                                                )}
                                                             </div>
                                                         </td>
                                                     );
@@ -128,7 +270,7 @@ export default function SholatTracker() {
                             <div className="w-20 h-20 md:w-24 md:h-24 bg-primary rounded-full flex flex-col items-center justify-center shadow-lg rotate-12 border-[3px] border-primary/50 text-white font-black">
                                 <span className="material-symbols-outlined text-2xl md:text-3xl mb-0.5">local_fire_department</span>
                                 <span className="text-[9px] md:text-[10px] uppercase tracking-wider text-center leading-tight">Streak</span>
-                                <span className="text-base md:text-lg">12 Hari</span>
+                                <span className="text-base md:text-lg">{jamaahPrayers}</span>
                             </div>
                         </div>
 
@@ -147,10 +289,10 @@ export default function SholatTracker() {
                                     <p className="font-note text-xs text-blue-500 mt-1">Berjamaah</p>
                                 </div>
                                 <div className="text-center p-3 bg-amber-50 rounded-xl border border-amber-100 col-span-2">
-                                    <span className="font-handwriting text-2xl font-bold text-amber-600">{Math.round((completedPrayers / totalPrayers) * 100)}%</span>
+                                    <span className="font-handwriting text-2xl font-bold text-amber-600">{totalPrayers > 0 ? Math.round((completedPrayers / totalPrayers) * 100) : 0}%</span>
                                     <p className="font-note text-xs text-amber-500 mt-1">Tingkat Kepatuhan</p>
                                     <div className="w-full h-2 bg-amber-100 rounded-full mt-2 overflow-hidden">
-                                        <div className="h-full bg-amber-400 rounded-full" style={{ width: `${Math.round((completedPrayers / totalPrayers) * 100)}%` }}></div>
+                                        <div className="h-full bg-amber-400 rounded-full" style={{ width: `${totalPrayers > 0 ? Math.round((completedPrayers / totalPrayers) * 100) : 0}%` }}></div>
                                     </div>
                                 </div>
                             </div>
@@ -163,22 +305,29 @@ export default function SholatTracker() {
                                 Sholat Sunnah
                             </h4>
                             <div className="space-y-3">
-                                {sunnahPrayers.map((sunnah, i) => (
-                                    <div key={i} className={`${sunnah.color} p-3 rounded-xl border border-gray-100 shadow-sm transform ${i % 2 === 0 ? 'rotate-[-0.5deg]' : 'rotate-[0.5deg]'}`}>
+                                {SUNNAH_PRAYERS.map((sunnah, i) => (
+                                    <div key={sunnah.name} className={`${sunnah.color} p-3 rounded-xl border border-gray-100 shadow-sm transform ${i % 2 === 0 ? 'rotate-[-0.5deg]' : 'rotate-[0.5deg]'}`}>
                                         <div className="flex items-center gap-2 mb-2">
                                             <span className={`material-symbols-outlined ${sunnah.iconColor}`}>{sunnah.icon}</span>
                                             <span className="font-handwriting text-lg font-bold text-gray-700">{sunnah.name}</span>
                                         </div>
                                         <div className="flex gap-1.5">
-                                            {sunnah.days.map((done, di) => (
-                                                <div key={di} className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs ${done ? 'bg-white/80 border border-green-200' : 'bg-white/40 border border-gray-200'}`}>
-                                                    {done ? (
-                                                        <span className="material-symbols-outlined text-green-500 text-sm">check</span>
-                                                    ) : (
-                                                        <span className="font-note text-[10px] text-gray-400">{daysOfWeek[di][0]}</span>
-                                                    )}
-                                                </div>
-                                            ))}
+                                            {weekDates.map((date, di) => {
+                                                const done = sunnahData[sunnah.name]?.[date] || false;
+                                                return (
+                                                    <div
+                                                        key={date}
+                                                        className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs cursor-pointer ${done ? 'bg-white/80 border border-green-200' : 'bg-white/40 border border-gray-200 border-dashed'}`}
+                                                        onClick={() => toggleSunnah(sunnah.name, date)}
+                                                    >
+                                                        {done ? (
+                                                            <span className="material-symbols-outlined text-green-500 text-sm">check</span>
+                                                        ) : (
+                                                            <span className="font-note text-[10px] text-gray-400">{DAYS[di][0]}</span>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 ))}

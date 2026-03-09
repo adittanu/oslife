@@ -25,6 +25,7 @@ use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\BrandKitController;
 use App\Http\Controllers\CollabNotesController;
 use App\Http\Controllers\Muslim\DailySpreadController as MuslimDailySpreadController;
+use App\Http\Controllers\Muslim\SholatTrackerController as MuslimSholatTrackerController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -167,6 +168,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/api/muslim/daily-spread/quran-target', [MuslimDailySpreadController::class, 'saveQuranTarget']);
     Route::post('/api/muslim/daily-spread/muhasabah', [MuslimDailySpreadController::class, 'saveMuhasabah']);
 
+    // Muslim Sholat Tracker API
+    Route::post('/api/muslim/sholat-tracker/log', [MuslimSholatTrackerController::class, 'saveLog']);
+    Route::post('/api/muslim/sholat-tracker/sunnah', [MuslimSholatTrackerController::class, 'saveSunnah']);
+
     // Creator Mode APIs
     Route::post('/api/creator/content-posts', [ContentCalendarController::class, 'store']);
     Route::patch('/api/creator/content-posts/{post}', [ContentCalendarController::class, 'update']);
@@ -194,7 +199,7 @@ Route::middleware('auth')->group(function () {
 // Muslim Mode Pages
 Route::get('/muslim/daily-spread', [MuslimDailySpreadController::class, 'index']);
 Route::get('/muslim/islamic-calendar', fn() => Inertia::render('Muslim/IslamicCalendar'));
-Route::get('/muslim/sholat-tracker', fn() => Inertia::render('Muslim/SholatTracker'));
+Route::get('/muslim/sholat-tracker', [MuslimSholatTrackerController::class, 'index']);
 Route::get('/muslim/quran-journal', fn() => Inertia::render('Muslim/QuranJournal'));
 Route::get('/muslim/dzikir', fn() => Inertia::render('Muslim/Dzikir'));
 Route::get('/muslim/doa', fn() => Inertia::render('Muslim/Doa'));
