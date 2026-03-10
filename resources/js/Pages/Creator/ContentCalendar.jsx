@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { router } from '@inertiajs/react';
 import axios from 'axios';
 import JournalLayout from '@/Layouts/JournalLayout';
@@ -64,6 +64,11 @@ export default function ContentCalendar({ year: propYear, month: propMonth, post
         title: '',
         notes: '',
         status: 'planned',
+        views: 0,
+        likes: 0,
+        comments: 0,
+        shares: 0,
+        saves: 0,
     });
 
     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -102,6 +107,11 @@ export default function ContentCalendar({ year: propYear, month: propMonth, post
             title: '',
             notes: '',
             status: 'planned',
+            views: 0,
+            likes: 0,
+            comments: 0,
+            shares: 0,
+            saves: 0,
         });
         setShowModal(true);
     };
@@ -115,6 +125,11 @@ export default function ContentCalendar({ year: propYear, month: propMonth, post
             title: post.title || '',
             notes: post.notes || '',
             status: post.status,
+            views: post.views || 0,
+            likes: post.likes || 0,
+            comments: post.comments || 0,
+            shares: post.shares || 0,
+            saves: post.saves || 0,
         });
         setShowModal(true);
     };
@@ -123,7 +138,15 @@ export default function ContentCalendar({ year: propYear, month: propMonth, post
         e.preventDefault();
 
         const postDate = `${year}-${String(month).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
-        const data = { ...formData, post_date: postDate };
+        const data = {
+            ...formData,
+            post_date: postDate,
+            views: parseInt(formData.views, 10) || 0,
+            likes: parseInt(formData.likes, 10) || 0,
+            comments: parseInt(formData.comments, 10) || 0,
+            shares: parseInt(formData.shares, 10) || 0,
+            saves: parseInt(formData.saves, 10) || 0,
+        };
 
         try {
             if (editingPost) {
@@ -168,6 +191,7 @@ export default function ContentCalendar({ year: propYear, month: propMonth, post
         acc[post.platform] = (acc[post.platform] || 0) + 1;
         return acc;
     }, {});
+    const publishedWithPerformance = allPosts.filter((post) => post.status === 'published' && ((post.views || 0) > 0 || (post.likes || 0) > 0));
 
     const hasData = allPosts.length > 0;
 
@@ -204,9 +228,9 @@ export default function ContentCalendar({ year: propYear, month: propMonth, post
                         </div>
                         <div className="bg-page-bg shadow-notebook rounded-xl p-4 border border-gray-200 text-center relative overflow-hidden">
                             <div className="absolute top-0 left-0 w-full h-1 bg-blue-400"></div>
-                            <span className="material-symbols-outlined text-blue-500 text-3xl mb-1 block">schedule</span>
-                            <p className="font-handwriting text-3xl font-bold text-gray-800">{allPosts.filter(p => p.status === 'planned').length}</p>
-                            <p className="font-note text-sm text-gray-500">Planned</p>
+                            <span className="material-symbols-outlined text-blue-500 text-3xl mb-1 block">monitoring</span>
+                            <p className="font-handwriting text-3xl font-bold text-gray-800">{publishedWithPerformance.length}</p>
+                            <p className="font-note text-sm text-gray-500">Tracked Performance</p>
                         </div>
                     </div>
 
@@ -273,9 +297,15 @@ export default function ContentCalendar({ year: propYear, month: propMonth, post
                                                             >
                                                                 <span className="material-symbols-outlined text-[12px] md:text-[14px]">{platformIcons[post.platform]}</span>
                                                                 <span className="truncate">{post.type}</span>
+                                                                {post.status === 'published' && (post.views || 0) > 0 && (
+                                                                    <span className="ml-auto inline-flex items-center gap-0.5 text-[9px] opacity-80">
+                                                                        <span className="material-symbols-outlined text-[11px]">visibility</span>
+                                                                        {post.views}
+                                                                    </span>
+                                                                )}
                                                                 <button
                                                                     onClick={(e) => { e.stopPropagation(); handleDelete(post.id, day); }}
-                                                                    className="ml-auto text-[10px] opacity-50 hover:opacity-100"
+                                                                    className="text-[10px] opacity-50 hover:opacity-100"
                                                                 >
                                                                     x
                                                                 </button>
@@ -432,6 +462,33 @@ export default function ContentCalendar({ year: propYear, month: propMonth, post
                                     rows={3}
                                     className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 font-note text-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none"
                                 />
+                            </div>
+                            <div className="rounded-xl border border-dashed border-primary/20 bg-primary/5 p-4">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <span className="material-symbols-outlined text-primary text-[18px]">monitoring</span>
+                                    <p className="font-note text-sm font-bold text-gray-700">Performance Snapshot</p>
+                                </div>
+                                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                                    {[
+                                        ['views', 'Views'],
+                                        ['likes', 'Likes'],
+                                        ['comments', 'Comments'],
+                                        ['shares', 'Shares'],
+                                        ['saves', 'Saves'],
+                                    ].map(([field, label]) => (
+                                        <div key={field}>
+                                            <label className="block font-note text-xs text-gray-500 mb-1">{label}</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                value={formData[field]}
+                                                onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
+                                                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 font-note text-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                                <p className="font-note text-xs text-gray-400 mt-3">Isi metrik setelah konten tayang supaya Analytics creator ikut punya data nyata.</p>
                             </div>
                             <div className="flex gap-3 pt-2">
                                 <button

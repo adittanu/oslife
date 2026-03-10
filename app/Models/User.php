@@ -170,6 +170,11 @@ class User extends Authenticatable
         return $this->hasMany(PlatformStat::class);
     }
 
+    public function platformStatSnapshots(): HasMany
+    {
+        return $this->hasMany(PlatformStatSnapshot::class);
+    }
+
     public function brandKit(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(BrandKit::class);

@@ -38,6 +38,8 @@ const DEFAULT_WEEKLY_GROWTH = [
 
 export default function Analytics({ stats: propStats, weeklyGrowth: propWeeklyGrowth, topContent: propTopContent }) {
     const [stats, setStats] = useState({});
+    const [weeklyGrowth, setWeeklyGrowth] = useState(propWeeklyGrowth || DEFAULT_WEEKLY_GROWTH);
+    const [topContent, setTopContent] = useState(propTopContent || []);
     const [showEditModal, setShowEditModal] = useState(false);
     const [editingPlatform, setEditingPlatform] = useState(null);
     const [formData, setFormData] = useState({
@@ -53,6 +55,14 @@ export default function Analytics({ stats: propStats, weeklyGrowth: propWeeklyGr
             setStats(propStats);
         }
     }, [propStats]);
+
+    useEffect(() => {
+        setWeeklyGrowth(propWeeklyGrowth || DEFAULT_WEEKLY_GROWTH);
+    }, [propWeeklyGrowth]);
+
+    useEffect(() => {
+        setTopContent(propTopContent || []);
+    }, [propTopContent]);
 
     const calculateTotals = () => {
         const values = Object.values(stats);
@@ -118,15 +128,19 @@ export default function Analytics({ stats: propStats, weeklyGrowth: propWeeklyGr
                 ...prev,
                 [data.platform]: response.data.stat,
             }));
+            setWeeklyGrowth(response.data.weeklyGrowth || DEFAULT_WEEKLY_GROWTH);
+            setTopContent(response.data.topContent || []);
             setShowEditModal(false);
         } catch (err) {
             console.error('Failed to save stats:', err);
         }
     };
 
-    const weeklyGrowthData = propWeeklyGrowth || DEFAULT_WEEKLY_GROWTH;
-    const topContentData = propTopContent || [];
+    const weeklyGrowthData = weeklyGrowth || DEFAULT_WEEKLY_GROWTH;
+    const topContentData = topContent || [];
     const hasData = Object.keys(stats).length > 0;
+    const weeklyTotal = weeklyGrowthData.reduce((sum, item) => sum + (item.followers || 0), 0);
+    const strongestPlatform = Object.entries(stats).sort((a, b) => (b[1]?.followers || 0) - (a[1]?.followers || 0))[0]?.[0];
 
     return (
         <JournalLayout
@@ -153,10 +167,10 @@ export default function Analytics({ stats: propStats, weeklyGrowth: propWeeklyGr
                     {/* Metric Cards */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         {[
-                            { label: 'Total Followers', value: formatNumber(totals.followers), icon: 'group', change: '+2.3%', changeColor: 'text-green-600', bg: 'bg-orange-50' },
-                            { label: 'Engagement Rate', value: totals.engagement.toFixed(1) + '%', icon: 'trending_up', change: '+0.5%', changeColor: 'text-green-600', bg: 'bg-pink-50' },
-                            { label: 'Avg Views', value: formatNumber(Math.round(totals.avgViews)), icon: 'visibility', change: '+12%', changeColor: 'text-green-600', bg: 'bg-blue-50' },
-                            { label: 'Revenue', value: '$' + totals.revenue.toLocaleString(), icon: 'payments', change: '+$340', changeColor: 'text-green-600', bg: 'bg-green-50' },
+                            { label: 'Total Followers', value: formatNumber(totals.followers), icon: 'group', change: `${weeklyTotal >= 0 ? '+' : ''}${formatNumber(weeklyTotal)} this week`, changeColor: weeklyTotal > 0 ? 'text-green-600' : 'text-gray-400', bg: 'bg-orange-50' },
+                            { label: 'Engagement Rate', value: totals.engagement.toFixed(1) + '%', icon: 'trending_up', change: `${Object.keys(stats).length} platforms tracked`, changeColor: 'text-blue-600', bg: 'bg-pink-50' },
+                            { label: 'Avg Views', value: formatNumber(Math.round(totals.avgViews)), icon: 'visibility', change: `${topContentData.length} posts with metrics`, changeColor: 'text-indigo-600', bg: 'bg-blue-50' },
+                            { label: 'Revenue', value: '$' + totals.revenue.toLocaleString(), icon: 'payments', change: strongestPlatform ? `${strongestPlatform} leads audience` : 'Add platform stats', changeColor: strongestPlatform ? 'text-green-600' : 'text-gray-400', bg: 'bg-green-50' },
                         ].map((m, i) => (
                             <div key={i} className={`${m.bg} rounded-2xl shadow-notebook border border-gray-100 p-5 relative overflow-hidden hover:-translate-y-1 transition-transform`}>
                                 <div className="absolute top-2 right-2 opacity-10">
@@ -164,11 +178,7 @@ export default function Analytics({ stats: propStats, weeklyGrowth: propWeeklyGr
                                 </div>
                                 <p className="font-note text-sm text-gray-500">{m.label}</p>
                                 <p className="font-handwriting text-3xl font-bold text-gray-800 mt-1">{m.value}</p>
-                                {hasData && (
-                                    <p className={`font-note text-sm mt-2 ${m.changeColor}`}>
-                                        <span className="material-symbols-outlined text-sm align-middle">arrow_upward</span> {m.change}
-                                    </p>
-                                )}
+                                <p className={`font-note text-sm mt-2 ${m.changeColor}`}>{m.change}</p>
                             </div>
                         ))}
                     </div>
@@ -223,7 +233,7 @@ export default function Analytics({ stats: propStats, weeklyGrowth: propWeeklyGr
                             <div className="flex items-end gap-3 h-48 px-2">
                                 {weeklyGrowthData.map((d, i) => (
                                     <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                                        <span className="font-note text-xs text-gray-500">+{d.followers}</span>
+                                        <span className="font-note text-xs text-gray-500">{d.followers > 0 ? '+' : ''}{d.followers}</span>
                                         <div className="w-full bg-gray-100 rounded-t-lg relative overflow-hidden" style={{ height: '160px' }}>
                                             <div
                                                 className="absolute bottom-0 left-0 right-0 bg-primary/70 rounded-t-lg transition-all duration-500"
@@ -237,7 +247,7 @@ export default function Analytics({ stats: propStats, weeklyGrowth: propWeeklyGr
                             <div className="text-center mt-4">
                                 <p className="font-note text-sm text-gray-400">
                                     Total this week: <span className="font-bold text-primary">
-                                        +{weeklyGrowthData.reduce((sum, d) => sum + (d.followers || 0), 0)}
+                                        {weeklyTotal > 0 ? '+' : ''}{weeklyTotal}
                                     </span>
                                 </p>
                             </div>
@@ -263,8 +273,8 @@ export default function Analytics({ stats: propStats, weeklyGrowth: propWeeklyGr
                                                 }`}>{c.platform}</span>
                                             </div>
                                             <div className="text-right shrink-0">
-                                                <p className="font-handwriting text-lg font-bold text-gray-700">{c.views}</p>
-                                                <p className="font-note text-xs text-green-600">{c.engagement} eng.</p>
+                                                <p className="font-handwriting text-lg font-bold text-gray-700">{formatNumber(c.views)}</p>
+                                                <p className="font-note text-xs text-green-600">{c.engagement} interactions</p>
                                             </div>
                                         </div>
                                     ))}
@@ -305,8 +315,9 @@ export default function Analytics({ stats: propStats, weeklyGrowth: propWeeklyGr
                                 </h4>
                                 {hasData ? (
                                     <p className="font-note text-sm text-orange-700 leading-relaxed">
-                                        Your {(Object.entries(stats).sort((a, b) => b[1].followers - a[1].followers)[0]?.[0] || 'platform')} is growing the fastest!
-                                        Consider creating more content for this platform.
+                                        {strongestPlatform
+                                            ? `Audience terbesar kamu saat ini ada di ${strongestPlatform}. Dorong lebih banyak konten dengan format yang sudah terbukti bekerja di sana.`
+                                            : 'Tambahkan data platform untuk melihat insight personal.'}
                                     </p>
                                 ) : (
                                     <p className="font-note text-sm text-orange-700 leading-relaxed">

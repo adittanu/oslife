@@ -53,6 +53,11 @@ class ContentCalendarController extends Controller
             'title' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
             'status' => 'nullable|string|in:planned,draft,published',
+            'views' => 'nullable|integer|min:0',
+            'likes' => 'nullable|integer|min:0',
+            'comments' => 'nullable|integer|min:0',
+            'shares' => 'nullable|integer|min:0',
+            'saves' => 'nullable|integer|min:0',
         ]);
 
         $post = $request->user()->contentPosts()->create($validated);
@@ -71,6 +76,11 @@ class ContentCalendarController extends Controller
             'title' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
             'status' => 'nullable|string|in:planned,draft,published',
+            'views' => 'nullable|integer|min:0',
+            'likes' => 'nullable|integer|min:0',
+            'comments' => 'nullable|integer|min:0',
+            'shares' => 'nullable|integer|min:0',
+            'saves' => 'nullable|integer|min:0',
         ]);
 
         $post->update(array_filter($validated, fn($v) => $v !== null));

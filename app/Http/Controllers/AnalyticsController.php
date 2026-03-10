@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\PlatformStat;
+use App\Models\PlatformStatSnapshot;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -13,16 +15,16 @@ class AnalyticsController extends Controller
         $user = $request->user();
 
         $stats = $user
-            ? $user->platformStats()->get()->keyBy('platform')
-            : collect();
+            ? $user->platformStats()->get()->keyBy('platform')->map->toArray()
+            : [];
 
         $weeklyGrowth = $user
             ? $this->getWeeklyGrowth($user->id)
-            : collect();
+            : $this->emptyWeeklyGrowth();
 
         $topContent = $user
             ? $this->getTopContent($user->id)
-            : collect();
+            : [];
 
         return Inertia::render('Creator/Analytics', [
             'stats' => $stats,
@@ -46,7 +48,26 @@ class AnalyticsController extends Controller
             array_merge($validated, ['date_recorded' => now()])
         );
 
-        return response()->json(['status' => 'ok', 'stat' => $stat]);
+        PlatformStatSnapshot::updateOrCreate(
+            [
+                'user_id' => $request->user()->id,
+                'platform' => $validated['platform'],
+                'recorded_on' => now()->toDateString(),
+            ],
+            [
+                'followers' => $validated['followers'] ?? 0,
+                'engagement_rate' => $validated['engagement_rate'] ?? 0,
+                'avg_views' => $validated['avg_views'] ?? 0,
+                'revenue' => $validated['revenue'] ?? 0,
+            ]
+        );
+
+        return response()->json([
+            'status' => 'ok',
+            'stat' => $stat->fresh(),
+            'weeklyGrowth' => $this->getWeeklyGrowth($request->user()->id),
+            'topContent' => $this->getTopContent($request->user()->id),
+        ]);
     }
 
     public function update(Request $request, PlatformStat $stat)
@@ -62,28 +83,107 @@ class AnalyticsController extends Controller
 
         $stat->update(array_filter($validated, fn($v) => $v !== null));
 
-        return response()->json(['status' => 'ok', 'stat' => $stat]);
+        PlatformStatSnapshot::updateOrCreate(
+            [
+                'user_id' => $stat->user_id,
+                'platform' => $stat->platform,
+                'recorded_on' => now()->toDateString(),
+            ],
+            [
+                'followers' => $validated['followers'] ?? $stat->followers,
+                'engagement_rate' => $validated['engagement_rate'] ?? $stat->engagement_rate,
+                'avg_views' => $validated['avg_views'] ?? $stat->avg_views,
+                'revenue' => $validated['revenue'] ?? $stat->revenue,
+            ]
+        );
+
+        return response()->json([
+            'status' => 'ok',
+            'stat' => $stat->fresh(),
+            'weeklyGrowth' => $this->getWeeklyGrowth($stat->user_id),
+            'topContent' => $this->getTopContent($stat->user_id),
+        ]);
     }
 
-    private function getWeeklyGrowth($userId)
+    private function emptyWeeklyGrowth(): array
     {
-        // This would normally come from a separate table with historical data
-        // For now, return a default structure
-        return [
-            ['day' => 'Mon', 'followers' => 0],
-            ['day' => 'Tue', 'followers' => 0],
-            ['day' => 'Wed', 'followers' => 0],
-            ['day' => 'Thu', 'followers' => 0],
-            ['day' => 'Fri', 'followers' => 0],
-            ['day' => 'Sat', 'followers' => 0],
-            ['day' => 'Sun', 'followers' => 0],
-        ];
+        return collect(range(6, 0))->map(function ($offset) {
+            $date = now()->subDays($offset);
+
+            return [
+                'day' => $date->format('D'),
+                'followers' => 0,
+                'height' => '0%',
+            ];
+        })->all();
     }
 
-    private function getTopContent($userId)
+    private function getWeeklyGrowth($userId): array
     {
-        // This would normally come from a content_posts table aggregated by performance
-        // For now, return empty
-        return [];
+        $days = collect(range(6, 0))->map(fn ($offset) => now()->subDays($offset)->startOfDay());
+        $snapshots = PlatformStatSnapshot::where('user_id', $userId)
+            ->whereDate('recorded_on', '<=', now()->toDateString())
+            ->orderBy('recorded_on')
+            ->get()
+            ->groupBy('platform');
+
+        $growth = $days->map(function (Carbon $date) use ($snapshots) {
+            $followers = $snapshots->sum(function ($platformSnapshots) use ($date) {
+                $current = $platformSnapshots->first(fn ($snapshot) => $snapshot->recorded_on->isSameDay($date));
+                $previous = $platformSnapshots
+                    ->filter(fn ($snapshot) => $snapshot->recorded_on->lt($date))
+                    ->sortByDesc('recorded_on')
+                    ->first();
+
+                if (! $current || ! $previous) {
+                    return 0;
+                }
+
+                return max(0, (int) $current->followers - (int) $previous->followers);
+            });
+
+            return [
+                'day' => $date->format('D'),
+                'followers' => $followers,
+            ];
+        });
+
+        $maxFollowers = max(1, (int) $growth->max('followers'));
+
+        return $growth->map(fn ($item) => [
+            ...$item,
+            'height' => round(($item['followers'] / $maxFollowers) * 100).'%',
+        ])->all();
+    }
+
+    private function getTopContent($userId): array
+    {
+        return \App\Models\ContentPost::where('user_id', $userId)
+            ->where('status', 'published')
+            ->get()
+            ->map(function ($post) {
+                $engagement = (int) $post->likes + (int) $post->comments + (int) $post->shares + (int) $post->saves;
+
+                return [
+                    'id' => $post->id,
+                    'title' => $post->title ?: $post->type.' on '.ucfirst($post->platform),
+                    'platform' => $post->platform,
+                    'views' => (int) $post->views,
+                    'engagement' => $engagement,
+                    'score' => ((int) $post->views * 0.2) + ($engagement * 5),
+                ];
+            })
+            ->filter(fn ($post) => $post['views'] > 0 || $post['engagement'] > 0)
+            ->sortByDesc('score')
+            ->take(5)
+            ->values()
+            ->map(fn ($post) => [
+                'id' => $post['id'],
+                'title' => $post['title'],
+                'platform' => $post['platform'],
+                'views' => $post['views'],
+                'engagement' => $post['engagement'],
+            ])
+            ->all();
     }
 }

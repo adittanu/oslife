@@ -18,10 +18,20 @@ class ContentPost extends Model
         'title',
         'notes',
         'status',
+        'views',
+        'likes',
+        'comments',
+        'shares',
+        'saves',
     ];
 
     protected $casts = [
         'post_date' => 'date',
+        'views' => 'integer',
+        'likes' => 'integer',
+        'comments' => 'integer',
+        'shares' => 'integer',
+        'saves' => 'integer',
     ];
 
     public function user(): BelongsTo
