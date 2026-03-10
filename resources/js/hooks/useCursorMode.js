@@ -12,7 +12,7 @@ import { usePage } from '@inertiajs/react';
  * - work: Blue (#3B82F6)
  */
 export function useCursorMode(mode = null) {
-    const { url } = usePage().props;
+    const { url } = usePage();
 
     useEffect(() => {
         // Detect mode from URL or use provided mode

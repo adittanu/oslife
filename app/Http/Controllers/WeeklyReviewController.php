@@ -45,6 +45,7 @@ class WeeklyReviewController extends Controller
             'lessons' => 'nullable|string',
             'priorities' => 'nullable|array',
             'scores' => 'nullable|array',
+            'gratitude' => 'nullable|string',
         ]);
 
         $review = $request->user()->weeklyReviews()->create($data);
@@ -63,6 +64,7 @@ class WeeklyReviewController extends Controller
             'lessons' => 'nullable|string',
             'priorities' => 'nullable|array',
             'scores' => 'nullable|array',
+            'gratitude' => 'nullable|string',
         ]);
 
         $review->update($data);

@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { router } from '@inertiajs/react';
 import axios from 'axios';
 import JournalLayout from '@/Layouts/JournalLayout';
 

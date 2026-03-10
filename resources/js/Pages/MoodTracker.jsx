@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { router } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 import axios from 'axios';
 import JournalLayout from '@/Layouts/JournalLayout';
 
@@ -14,35 +14,53 @@ const MOOD_OPTIONS = [
 const MOOD_TAGS = ['Work', 'Family', 'Health', 'Weather', 'Social', 'Exercise', 'Sleep', 'Food'];
 
 export default function MoodTracker({ moods: propMoods, todayMood: propTodayMood }) {
+    const { auth } = usePage().props;
+    const isAuth = !!auth?.user;
     const [moods, setMoods] = useState(propMoods || []);
-    const [todayMood, setTodayMood] = useState(propTodayMood);
+    const [todayMood, setTodayMood] = useState(propTodayMood || null);
     const [selectedMood, setSelectedMood] = useState(null);
-    const [moodNote, setMoodNote] = useState('');
     const [selectedTags, setSelectedTags] = useState([]);
     const [journalEntry, setJournalEntry] = useState('');
-    const saveRef = useRef(null);
 
     const today = new Date().toISOString().split('T')[0];
     const weekDays = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 
     useEffect(() => {
         setMoods(propMoods || []);
+        setTodayMood(propTodayMood || null);
         if (propTodayMood) {
             setSelectedMood(propTodayMood.mood_level);
-            setMoodNote(propTodayMood.note || '');
             setSelectedTags(propTodayMood.tags || []);
+            setJournalEntry(propTodayMood.note || '');
+        } else {
+            setSelectedMood(null);
+            setSelectedTags([]);
+            setJournalEntry('');
         }
     }, [propMoods, propTodayMood]);
 
     const autoSave = useRef(null);
-    const triggerAutoSave = (data) => {
+    const upsertMoodInWeek = (entry) => {
+        setMoods((prev) => {
+            const next = [...prev.filter((item) => item.date !== entry.date), entry];
+            next.sort((a, b) => a.date.localeCompare(b.date));
+            return next;
+        });
+    };
+
+    const triggerAutoSave = (overrides = {}) => {
+        if (!isAuth) return;
+
         clearTimeout(autoSave.current);
         autoSave.current = setTimeout(() => {
             axios.post('/api/mood', {
                 date: today,
-                mood_level: selectedMood || 3,
-                note: moodNote,
-                tags: selectedTags,
+                mood_level: overrides.mood_level ?? selectedMood ?? todayMood?.mood_level ?? 3,
+                note: overrides.note ?? journalEntry,
+                tags: overrides.tags ?? selectedTags,
+            }).then(({ data }) => {
+                setTodayMood(data);
+                upsertMoodInWeek(data);
             });
         }, 1000);
     };
@@ -60,13 +78,10 @@ export default function MoodTracker({ moods: propMoods, todayMood: propTodayMood
         triggerAutoSave({ tags: updated });
     };
 
-    const handleNoteChange = (e) => {
-        setMoodNote(e.target.value);
-        triggerAutoSave({ note: e.target.value });
-    };
-
     const handleJournalChange = (e) => {
-        setJournalEntry(e.target.value);
+        const nextValue = e.target.value;
+        setJournalEntry(nextValue);
+        triggerAutoSave({ note: nextValue });
     };
 
     // Build week log from moods
@@ -117,7 +132,8 @@ export default function MoodTracker({ moods: propMoods, todayMood: propTodayMood
                                     onClick={() => handleMoodSelect(m.value)}
                                     className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all hover:scale-110 cursor-pointer ${
                                         selectedMood === m.value ? 'border-primary bg-primary/5 scale-105' : 'border-transparent hover:border-gray-200'
-                                    }`}
+                                    } ${!isAuth ? 'opacity-60' : ''}`}
+                                    disabled={!isAuth}
                                 >
                                     <span className={`material-symbols-outlined text-4xl ${m.color}`}>{m.emoji}</span>
                                     <span className="font-note text-xs text-gray-500">{m.label}</span>
@@ -136,7 +152,8 @@ export default function MoodTracker({ moods: propMoods, todayMood: propTodayMood
                                             selectedTags.includes(tag)
                                                 ? 'bg-primary/10 text-primary'
                                                 : 'bg-white border border-gray-200 text-gray-500 hover:border-primary/50'
-                                        }`}
+                                        } ${!isAuth ? 'opacity-60' : ''}`}
+                                        disabled={!isAuth}
                                     >
                                         {tag}
                                     </button>
@@ -151,6 +168,7 @@ export default function MoodTracker({ moods: propMoods, todayMood: propTodayMood
                                 placeholder="Write about your day..."
                                 value={journalEntry}
                                 onChange={handleJournalChange}
+                                disabled={!isAuth}
                             ></textarea>
                         </div>
                     </div>

@@ -100,6 +100,11 @@ class User extends Authenticatable
         return $this->hasMany(HabitDefinition::class);
     }
 
+    public function habitMonthlyReflections(): HasMany
+    {
+        return $this->hasMany(HabitMonthlyReflection::class);
+    }
+
     public function notes(): HasMany
     {
         return $this->hasMany(Note::class);

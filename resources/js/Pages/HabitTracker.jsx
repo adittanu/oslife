@@ -39,6 +39,7 @@ export default function HabitTracker({
     daysInMonth = 31,
     definitions: initialDefinitions = [],
     logs: initialLogs = {},
+    reflection: initialReflection = '',
     today = new Date().toISOString().slice(0, 10),
 }) {
     const { auth } = usePage().props;
@@ -48,8 +49,14 @@ export default function HabitTracker({
     const [logs, setLogs] = useState(initialLogs);
     const [showAddForm, setShowAddForm] = useState(false);
     const [newHabit, setNewHabit] = useState({ name: '', icon: 'water_drop', color: 'blue' });
-    const [reflection, setReflection] = useState('');
+    const [reflection, setReflection] = useState(initialReflection || '');
     const reflectionTimer = useRef(null);
+
+    useEffect(() => {
+        setReflection(initialReflection || '');
+    }, [initialReflection]);
+
+    useEffect(() => () => clearTimeout(reflectionTimer.current), []);
 
     const todayDay = useMemo(() => {
         const todayDate = new Date(today);
@@ -146,6 +153,18 @@ export default function HabitTracker({
             // silently fail
         }
     }, [isLoggedIn]);
+
+    const saveReflection = useCallback((content) => {
+        if (!isLoggedIn) return;
+
+        clearTimeout(reflectionTimer.current);
+        reflectionTimer.current = setTimeout(() => {
+            axios.post('/api/habits/reflection', {
+                month,
+                content,
+            });
+        }, 1000);
+    }, [isLoggedIn, month]);
 
     // Calculate insights
     const insights = useMemo(() => {
@@ -448,7 +467,11 @@ export default function HabitTracker({
                         <div className="relative w-full flex-1 min-h-[200px] bg-transparent p-4 transform group transition-transform">
                             <textarea
                                 value={reflection}
-                                onChange={e => setReflection(e.target.value)}
+                                onChange={(e) => {
+                                    const nextValue = e.target.value;
+                                    setReflection(nextValue);
+                                    saveReflection(nextValue);
+                                }}
                                 className="w-full h-full bg-transparent border-none outline-none resize-none font-note text-2xl text-gray-800 leading-[2.5rem] focus:ring-0 custom-scrollbar"
                                 placeholder="Thoughts on progress this month..."
                             ></textarea>

@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { router } from '@inertiajs/react';
 import axios from 'axios';
 import JournalLayout from '@/Layouts/JournalLayout';
 
@@ -7,16 +6,21 @@ export default function FocusTimer({ todaySessions: propSessions, stats: propSta
     const [mode, setMode] = useState('focus');
     const [timeLeft, setTimeLeft] = useState(25 * 60);
     const [isRunning, setIsRunning] = useState(false);
-    const [sessions, setSessions] = useState(propStats?.total_sessions || 0);
+    const [stats, setStats] = useState(propStats || {
+        total_sessions: 0,
+        total_minutes: 0,
+        tasks_completed: 0,
+        streak: 0,
+    });
     const [tasks, setTasks] = useState([]);
     const [newTask, setNewTask] = useState('');
     const [activeSession, setActiveSession] = useState(null);
     const intervalRef = useRef(null);
 
     const modes = {
-        focus: { label: 'Focus', duration: 25 * 60, color: 'primary', icon: 'local_fire_department' },
-        short: { label: 'Short Break', duration: 5 * 60, color: 'green-500', icon: 'coffee' },
-        long: { label: 'Long Break', duration: 15 * 60, color: 'blue-500', icon: 'self_improvement' },
+        focus: { label: 'Focus', duration: 25, color: 'primary', icon: 'local_fire_department' },
+        short: { label: 'Short Break', duration: 5, color: 'green-500', icon: 'coffee' },
+        long: { label: 'Long Break', duration: 15, color: 'blue-500', icon: 'self_improvement' },
     };
 
     useEffect(() => {
@@ -32,18 +36,14 @@ export default function FocusTimer({ todaySessions: propSessions, stats: propSta
         return () => clearInterval(intervalRef.current);
     }, [isRunning, timeLeft]);
 
-    useEffect(() => {
-        setSessions(propStats?.total_sessions || 0);
-    }, [propStats]);
-
     const switchMode = (newMode) => {
         setMode(newMode);
-        setTimeLeft(modes[newMode].duration);
+        setTimeLeft(modes[newMode].duration * 60);
         setIsRunning(false);
     };
 
     const resetTimer = () => {
-        setTimeLeft(modes[mode].duration);
+        setTimeLeft(modes[mode].duration * 60);
         setIsRunning(false);
     };
 
@@ -53,9 +53,10 @@ export default function FocusTimer({ todaySessions: propSessions, stats: propSta
                 date: new Date().toISOString().split('T')[0],
                 duration: modes[mode].duration,
                 mode: mode,
-                tasks: tasks.map(t => ({ text: t, done: false })),
+                tasks: tasks.map(t => (typeof t === 'string' ? { text: t, done: false } : t)),
             });
             setActiveSession(res.data);
+            setTasks(res.data.tasks || tasks);
         } catch (e) {
             console.error('Failed to start session', e);
         }
@@ -66,12 +67,16 @@ export default function FocusTimer({ todaySessions: propSessions, stats: propSta
         if (activeSession?.id) {
             try {
                 await axios.patch(`/api/focus/sessions/${activeSession.id}`, { completed: true });
-                setSessions(s => s + 1);
+                setStats((prev) => ({
+                    ...prev,
+                    total_sessions: (prev.total_sessions || 0) + 1,
+                    total_minutes: (prev.total_minutes || 0) + (activeSession.duration || 0),
+                }));
             } catch (e) {
                 console.error('Failed to complete session', e);
             }
         }
-        setTimeLeft(modes[mode].duration);
+        setTimeLeft(modes[mode].duration * 60);
     };
 
     const addTask = async () => {
@@ -93,7 +98,16 @@ export default function FocusTimer({ todaySessions: propSessions, stats: propSta
 
     const minutes = Math.floor(timeLeft / 60);
     const seconds = timeLeft % 60;
-    const progress = ((modes[mode].duration - timeLeft) / modes[mode].duration) * 100;
+    useEffect(() => {
+        setStats(propStats || {
+            total_sessions: 0,
+            total_minutes: 0,
+            tasks_completed: 0,
+            streak: 0,
+        });
+    }, [propStats]);
+
+    const progress = (((modes[mode].duration * 60) - timeLeft) / (modes[mode].duration * 60)) * 100;
 
     return (
         <JournalLayout
@@ -181,9 +195,9 @@ export default function FocusTimer({ todaySessions: propSessions, stats: propSta
                         {/* Session dots */}
                         <div className="flex gap-2 mt-6">
                             {[...Array(4)].map((_, i) => (
-                                <div key={i} className={`w-3 h-3 rounded-full ${i < sessions % 4 ? 'bg-primary' : 'bg-gray-200'}`}></div>
+                                <div key={i} className={`w-3 h-3 rounded-full ${i < (stats.total_sessions || 0) % 4 ? 'bg-primary' : 'bg-gray-200'}`}></div>
                             ))}
-                            <span className="font-note text-xs text-gray-400 ml-2">{sessions} sessions today</span>
+                            <span className="font-note text-xs text-gray-400 ml-2">{stats.total_sessions || 0} sessions today</span>
                         </div>
                     </div>
 
@@ -220,11 +234,11 @@ export default function FocusTimer({ todaySessions: propSessions, stats: propSta
                         <h3 className="font-handwriting text-2xl font-bold text-gray-700 mb-4">Today's Stats</h3>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="bg-sticky-pink p-4 rounded-xl shadow-sm text-center">
-                                <span className="font-handwriting text-3xl font-bold text-gray-800">{propStats?.total_sessions || 0}</span>
+                                <span className="font-handwriting text-3xl font-bold text-gray-800">{stats.total_sessions || 0}</span>
                                 <p className="font-note text-sm text-gray-500">Sessions</p>
                             </div>
                             <div className="bg-sticky-blue p-4 rounded-xl shadow-sm text-center">
-                                <span className="font-handwriting text-3xl font-bold text-gray-800">{propStats?.total_minutes || 0}m</span>
+                                <span className="font-handwriting text-3xl font-bold text-gray-800">{stats.total_minutes || 0}m</span>
                                 <p className="font-note text-sm text-gray-500">Focus Time</p>
                             </div>
                             <div className="bg-sticky-green p-4 rounded-xl shadow-sm text-center">
@@ -233,7 +247,7 @@ export default function FocusTimer({ todaySessions: propSessions, stats: propSta
                             </div>
                             <div className="bg-sticky-yellow p-4 rounded-xl shadow-sm text-center">
                                 <span className="font-handwriting text-3xl font-bold text-gray-800">🔥</span>
-                                <p className="font-note text-sm text-gray-500">{propStats?.streak || 0} Day Streak</p>
+                                <p className="font-note text-sm text-gray-500">{stats.streak || 0} Day Streak</p>
                             </div>
                         </div>
 

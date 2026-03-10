@@ -12,6 +12,14 @@ use Inertia\Inertia;
 
 class DailySpreadController extends Controller
 {
+    private const MOOD_LEVEL_MAP = [
+        'happy' => 5,
+        'optimistic' => 4,
+        'neutral' => 3,
+        'sad' => 2,
+        'stressed' => 1,
+    ];
+
     public function index(Request $request)
     {
         $date = $request->query('date', now()->format('Y-m-d'));
@@ -117,7 +125,11 @@ class DailySpreadController extends Controller
         $user = $request->user();
         $user->moodEntries()->updateOrCreate(
             ['date' => $validated['date']],
-            ['mood' => $validated['mood'], 'icon' => $validated['icon']],
+            [
+                'mood' => $validated['mood'],
+                'icon' => $validated['icon'],
+                'mood_level' => self::MOOD_LEVEL_MAP[$validated['mood']] ?? null,
+            ],
         );
 
         return response()->json(['status' => 'ok']);

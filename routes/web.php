@@ -120,6 +120,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/api/habits/definitions', [HabitTrackerController::class, 'storeDefinition']);
     Route::patch('/api/habits/definitions/{id}', [HabitTrackerController::class, 'updateDefinition']);
     Route::post('/api/habits/toggle', [HabitTrackerController::class, 'toggleLog']);
+    Route::post('/api/habits/reflection', [HabitTrackerController::class, 'saveReflection']);
 
     Route::post('/api/daily-spread/schedule', [DailySpreadController::class, 'saveSchedule']);
     Route::post('/api/daily-spread/priorities', [DailySpreadController::class, 'savePriorities']);

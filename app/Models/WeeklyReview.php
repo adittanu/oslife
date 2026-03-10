@@ -9,7 +9,7 @@ class WeeklyReview extends Model
 {
     protected $fillable = [
         'user_id', 'week_start', 'week_end', 'wins', 'challenges',
-        'lessons', 'priorities', 'scores'
+        'lessons', 'priorities', 'scores', 'gratitude'
     ];
 
     protected function casts(): array

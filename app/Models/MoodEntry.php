@@ -7,12 +7,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MoodEntry extends Model
 {
-    protected $fillable = ['user_id', 'date', 'mood', 'icon'];
+    protected $fillable = ['user_id', 'date', 'mood', 'icon', 'mood_level', 'note', 'tags'];
 
     protected function casts(): array
     {
         return [
             'date' => 'date:Y-m-d',
+            'mood_level' => 'integer',
+            'tags' => 'array',
         ];
     }
 

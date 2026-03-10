@@ -26,12 +26,13 @@ class IdeaDumpController extends Controller
     {
         $data = $request->validate([
             'title' => 'required|string|max:255',
-            'content' => 'required|string',
+            'content' => 'nullable|string',
             'type' => 'nullable|string|max:50',
             'tags' => 'nullable|array',
             'color' => 'nullable|string',
         ]);
 
+        $data['content'] = $data['content'] ?? '';
         $idea = $request->user()->ideas()->create($data);
         return response()->json($idea);
     }
@@ -42,11 +43,15 @@ class IdeaDumpController extends Controller
 
         $data = $request->validate([
             'title' => 'sometimes|string|max:255',
-            'content' => 'sometimes|string',
+            'content' => 'nullable|string',
             'type' => 'nullable|string|max:50',
             'tags' => 'nullable|array',
             'color' => 'sometimes|string',
         ]);
+
+        if (array_key_exists('content', $data) && $data['content'] === null) {
+            $data['content'] = '';
+        }
 
         $idea->update($data);
         return response()->json($idea);

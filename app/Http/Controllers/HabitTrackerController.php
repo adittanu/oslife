@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\HabitDefinition;
-use App\Models\HabitLog;
+use App\Models\HabitMonthlyReflection;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -26,6 +26,7 @@ class HabitTrackerController extends Controller
 
         $definitions = [];
         $logs = [];
+        $reflection = null;
 
         if ($user) {
             // Auto-create defaults on first visit
@@ -50,6 +51,10 @@ class HabitTrackerController extends Controller
                 ->groupBy('habit_name')
                 ->map(fn($items) => $items->keyBy(fn($i) => Carbon::parse($i->date)->day))
                 ->toArray();
+
+            $reflection = $user->habitMonthlyReflections()
+                ->where('month', $month)
+                ->value('content');
         }
 
         return Inertia::render('HabitTracker', [
@@ -59,6 +64,7 @@ class HabitTrackerController extends Controller
             'daysInMonth' => $endOfMonth->day,
             'definitions' => $definitions,
             'logs' => $logs,
+            'reflection' => $reflection,
             'today' => now()->format('Y-m-d'),
         ]);
     }
@@ -123,5 +129,20 @@ class HabitTrackerController extends Controller
         ]);
 
         return response()->json(['status' => 'added']);
+    }
+
+    public function saveReflection(Request $request)
+    {
+        $validated = $request->validate([
+            'month' => ['required', 'date_format:Y-m'],
+            'content' => 'nullable|string',
+        ]);
+
+        $reflection = $request->user()->habitMonthlyReflections()->updateOrCreate(
+            ['month' => $validated['month']],
+            ['content' => $validated['content'] ?? ''],
+        );
+
+        return response()->json($reflection);
     }
 }

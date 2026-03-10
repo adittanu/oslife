@@ -23,6 +23,14 @@ export default function WeeklyReview({ currentReview: propCurrent, pastReviews: 
             setLessons(propCurrent.lessons || '');
             setPriorities(propCurrent.priorities || []);
             setScores(propCurrent.scores || {});
+            setGratitude(propCurrent.gratitude || '');
+        } else {
+            setWins([]);
+            setChallenges([]);
+            setLessons('');
+            setPriorities([]);
+            setScores({});
+            setGratitude('');
         }
     }, [propCurrent]);
 
@@ -44,6 +52,7 @@ export default function WeeklyReview({ currentReview: propCurrent, pastReviews: 
                     lessons,
                     priorities,
                     scores,
+                    gratitude,
                 });
                 setCurrentReview(res.data);
             } else {
@@ -55,6 +64,7 @@ export default function WeeklyReview({ currentReview: propCurrent, pastReviews: 
                     lessons,
                     priorities,
                     scores,
+                    gratitude,
                 });
                 setCurrentReview(res.data);
             }

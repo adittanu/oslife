@@ -26,11 +26,12 @@ class NotesController extends Controller
     {
         $data = $request->validate([
             'title' => 'required|string|max:255',
-            'content' => 'required|string',
+            'content' => 'nullable|string',
             'tags' => 'nullable|array',
             'color' => 'nullable|string',
         ]);
 
+        $data['content'] = $data['content'] ?? '';
         $note = $request->user()->notes()->create($data);
         return response()->json($note);
     }
@@ -41,10 +42,14 @@ class NotesController extends Controller
 
         $data = $request->validate([
             'title' => 'sometimes|string|max:255',
-            'content' => 'sometimes|string',
+            'content' => 'nullable|string',
             'tags' => 'nullable|array',
             'color' => 'sometimes|string',
         ]);
+
+        if (array_key_exists('content', $data) && $data['content'] === null) {
+            $data['content'] = '';
+        }
 
         $note->update($data);
         return response()->json($note);
