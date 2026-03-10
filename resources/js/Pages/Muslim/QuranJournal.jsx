@@ -1,12 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 import JournalLayout from '@/Layouts/JournalLayout';
-import { router } from '@inertiajs/react';
+import axios from 'axios';
 
 export default function QuranJournal({ readingLogs: initialReadingLogs, hifzProgress: initialHifzProgress, tadabburNotes: initialTadabburNotes, stats }) {
     // State for each section
     const [readingLogs, setReadingLogs] = useState(initialReadingLogs || []);
     const [hifzProgress, setHifzProgress] = useState(initialHifzProgress || []);
     const [tadabburNotes, setTadabburNotes] = useState(initialTadabburNotes || []);
+
+    useEffect(() => {
+        setReadingLogs(initialReadingLogs || []);
+    }, [initialReadingLogs]);
+
+    useEffect(() => {
+        setHifzProgress(initialHifzProgress || []);
+    }, [initialHifzProgress]);
+
+    useEffect(() => {
+        setTadabburNotes(initialTadabburNotes || []);
+    }, [initialTadabburNotes]);
 
     // Form states
     const [newReadingLog, setNewReadingLog] = useState({
@@ -34,10 +46,6 @@ export default function QuranJournal({ readingLogs: initialReadingLogs, hifzProg
     });
 
     // Auto-save debounce refs
-    const readingLogTimeoutRef = useRef(null);
-    const hifzTimeoutRef = useRef(null);
-    const tadabburTimeoutRef = useRef(null);
-
     // Calculate progress stats
     const totalJuz = stats?.juz || readingLogs.reduce((max, log) => Math.max(max, log.juz), 0);
     const totalPages = stats?.pages || readingLogs.reduce((sum, log) => sum + (log.pages || 0), 0);
@@ -56,10 +64,8 @@ export default function QuranJournal({ readingLogs: initialReadingLogs, hifzProg
     const saveReadingLog = () => {
         if (!newReadingLog.juz || !newReadingLog.surah) return;
 
-        router.post('/api/muslim/quran-journal/reading-log', newReadingLog, {
-            preserveScroll: true,
-            onSuccess: () => {
-                setReadingLogs([...readingLogs, { ...newReadingLog, id: Date.now() }]);
+        axios.post('/api/muslim/quran-journal/reading-log', newReadingLog).then(({ data }) => {
+                setReadingLogs((prev) => [data, ...prev]);
                 setNewReadingLog({
                     date: new Date().toISOString().split('T')[0],
                     juz: '',
@@ -68,7 +74,6 @@ export default function QuranJournal({ readingLogs: initialReadingLogs, hifzProg
                     ayat_end: '',
                     pages: '',
                 });
-            },
         });
     };
 
@@ -76,28 +81,31 @@ export default function QuranJournal({ readingLogs: initialReadingLogs, hifzProg
     const saveHifz = () => {
         if (!newHifz.surah || !newHifz.total_ayat) return;
 
-        router.post('/api/muslim/quran-journal/hifz', {
+        axios.post('/api/muslim/quran-journal/hifz', {
             ...newHifz,
             total_ayat: parseInt(newHifz.total_ayat),
             memorized: parseInt(newHifz.memorized) || 0,
-        }, {
-            preserveScroll: true,
-            onSuccess: () => {
-                setHifzProgress([...hifzProgress, { ...newHifz, id: Date.now() }]);
+        }).then(({ data }) => {
+                setHifzProgress((prev) => {
+                    const exists = prev.some((item) => item.id === data.id || item.surah === data.surah);
+                    if (exists) {
+                        return prev.map((item) => item.id === data.id || item.surah === data.surah ? data : item);
+                    }
+                    return [...prev, data];
+                });
                 setNewHifz({
                     surah: '',
                     total_ayat: '',
                     memorized: 0,
                     status: 'not-started',
                 });
-            },
         });
     };
 
     // Update hifz status
     const updateHifzStatus = (id, memorized, status) => {
-        router.patch(`/api/muslim/quran-journal/hifz/${id}`, { memorized, status }, {
-            preserveScroll: true,
+        axios.patch(`/api/muslim/quran-journal/hifz/${id}`, { memorized, status }).then(({ data }) => {
+            setHifzProgress((prev) => prev.map((item) => item.id === id ? data : item));
         });
     };
 
@@ -105,10 +113,8 @@ export default function QuranJournal({ readingLogs: initialReadingLogs, hifzProg
     const saveTadabbur = () => {
         if (!newTadabbur.surah || !newTadabbur.ayat) return;
 
-        router.post('/api/muslim/quran-journal/tadabbur', newTadabbur, {
-            preserveScroll: true,
-            onSuccess: () => {
-                setTadabburNotes([...tadabburNotes, { ...newTadabbur, id: Date.now() }]);
+        axios.post('/api/muslim/quran-journal/tadabbur', newTadabbur).then(({ data }) => {
+                setTadabburNotes((prev) => [data, ...prev]);
                 setNewTadabbur({
                     surah: '',
                     ayat: '',
@@ -116,17 +122,13 @@ export default function QuranJournal({ readingLogs: initialReadingLogs, hifzProg
                     reflection: '',
                     color: 'bg-blue-50',
                 });
-            },
         });
     };
 
     // Delete tadabbur note
     const deleteTadabbur = (id) => {
-        router.delete(`/api/muslim/quran-journal/tadabbur/${id}`, {
-            preserveScroll: true,
-            onSuccess: () => {
-                setTadabburNotes(tadabburNotes.filter(note => note.id !== id));
-            },
+        axios.delete(`/api/muslim/quran-journal/tadabbur/${id}`).then(() => {
+            setTadabburNotes((prev) => prev.filter((note) => note.id !== id));
         });
     };
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Muslim;
 use App\Http\Controllers\Controller;
 use App\Models\RamadanLog;
 use App\Models\RamadanGoal;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class RamadanPlannerController extends Controller
@@ -13,12 +14,37 @@ class RamadanPlannerController extends Controller
     {
         $user = $request->user();
         $currentYear = now()->year;
+        $monthBase = now()->startOfMonth();
+
+        if (! $user) {
+            return inertia('Muslim/RamadanPlanner', [
+                'logs' => [],
+                'goals' => [],
+                'stats' => [
+                    'totalDays' => 0,
+                    'completeFast' => 0,
+                    'totalQuran' => 0,
+                    'totalTarawih' => 0,
+                ],
+                'currentYear' => $currentYear,
+                'monthBase' => $monthBase->format('Y-m'),
+            ]);
+        }
 
         // Get ramadan logs
         $logs = RamadanLog::where('user_id', $user->id)
             ->orderBy('date', 'desc')
             ->get()
-            ->keyBy('date');
+            ->keyBy(fn ($log) => $log->date->day)
+            ->map(fn ($log) => [
+                'id' => $log->id,
+                'date' => $log->date->format('Y-m-d'),
+                'sahur' => $log->sahur,
+                'iftar' => $log->iftar,
+                'tarawih' => $log->tarawih,
+                'quran_pages' => $log->quran_pages,
+                'reflection' => $log->reflection,
+            ]);
 
         // Get ramadan goals
         $goals = RamadanGoal::where('user_id', $user->id)
@@ -41,6 +67,7 @@ class RamadanPlannerController extends Controller
                 'totalTarawih' => $totalTarawih,
             ],
             'currentYear' => $currentYear,
+            'monthBase' => $monthBase->format('Y-m'),
         ]);
     }
 
@@ -55,7 +82,7 @@ class RamadanPlannerController extends Controller
             'reflection' => 'nullable|string',
         ]);
 
-        RamadanLog::updateOrCreate(
+        $log = RamadanLog::updateOrCreate(
             [
                 'user_id' => $request->user()->id,
                 'date' => $validated['date'],
@@ -63,7 +90,7 @@ class RamadanPlannerController extends Controller
             $validated
         );
 
-        return back();
+        return response()->json($log);
     }
 
     public function saveGoal(Request $request)
@@ -75,7 +102,7 @@ class RamadanPlannerController extends Controller
             'ramadan_year' => 'required|integer',
         ]);
 
-        RamadanGoal::updateOrCreate(
+        $goal = RamadanGoal::updateOrCreate(
             [
                 'user_id' => $request->user()->id,
                 'goal_type' => $validated['goal_type'],
@@ -84,7 +111,7 @@ class RamadanPlannerController extends Controller
             $validated
         );
 
-        return back();
+        return response()->json($goal);
     }
 
     public function updateGoalProgress(Request $request, $id)
@@ -97,6 +124,6 @@ class RamadanPlannerController extends Controller
 
         $goal->update($validated);
 
-        return back();
+        return response()->json($goal->fresh());
     }
 }

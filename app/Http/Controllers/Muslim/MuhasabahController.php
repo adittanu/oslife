@@ -13,6 +13,19 @@ class MuhasabahController extends Controller
         $user = $request->user();
         $today = now()->toDateString();
 
+        if (! $user) {
+            return inertia('Muslim/Muhasabah', [
+                'todayEntry' => null,
+                'recentEntries' => [],
+                'weeklyMoods' => [],
+                'stats' => [
+                    'totalEntries' => 0,
+                    'streak' => 0,
+                    'moodCounts' => [],
+                ],
+            ]);
+        }
+
         // Get today's entry
         $todayEntry = MuhasabahEntry::where('user_id', $user->id)
             ->where('date', $today)
@@ -63,7 +76,7 @@ class MuhasabahController extends Controller
             'mood' => 'nullable|in:happy,grateful,neutral,sad,anxious,peaceful',
         ]);
 
-        MuhasabahEntry::updateOrCreate(
+        $entry = MuhasabahEntry::updateOrCreate(
             [
                 'user_id' => $request->user()->id,
                 'date' => $validated['date'],
@@ -71,7 +84,7 @@ class MuhasabahController extends Controller
             $validated
         );
 
-        return back();
+        return response()->json($entry);
     }
 
     private function calculateStreak($userId)

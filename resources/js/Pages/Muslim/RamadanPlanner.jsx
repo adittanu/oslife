@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import JournalLayout from '@/Layouts/JournalLayout';
-import { router } from '@inertiajs/react';
+import axios from 'axios';
 
-export default function RamadanPlanner({ logs: initialLogs, goals, stats, currentYear }) {
+export default function RamadanPlanner({ logs: initialLogs, goals: initialGoals, stats, currentYear, monthBase }) {
     const [logs, setLogs] = useState(initialLogs || {});
+    const [goals, setGoals] = useState(initialGoals || []);
     const [selectedDay, setSelectedDay] = useState(null);
     const [showGoalForm, setShowGoalForm] = useState(false);
     const [newGoal, setNewGoal] = useState({
@@ -15,11 +16,19 @@ export default function RamadanPlanner({ logs: initialLogs, goals, stats, curren
 
     const specialNights = [21, 23, 25, 27, 29];
 
+    useEffect(() => {
+        setLogs(initialLogs || {});
+    }, [initialLogs]);
+
+    useEffect(() => {
+        setGoals(initialGoals || []);
+    }, [initialGoals]);
+
     // Generate 30 days of Ramadan
     const days = Array.from({ length: 30 }, (_, i) => {
         const day = i + 1;
         const isSpecial = specialNights.includes(day);
-        const log = logs[day.toString()] || null;
+        const log = logs[day] || null;
         return {
             day,
             isSpecial,
@@ -28,36 +37,43 @@ export default function RamadanPlanner({ logs: initialLogs, goals, stats, curren
     });
 
     const saveLog = (day, field, value) => {
-        const date = `2026-03-${String(day).padStart(2, '0')}`; // Example date
+        const date = `${monthBase}-${String(day).padStart(2, '0')}`;
 
-        router.post('/api/muslim/ramadan/log', {
+        axios.post('/api/muslim/ramadan/log', {
             date,
             [field]: value,
-        }, {
-            preserveScroll: true,
-            onSuccess: () => {
-                setLogs({
-                    ...logs,
-                    [day]: { ...logs[day], [field]: value },
-                });
-            },
+        }).then(({ data }) => {
+            setLogs((prev) => ({
+                ...prev,
+                [day]: { ...(prev[day] || {}), ...data },
+            }));
         });
     };
 
     const saveGoalData = () => {
         if (!newGoal.goal_type || !newGoal.description) return;
 
-        router.post('/api/muslim/ramadan/goal', newGoal, {
-            preserveScroll: true,
-            onSuccess: () => {
-                setShowGoalForm(false);
-                setNewGoal({
-                    goal_type: '',
-                    description: '',
-                    target: 30,
-                    ramadan_year: currentYear,
-                });
-            },
+        axios.post('/api/muslim/ramadan/goal', newGoal).then(({ data }) => {
+            setGoals((prev) => {
+                const exists = prev.some((goal) => goal.id === data.id || goal.goal_type === data.goal_type);
+                if (exists) {
+                    return prev.map((goal) => goal.id === data.id || goal.goal_type === data.goal_type ? data : goal);
+                }
+                return [...prev, data];
+            });
+            setShowGoalForm(false);
+            setNewGoal({
+                goal_type: '',
+                description: '',
+                target: 30,
+                ramadan_year: currentYear,
+            });
+        });
+    };
+
+    const updateGoalProgress = (goalId, current) => {
+        axios.patch(`/api/muslim/ramadan/goal/${goalId}`, { current }).then(({ data }) => {
+            setGoals((prev) => prev.map((goal) => goal.id === goalId ? data : goal));
         });
     };
 
@@ -284,6 +300,14 @@ export default function RamadanPlanner({ logs: initialLogs, goals, stats, curren
                                                         style={{ width: `${Math.min((goal.current / goal.target) * 100, 100)}%` }}
                                                     ></div>
                                                 </div>
+                                                <input
+                                                    type="range"
+                                                    min="0"
+                                                    max={goal.target || 30}
+                                                    value={goal.current || 0}
+                                                    onChange={(e) => updateGoalProgress(goal.id, parseInt(e.target.value, 10) || 0)}
+                                                    className="w-full mt-2 accent-primary"
+                                                />
                                             </div>
                                         </div>
                                     ))}

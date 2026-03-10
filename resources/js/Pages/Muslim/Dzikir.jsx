@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import JournalLayout from '@/Layouts/JournalLayout';
-import { router } from '@inertiajs/react';
+import axios from 'axios';
 
 export default function Dzikir({ dzikirList: initialDzikirList, weeklyLogs, stats }) {
     const [dzikirList, setDzikirList] = useState(initialDzikirList || []);
     const today = new Date().toISOString().split('T')[0];
+
+    useEffect(() => {
+        setDzikirList(initialDzikirList || []);
+    }, [initialDzikirList]);
 
     // Dzikir data with Arabic text
     const dzikirData = {
@@ -31,47 +35,38 @@ export default function Dzikir({ dzikirList: initialDzikirList, weeklyLogs, stat
 
     // Increment counter
     const incrementDzikir = (dzikirName) => {
-        router.post('/api/muslim/dzikir/increment', {
+        axios.post('/api/muslim/dzikir/increment', {
             dzikir_name: dzikirName,
             date: today,
-        }, {
-            preserveScroll: true,
-            onSuccess: () => {
-                setDzikirList(dzikirList.map(d =>
-                    d.name === dzikirName ? { ...d, count: d.count + 1 } : d
-                ));
-            },
+        }).then(() => {
+            setDzikirList((prev) => prev.map((d) =>
+                d.name === dzikirName ? { ...d, count: d.count + 1 } : d
+            ));
         });
     };
 
     // Reset counter
     const resetDzikir = (dzikirName) => {
-        router.post('/api/muslim/dzikir/reset', {
+        axios.post('/api/muslim/dzikir/reset', {
             dzikir_name: dzikirName,
             date: today,
-        }, {
-            preserveScroll: true,
-            onSuccess: () => {
-                setDzikirList(dzikirList.map(d =>
-                    d.name === dzikirName ? { ...d, count: 0 } : d
-                ));
-            },
+        }).then(() => {
+            setDzikirList((prev) => prev.map((d) =>
+                d.name === dzikirName ? { ...d, count: 0 } : d
+            ));
         });
     };
 
     // Set specific count
     const setCount = (dzikirName, count) => {
-        router.post('/api/muslim/dzikir/set', {
+        axios.post('/api/muslim/dzikir/set', {
             dzikir_name: dzikirName,
             date: today,
             count: count,
-        }, {
-            preserveScroll: true,
-            onSuccess: () => {
-                setDzikirList(dzikirList.map(d =>
-                    d.name === dzikirName ? { ...d, count: count } : d
-                ));
-            },
+        }).then(() => {
+            setDzikirList((prev) => prev.map((d) =>
+                d.name === dzikirName ? { ...d, count: count } : d
+            ));
         });
     };
 

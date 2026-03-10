@@ -66,6 +66,18 @@ export default function DailySpread({ date, sholatLogs, dzikirLogs, quranTarget,
         return data;
     });
 
+    useEffect(() => {
+        const data = {};
+        SHOLAT_NAMES.forEach(name => {
+            const log = sholatLogs?.[name];
+            data[name] = {
+                status: log?.status || 'missed',
+                time: log?.time || SHOLAT_TIMES[name],
+            };
+        });
+        setSholatData(data);
+    }, [sholatLogs]);
+
     const sholatSaveRef = useRef(null);
     const autoSaveSholat = useCallback((name, status) => {
         if (!isAuth) return;

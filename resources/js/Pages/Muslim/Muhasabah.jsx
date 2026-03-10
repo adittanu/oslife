@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import JournalLayout from '@/Layouts/JournalLayout';
-import { router } from '@inertiajs/react';
+import axios from 'axios';
 
 export default function Muhasabah({ todayEntry: initialEntry, recentEntries, weeklyMoods, stats }) {
     const today = new Date().toISOString().split('T')[0];
@@ -16,6 +16,18 @@ export default function Muhasabah({ todayEntry: initialEntry, recentEntries, wee
         mood: initialEntry?.mood || null,
     });
 
+    useEffect(() => {
+        setEntry({
+            date: today,
+            gratitude: initialEntry?.gratitude || '',
+            improvement: initialEntry?.improvement || '',
+            achievement: initialEntry?.achievement || '',
+            tomorrow_goal: initialEntry?.tomorrow_goal || '',
+            reflection: initialEntry?.reflection || '',
+            mood: initialEntry?.mood || null,
+        });
+    }, [initialEntry, today]);
+
     // Auto-save debounce ref
     const saveTimeoutRef = useRef(null);
 
@@ -30,22 +42,23 @@ export default function Muhasabah({ todayEntry: initialEntry, recentEntries, wee
     ];
 
     // Auto-save with debounce
-    const saveEntry = () => {
+    const saveEntry = (nextEntry) => {
         if (saveTimeoutRef.current) {
             clearTimeout(saveTimeoutRef.current);
         }
 
         saveTimeoutRef.current = setTimeout(() => {
-            router.post('/api/muslim/muhasabah', entry, {
-                preserveScroll: true,
-            });
+            axios.post('/api/muslim/muhasabah', nextEntry);
         }, 1000);
     };
 
     // Update field and trigger auto-save
     const updateField = (field, value) => {
-        setEntry(prev => ({ ...prev, [field]: value }));
-        saveEntry();
+        setEntry((prev) => {
+            const nextEntry = { ...prev, [field]: value };
+            saveEntry(nextEntry);
+            return nextEntry;
+        });
     };
 
     // Get mood info

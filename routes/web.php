@@ -35,6 +35,7 @@ use App\Http\Controllers\Muslim\KajianNotesController as MuslimKajianNotesContro
 use App\Http\Controllers\Muslim\DoaController as MuslimDoaController;
 use App\Http\Controllers\Muslim\RamadanPlannerController as MuslimRamadanPlannerController;
 use App\Http\Controllers\Muslim\WeeklyMuhasabahController as MuslimWeeklyMuhasabahController;
+use App\Http\Controllers\Muslim\HabitTrackerController as MuslimHabitTrackerController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -221,6 +222,12 @@ Route::middleware('auth')->group(function () {
     // Muslim Weekly Muhasabah API
     Route::post('/api/muslim/weekly-muhasabah', [MuslimWeeklyMuhasabahController::class, 'save']);
 
+    // Muslim Habit Tracker API
+    Route::post('/api/muslim/habit-tracker/definitions', [MuslimHabitTrackerController::class, 'storeDefinition']);
+    Route::patch('/api/muslim/habit-tracker/definitions/{id}', [MuslimHabitTrackerController::class, 'updateDefinition']);
+    Route::post('/api/muslim/habit-tracker/toggle', [MuslimHabitTrackerController::class, 'toggleLog']);
+    Route::post('/api/muslim/habit-tracker/reflection', [MuslimHabitTrackerController::class, 'saveReflection']);
+
     // Creator Mode APIs
     Route::post('/api/creator/content-posts', [ContentCalendarController::class, 'store']);
     Route::patch('/api/creator/content-posts/{post}', [ContentCalendarController::class, 'update']);
@@ -256,7 +263,7 @@ Route::get('/muslim/kajian-notes', [MuslimKajianNotesController::class, 'index']
 Route::get('/muslim/muhasabah', [MuslimMuhasabahController::class, 'index']);
 Route::get('/muslim/sedekah-tracker', [MuslimSedekahTrackerController::class, 'index']);
 Route::get('/muslim/ramadan-planner', [MuslimRamadanPlannerController::class, 'index']);
-Route::get('/muslim/habit-tracker', fn() => Inertia::render('Muslim/HabitTracker'));
+Route::get('/muslim/habit-tracker', [MuslimHabitTrackerController::class, 'index']);
 Route::get('/muslim/weekly-muhasabah', [MuslimWeeklyMuhasabahController::class, 'index']);
 
 // Creator Mode Pages

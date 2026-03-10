@@ -14,6 +14,19 @@ class QuranJournalController extends Controller
     {
         $user = $request->user();
 
+        if (! $user) {
+            return inertia('Muslim/QuranJournal', [
+                'readingLogs' => [],
+                'hifzProgress' => [],
+                'tadabburNotes' => [],
+                'stats' => [
+                    'juz' => 0,
+                    'pages' => 0,
+                    'days' => 0,
+                ],
+            ]);
+        }
+
         $readingLogs = QuranReadingLog::where('user_id', $user->id)
             ->orderBy('date', 'desc')
             ->limit(30)
@@ -55,12 +68,12 @@ class QuranJournalController extends Controller
             'pages' => 'nullable|integer',
         ]);
 
-        QuranReadingLog::create([
+        $log = QuranReadingLog::create([
             'user_id' => $request->user()->id,
             ...$validated,
         ]);
 
-        return back();
+        return response()->json($log);
     }
 
     public function saveHifz(Request $request)
@@ -72,7 +85,7 @@ class QuranJournalController extends Controller
             'status' => 'nullable|in:not-started,in-progress,done',
         ]);
 
-        HifzProgress::updateOrCreate(
+        $hifz = HifzProgress::updateOrCreate(
             [
                 'user_id' => $request->user()->id,
                 'surah' => $validated['surah'],
@@ -84,7 +97,7 @@ class QuranJournalController extends Controller
             ]
         );
 
-        return back();
+        return response()->json($hifz);
     }
 
     public function updateHifz(Request $request, $id)
@@ -98,7 +111,7 @@ class QuranJournalController extends Controller
 
         $hifz->update($validated);
 
-        return back();
+        return response()->json($hifz->fresh());
     }
 
     public function saveTadabbur(Request $request)
@@ -111,12 +124,12 @@ class QuranJournalController extends Controller
             'color' => 'nullable|string',
         ]);
 
-        TadabburNote::create([
+        $note = TadabburNote::create([
             'user_id' => $request->user()->id,
             ...$validated,
         ]);
 
-        return back();
+        return response()->json($note);
     }
 
     public function updateTadabbur(Request $request, $id)
@@ -133,7 +146,7 @@ class QuranJournalController extends Controller
 
         $note->update($validated);
 
-        return back();
+        return response()->json($note->fresh());
     }
 
     public function deleteTadabbur(Request $request, $id)
@@ -141,6 +154,6 @@ class QuranJournalController extends Controller
         $note = TadabburNote::where('user_id', $request->user()->id)->findOrFail($id);
         $note->delete();
 
-        return back();
+        return response()->json(['status' => 'ok']);
     }
 }

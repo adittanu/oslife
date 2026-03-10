@@ -23,6 +23,26 @@ class DzikirController extends Controller
         $user = $request->user();
         $today = now()->toDateString();
 
+        if (! $user) {
+            $dzikirList = collect(self::DEFAULT_DZIKIR)->map(fn ($dzikir) => [
+                'name' => $dzikir['name'],
+                'target' => $dzikir['target'],
+                'count' => 0,
+                'id' => null,
+            ]);
+
+            return inertia('Muslim/Dzikir', [
+                'dzikirList' => $dzikirList,
+                'weeklyLogs' => [],
+                'stats' => [
+                    'today' => 0,
+                    'week' => 0,
+                    'completedToday' => 0,
+                    'totalDzikir' => count(self::DEFAULT_DZIKIR),
+                ],
+            ]);
+        }
+
         // Get today's dzikir logs
         $todayLogs = DzikirLog::where('user_id', $user->id)
             ->where('date', $today)
@@ -49,7 +69,7 @@ class DzikirController extends Controller
         // Calculate stats
         $totalToday = $todayLogs->sum('count');
         $totalWeek = $weeklyLogs->sum('count');
-        $completedToday = $todayLogs->where('count', '>=', 'target')->count();
+        $completedToday = $todayLogs->filter(fn ($log) => (int) $log->count >= (int) $log->target)->count();
 
         return inertia('Muslim/Dzikir', [
             'dzikirList' => $dzikirList,
@@ -93,7 +113,7 @@ class DzikirController extends Controller
 
         $log->increment('count');
 
-        return back();
+        return response()->json($log->fresh());
     }
 
     public function setCount(Request $request)
@@ -108,7 +128,7 @@ class DzikirController extends Controller
         $dzikir = collect(self::DEFAULT_DZIKIR)->firstWhere('name', $validated['dzikir_name']);
         $target = $validated['target'] ?? $dzikir['target'] ?? 33;
 
-        DzikirLog::updateOrCreate(
+        $log = DzikirLog::updateOrCreate(
             [
                 'user_id' => $request->user()->id,
                 'date' => $validated['date'],
@@ -120,7 +140,7 @@ class DzikirController extends Controller
             ]
         );
 
-        return back();
+        return response()->json($log);
     }
 
     public function reset(Request $request)
@@ -135,6 +155,6 @@ class DzikirController extends Controller
             ->where('dzikir_name', $validated['dzikir_name'])
             ->update(['count' => 0]);
 
-        return back();
+        return response()->json(['status' => 'ok']);
     }
 }

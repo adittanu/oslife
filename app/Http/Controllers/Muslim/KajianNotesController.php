@@ -12,6 +12,12 @@ class KajianNotesController extends Controller
     {
         $user = $request->user();
 
+        if (! $user) {
+            return inertia('Muslim/KajianNotes', [
+                'notes' => [],
+            ]);
+        }
+
         $notes = KajianNote::where('user_id', $user->id)
             ->orderBy('date', 'desc')
             ->limit(50)
@@ -34,12 +40,12 @@ class KajianNotesController extends Controller
             'color' => 'nullable|string',
         ]);
 
-        KajianNote::create([
+        $note = KajianNote::create([
             'user_id' => $request->user()->id,
             ...$validated,
         ]);
 
-        return back();
+        return response()->json($note);
     }
 
     public function update(Request $request, $id)
@@ -57,7 +63,7 @@ class KajianNotesController extends Controller
 
         $note->update($validated);
 
-        return back();
+        return response()->json($note->fresh());
     }
 
     public function destroy(Request $request, $id)
@@ -65,6 +71,6 @@ class KajianNotesController extends Controller
         $note = KajianNote::where('user_id', $request->user()->id)->findOrFail($id);
         $note->delete();
 
-        return back();
+        return response()->json(['status' => 'ok']);
     }
 }

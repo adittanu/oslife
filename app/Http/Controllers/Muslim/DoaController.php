@@ -98,6 +98,33 @@ class DoaController extends Controller
         $user = $request->user();
         $today = now()->toDateString();
 
+        if (! $user) {
+            $doaList = collect(self::DOA_LIST)->map(fn ($doa) => [
+                ...$doa,
+                'is_favorite' => false,
+                'personal_note' => null,
+                'memorized' => 0,
+                'read_today' => false,
+            ]);
+
+            return inertia('Muslim/Doa', [
+                'doaList' => $doaList,
+                'categories' => [
+                    'all' => 'Semua',
+                    'pagi_petang' => 'Pagi & Petang',
+                    'rumah' => 'Rumah',
+                    'makan_minum' => 'Makan & Minum',
+                    'tidur' => 'Tidur',
+                    'masjid' => 'Masjid',
+                ],
+                'stats' => [
+                    'totalDoa' => count(self::DOA_LIST),
+                    'memorized' => 0,
+                    'readToday' => 0,
+                ],
+            ]);
+        }
+
         // Get user's favorites
         $favorites = DoaFavorite::where('user_id', $user->id)
             ->get()
@@ -153,14 +180,15 @@ class DoaController extends Controller
 
         if ($favorite) {
             $favorite->delete();
+            return response()->json(['status' => 'removed']);
         } else {
-            DoaFavorite::create([
+            $favorite = DoaFavorite::create([
                 'user_id' => $request->user()->id,
                 'doa_id' => $validated['doa_id'],
             ]);
-        }
 
-        return back();
+            return response()->json(['status' => 'added', 'favorite' => $favorite]);
+        }
     }
 
     public function updateNote(Request $request)
@@ -171,7 +199,7 @@ class DoaController extends Controller
             'memorized' => 'nullable|integer|min:0|max:100',
         ]);
 
-        DoaFavorite::updateOrCreate(
+        $favorite = DoaFavorite::updateOrCreate(
             [
                 'user_id' => $request->user()->id,
                 'doa_id' => $validated['doa_id'],
@@ -182,7 +210,7 @@ class DoaController extends Controller
             ]
         );
 
-        return back();
+        return response()->json($favorite);
     }
 
     public function markRead(Request $request)
@@ -192,7 +220,7 @@ class DoaController extends Controller
             'date' => 'required|date',
         ]);
 
-        DoaLog::updateOrCreate(
+        $log = DoaLog::updateOrCreate(
             [
                 'user_id' => $request->user()->id,
                 'date' => $validated['date'],
@@ -201,6 +229,6 @@ class DoaController extends Controller
             ['read' => true]
         );
 
-        return back();
+        return response()->json($log);
     }
 }

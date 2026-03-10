@@ -5,22 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class MuhasabahEntry extends Model
+class MuslimHabitDefinition extends Model
 {
     protected $fillable = [
         'user_id',
-        'date',
-        'content',
-        'gratitude',
-        'improvement',
-        'achievement',
-        'tomorrow_goal',
-        'reflection',
-        'mood',
+        'name',
+        'icon',
+        'color',
+        'is_default',
+        'sort_order',
+        'archived',
     ];
 
     protected $casts = [
-        'date' => 'date',
+        'is_default' => 'boolean',
+        'archived' => 'boolean',
     ];
 
     public function user(): BelongsTo

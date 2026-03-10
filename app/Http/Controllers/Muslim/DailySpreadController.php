@@ -16,6 +16,16 @@ class DailySpreadController extends Controller
         $date = $request->query('date', now()->toDateString());
         $user = $request->user();
 
+        if (! $user) {
+            return inertia('Muslim/DailySpread', [
+                'date' => $date,
+                'sholatLogs' => [],
+                'dzikirLogs' => [],
+                'quranTarget' => null,
+                'muhasabah' => null,
+            ]);
+        }
+
         $sholatLogs = SholatLog::where('user_id', $user->id)
             ->where('date', $date)
             ->get()

@@ -15,6 +15,18 @@ class WeeklyMuhasabahController extends Controller
         // Get current week start (Monday)
         $currentWeekStart = now()->startOfWeek()->toDateString();
 
+        if (! $user) {
+            return inertia('Muslim/WeeklyMuhasabah', [
+                'thisWeek' => null,
+                'recentWeeks' => [],
+                'currentWeekStart' => $currentWeekStart,
+                'weekRange' => [
+                    'start' => now()->startOfWeek()->format('d M'),
+                    'end' => now()->endOfWeek()->format('d M Y'),
+                ],
+            ]);
+        }
+
         // Get this week's entry
         $thisWeek = WeeklyMuhasabah::where('user_id', $user->id)
             ->where('week_start', $currentWeekStart)
@@ -49,7 +61,7 @@ class WeeklyMuhasabahController extends Controller
             'overall_mood' => 'nullable|string',
         ]);
 
-        WeeklyMuhasabah::updateOrCreate(
+        $entry = WeeklyMuhasabah::updateOrCreate(
             [
                 'user_id' => $request->user()->id,
                 'week_start' => $validated['week_start'],
@@ -57,6 +69,6 @@ class WeeklyMuhasabahController extends Controller
             $validated
         );
 
-        return back();
+        return response()->json($entry);
     }
 }

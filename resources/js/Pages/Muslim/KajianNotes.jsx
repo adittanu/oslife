@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import JournalLayout from '@/Layouts/JournalLayout';
-import { router } from '@inertiajs/react';
+import axios from 'axios';
 
 export default function KajianNotes({ notes: initialNotes }) {
     const [notes, setNotes] = useState(initialNotes || []);
@@ -17,6 +17,10 @@ export default function KajianNotes({ notes: initialNotes }) {
     });
     const [newKeyPoint, setNewKeyPoint] = useState('');
     const [newActionItem, setNewActionItem] = useState('');
+
+    useEffect(() => {
+        setNotes(initialNotes || []);
+    }, [initialNotes]);
 
     const colorOptions = [
         { value: 'bg-blue-50', border: 'border-blue-100' },
@@ -49,10 +53,8 @@ export default function KajianNotes({ notes: initialNotes }) {
     const saveNote = () => {
         if (!newNote.title) return;
 
-        router.post('/api/muslim/kajian-notes', newNote, {
-            preserveScroll: true,
-            onSuccess: () => {
-                setNotes([...notes, { ...newNote, id: Date.now() }]);
+        axios.post('/api/muslim/kajian-notes', newNote).then(({ data }) => {
+                setNotes((prev) => [data, ...prev]);
                 setShowForm(false);
                 setNewNote({
                     date: new Date().toISOString().split('T')[0],
@@ -63,16 +65,12 @@ export default function KajianNotes({ notes: initialNotes }) {
                     action_items: [],
                     color: 'bg-blue-50',
                 });
-            },
         });
     };
 
     const deleteNote = (id) => {
-        router.delete(`/api/muslim/kajian-notes/${id}`, {
-            preserveScroll: true,
-            onSuccess: () => {
-                setNotes(notes.filter(n => n.id !== id));
-            },
+        axios.delete(`/api/muslim/kajian-notes/${id}`).then(() => {
+            setNotes((prev) => prev.filter((n) => n.id !== id));
         });
     };
 

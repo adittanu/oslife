@@ -117,9 +117,7 @@ export default function SholatTracker({ weekStart, weeklyLogs, sunnahLogs }) {
             ...prev,
             [prayer]: { ...prev[prayer], [date]: next }
         }));
-        if (next !== null) {
-            autoSaveLog(date, prayer, next);
-        }
+        autoSaveLog(date, prayer, next);
     };
 
     const toggleSunnah = (prayer, date) => {

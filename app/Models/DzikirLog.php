@@ -12,11 +12,15 @@ class DzikirLog extends Model
         'date',
         'dzikir_name',
         'done',
+        'count',
+        'target',
     ];
 
     protected $casts = [
         'date' => 'date',
         'done' => 'boolean',
+        'count' => 'integer',
+        'target' => 'integer',
     ];
 
     public function user(): BelongsTo

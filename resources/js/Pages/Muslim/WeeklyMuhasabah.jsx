@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import JournalLayout from '@/Layouts/JournalLayout';
-import { router } from '@inertiajs/react';
+import axios from 'axios';
 
 export default function WeeklyMuhasabah({ thisWeek: initialThisWeek, recentWeeks, currentWeekStart, weekRange }) {
     const [entry, setEntry] = useState({
@@ -19,6 +19,18 @@ export default function WeeklyMuhasabah({ thisWeek: initialThisWeek, recentWeeks
 
     const saveTimeoutRef = useRef(null);
 
+    useEffect(() => {
+        setEntry({
+            week_start: currentWeekStart,
+            achievements: initialThisWeek?.achievements || [],
+            challenges: initialThisWeek?.challenges || [],
+            lessons_learned: initialThisWeek?.lessons_learned || '',
+            next_week_goals: initialThisWeek?.next_week_goals || [],
+            gratitude: initialThisWeek?.gratitude || '',
+            overall_mood: initialThisWeek?.overall_mood || null,
+        });
+    }, [initialThisWeek, currentWeekStart]);
+
     const moodOptions = [
         { value: 'excellent', label: 'Sangat Baik', icon: '😊', color: 'bg-green-100 border-green-300' },
         { value: 'good', label: 'Baik', icon: '🙂', color: 'bg-blue-100 border-blue-300' },
@@ -26,51 +38,55 @@ export default function WeeklyMuhasabah({ thisWeek: initialThisWeek, recentWeeks
         { value: 'needs_work', label: 'Perlu Perbaikan', icon: '😔', color: 'bg-amber-100 border-amber-300' },
     ];
 
-    const autoSave = () => {
+    const autoSave = (nextEntry) => {
         if (saveTimeoutRef.current) {
             clearTimeout(saveTimeoutRef.current);
         }
         saveTimeoutRef.current = setTimeout(() => {
-            router.post('/api/muslim/weekly-muhasabah', entry, { preserveScroll: true });
+            axios.post('/api/muslim/weekly-muhasabah', nextEntry);
         }, 1000);
     };
 
     const addAchievement = () => {
         if (newAchievement.trim()) {
-            setEntry({
+            const nextEntry = {
                 ...entry,
                 achievements: [...entry.achievements, newAchievement.trim()]
-            });
+            };
+            setEntry(nextEntry);
             setNewAchievement('');
-            autoSave();
+            autoSave(nextEntry);
         }
     };
 
     const addChallenge = () => {
         if (newChallenge.trim()) {
-            setEntry({
+            const nextEntry = {
                 ...entry,
                 challenges: [...entry.challenges, newChallenge.trim()]
-            });
+            };
+            setEntry(nextEntry);
             setNewChallenge('');
-            autoSave();
+            autoSave(nextEntry);
         }
     };
 
     const addGoal = () => {
         if (newGoal.trim()) {
-            setEntry({
+            const nextEntry = {
                 ...entry,
                 next_week_goals: [...entry.next_week_goals, newGoal.trim()]
-            });
+            };
+            setEntry(nextEntry);
             setNewGoal('');
-            autoSave();
+            autoSave(nextEntry);
         }
     };
 
     const updateField = (field, value) => {
-        setEntry({ ...entry, [field]: value });
-        autoSave();
+        const nextEntry = { ...entry, [field]: value };
+        setEntry(nextEntry);
+        autoSave(nextEntry);
     };
 
     return (

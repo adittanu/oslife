@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import JournalLayout from '@/Layouts/JournalLayout';
-import { router } from '@inertiajs/react';
+import axios from 'axios';
 
 export default function Doa({ doaList: initialDoaList, categories, stats }) {
     const [doaList, setDoaList] = useState(initialDoaList || []);
@@ -12,12 +12,18 @@ export default function Doa({ doaList: initialDoaList, categories, stats }) {
     const stickyColors = ['bg-yellow-50', 'bg-green-50', 'bg-blue-50', 'bg-rose-50', 'bg-amber-50', 'bg-violet-50'];
     const borderColors = ['border-yellow-200', 'border-green-200', 'border-blue-200', 'border-rose-200', 'border-amber-200', 'border-violet-200'];
 
-    const toggleFavorite = (doaId) => {
-        router.post('/api/muslim/doa/favorite', { doa_id: doaId }, { preserveScroll: true });
+    useEffect(() => {
+        setDoaList(initialDoaList || []);
+    }, [initialDoaList]);
+
+    const toggleFavorite = async (doaId) => {
+        await axios.post('/api/muslim/doa/favorite', { doa_id: doaId });
+        setDoaList((prev) => prev.map((doa) => doa.id === doaId ? { ...doa, is_favorite: !doa.is_favorite } : doa));
     };
 
-    const markAsRead = (doaName) => {
-        router.post('/api/muslim/doa/read', { doa_name: doaName, date: today }, { preserveScroll: true });
+    const markAsRead = async (doaName) => {
+        await axios.post('/api/muslim/doa/read', { doa_name: doaName, date: today });
+        setDoaList((prev) => prev.map((doa) => doa.name === doaName ? { ...doa, read_today: true } : doa));
     };
 
     // Filter doa

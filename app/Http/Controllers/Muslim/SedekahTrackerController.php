@@ -13,6 +13,18 @@ class SedekahTrackerController extends Controller
         $user = $request->user();
         $today = now()->toDateString();
 
+        if (! $user) {
+            return inertia('Muslim/SedekahTracker', [
+                'todayLogs' => [],
+                'monthlyLogs' => [],
+                'stats' => [
+                    'totalAmount' => 0,
+                    'totalCount' => 0,
+                    'streak' => 0,
+                ],
+            ]);
+        }
+
         // Get today's sedekah
         $todayLogs = SedekahLog::where('user_id', $user->id)
             ->where('date', $today)
@@ -26,7 +38,7 @@ class SedekahTrackerController extends Controller
             ->get();
 
         // Calculate stats
-        $totalAmount = $monthlyLogs->where('type', 'uang')->sum('amount');
+        $totalAmount = $monthlyLogs->sum('amount');
         $totalCount = $monthlyLogs->count();
         $streak = $this->calculateStreak($user->id);
 
@@ -51,12 +63,12 @@ class SedekahTrackerController extends Controller
             'recipient' => 'nullable|string|max:255',
         ]);
 
-        SedekahLog::create([
+        $log = SedekahLog::create([
             'user_id' => $request->user()->id,
             ...$validated,
         ]);
 
-        return back();
+        return response()->json($log);
     }
 
     public function destroy(Request $request, $id)
@@ -64,7 +76,7 @@ class SedekahTrackerController extends Controller
         $log = SedekahLog::where('user_id', $request->user()->id)->findOrFail($id);
         $log->delete();
 
-        return back();
+        return response()->json(['status' => 'ok']);
     }
 
     private function calculateStreak($userId)
