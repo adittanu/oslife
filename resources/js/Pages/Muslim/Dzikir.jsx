@@ -1,37 +1,79 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import JournalLayout from '@/Layouts/JournalLayout';
+import { router } from '@inertiajs/react';
 
-export default function Dzikir() {
-    const dzikirCounters = [
-        { arabic: 'سُبْحَانَ اللّٰهِ', latin: 'Subhanallah', meaning: 'Maha Suci Allah', count: 27, target: 33, color: 'emerald' },
-        { arabic: 'اَلْحَمْدُ لِلّٰهِ', latin: 'Alhamdulillah', meaning: 'Segala Puji Bagi Allah', count: 33, target: 33, color: 'blue' },
-        { arabic: 'اَللّٰهُ اَكْبَرُ', latin: 'Allahu Akbar', meaning: 'Allah Maha Besar', count: 15, target: 33, color: 'purple' },
-    ];
+export default function Dzikir({ dzikirList: initialDzikirList, weeklyLogs, stats }) {
+    const [dzikirList, setDzikirList] = useState(initialDzikirList || []);
+    const today = new Date().toISOString().split('T')[0];
 
-    const morningDzikir = [
-        { text: 'Ayat Kursi (1x)', done: true },
-        { text: 'Al-Ikhlas (3x)', done: true },
-        { text: 'Al-Falaq (3x)', done: true },
-        { text: 'An-Nas (3x)', done: false },
-        { text: 'Sayyidul Istighfar (1x)', done: false },
-        { text: 'Doa Pagi (Ashbahnaa wa ashbahal mulku lillah...)', done: false },
-    ];
+    // Dzikir data with Arabic text
+    const dzikirData = {
+        'Subhanallah': { arabic: 'سُبْحَانَ اللّٰهِ', meaning: 'Maha Suci Allah', color: 'emerald' },
+        'Alhamdulillah': { arabic: 'اَلْحَمْدُ لِلّٰهِ', meaning: 'Segala Puji Bagi Allah', color: 'blue' },
+        'Allahu Akbar': { arabic: 'اَللّٰهُ اَكْبَرُ', meaning: 'Allah Maha Besar', color: 'purple' },
+        'La ilaha illallah': { arabic: 'لَا إِلٰهَ إِلَّا اللّٰهُ', meaning: 'Tiada Tuhan selain Allah', color: 'teal' },
+        'Astaghfirullah': { arabic: 'أَسْتَغْفِرُ اللّٰهَ', meaning: 'Aku memohon ampun kepada Allah', color: 'amber' },
+        "Hasbunallah wa ni'mal wakil": { arabic: 'حَسْبُنَا اللّٰهُ وَنِعْمَ الْوَكِيلُ', meaning: 'Cukuplah Allah bagi kami, Dia sebaik-baik pelindung', color: 'pink' },
+    };
 
-    const eveningDzikir = [
-        { text: 'Ayat Kursi (1x)', done: true },
-        { text: 'Al-Ikhlas (3x)', done: false },
-        { text: 'Al-Falaq (3x)', done: false },
-        { text: 'An-Nas (3x)', done: false },
-        { text: 'Sayyidul Istighfar (1x)', done: false },
-        { text: 'Doa Petang (Amsaynaa wa amsal mulku lillah...)', done: false },
-    ];
+    // Get color classes
+    const getColorClasses = (color) => {
+        const colors = {
+            emerald: { bg: 'bg-emerald-50', border: 'border-emerald-100', button: 'bg-emerald-200 hover:bg-emerald-300', stroke: '#10b981' },
+            blue: { bg: 'bg-blue-50', border: 'border-blue-100', button: 'bg-blue-200 hover:bg-blue-300', stroke: '#3b82f6' },
+            purple: { bg: 'bg-purple-50', border: 'border-purple-100', button: 'bg-purple-200 hover:bg-purple-300', stroke: '#8b5cf6' },
+            teal: { bg: 'bg-teal-50', border: 'border-teal-100', button: 'bg-teal-200 hover:bg-teal-300', stroke: '#14b8a6' },
+            amber: { bg: 'bg-amber-50', border: 'border-amber-100', button: 'bg-amber-200 hover:bg-amber-300', stroke: '#f59e0b' },
+            pink: { bg: 'bg-pink-50', border: 'border-pink-100', button: 'bg-pink-200 hover:bg-pink-300', stroke: '#ec4899' },
+        };
+        return colors[color] || colors.emerald;
+    };
 
-    const customDzikir = [
-        { text: 'Istighfar (Astaghfirullahal adzim)', count: 50, target: 100 },
-        { text: 'Shalawat Nabi', count: 30, target: 100 },
-        { text: 'La ilaha illallah', count: 100, target: 100 },
-        { text: 'La hawla wa la quwwata illa billah', count: 10, target: 33 },
-    ];
+    // Increment counter
+    const incrementDzikir = (dzikirName) => {
+        router.post('/api/muslim/dzikir/increment', {
+            dzikir_name: dzikirName,
+            date: today,
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setDzikirList(dzikirList.map(d =>
+                    d.name === dzikirName ? { ...d, count: d.count + 1 } : d
+                ));
+            },
+        });
+    };
+
+    // Reset counter
+    const resetDzikir = (dzikirName) => {
+        router.post('/api/muslim/dzikir/reset', {
+            dzikir_name: dzikirName,
+            date: today,
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setDzikirList(dzikirList.map(d =>
+                    d.name === dzikirName ? { ...d, count: 0 } : d
+                ));
+            },
+        });
+    };
+
+    // Set specific count
+    const setCount = (dzikirName, count) => {
+        router.post('/api/muslim/dzikir/set', {
+            dzikir_name: dzikirName,
+            date: today,
+            count: count,
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setDzikirList(dzikirList.map(d =>
+                    d.name === dzikirName ? { ...d, count: count } : d
+                ));
+            },
+        });
+    };
 
     return (
         <JournalLayout
@@ -49,164 +91,129 @@ export default function Dzikir() {
 
                 <div className="max-w-6xl mx-auto space-y-8">
 
+                    {/* Stats Bar */}
+                    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+                        <div className="flex flex-wrap items-center justify-between gap-4">
+                            <div className="flex items-center gap-6">
+                                <div className="text-center">
+                                    <span className="font-handwriting text-3xl font-bold text-primary">{stats?.today || 0}</span>
+                                    <p className="font-note text-xs text-gray-400">Hari Ini</p>
+                                </div>
+                                <div className="text-center">
+                                    <span className="font-handwriting text-3xl font-bold text-amber-600">{stats?.week || 0}</span>
+                                    <p className="font-note text-xs text-gray-400">Minggu Ini</p>
+                                </div>
+                                <div className="text-center">
+                                    <span className="font-handwriting text-3xl font-bold text-green-600">{stats?.completedToday || 0}/{stats?.totalDzikir || 6}</span>
+                                    <p className="font-note text-xs text-gray-400">Selesai</p>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <p className="font-note text-sm text-gray-500">
+                                    {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Main Dzikir Counters */}
                     <div className="relative bg-page-bg shadow-notebook rounded-xl border border-gray-200 p-6 md:p-10">
                         <div className="washi-tape -top-2 left-1/2 -translate-x-1/2 bg-emerald-100/80 rotate-1"></div>
-                        <h3 className="font-handwriting text-3xl font-bold text-gray-700 text-center mb-2 mt-2">Dzikir Ba'da Shalat</h3>
-                        <p className="font-note text-gray-400 text-sm text-center mb-8">After prayer remembrance</p>
+                        <h3 className="font-handwriting text-3xl font-bold text-gray-700 text-center mb-2 mt-2">Dzikir Harian</h3>
+                        <p className="font-note text-gray-400 text-sm text-center mb-8">Tap untuk menambah hitungan</p>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {dzikirCounters.map((dzikir, idx) => (
-                                <div key={idx} className={`relative bg-${dzikir.color}-50/60 rounded-2xl p-6 border border-${dzikir.color}-100 shadow-sm hover:shadow-md transition-shadow group`}>
-                                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-5 bg-white/40 rotate-[1deg] rounded-sm shadow-sm"></div>
-
-                                    <div className="text-center mb-4">
-                                        <p className="text-3xl font-bold text-gray-800 leading-relaxed" style={{ fontFamily: 'serif' }}>{dzikir.arabic}</p>
-                                        <p className="font-handwriting text-lg text-gray-600 mt-1">{dzikir.latin}</p>
-                                        <p className="font-note text-sm text-gray-400">{dzikir.meaning}</p>
-                                    </div>
-
-                                    {/* Counter circle */}
-                                    <div className="flex justify-center mb-4">
-                                        <div className="relative w-28 h-28">
-                                            <svg className="w-28 h-28 -rotate-90" viewBox="0 0 120 120">
-                                                <circle cx="60" cy="60" r="52" fill="none" stroke="#e5e7eb" strokeWidth="8" />
-                                                <circle
-                                                    cx="60" cy="60" r="52" fill="none"
-                                                    stroke={dzikir.color === 'emerald' ? '#10b981' : dzikir.color === 'blue' ? '#3b82f6' : '#8b5cf6'}
-                                                    strokeWidth="8"
-                                                    strokeLinecap="round"
-                                                    strokeDasharray={`${(dzikir.count / dzikir.target) * 327} 327`}
-                                                />
-                                            </svg>
-                                            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                                <span className="font-handwriting text-3xl font-bold text-gray-800">{dzikir.count}</span>
-                                                <span className="text-xs text-gray-400">/ {dzikir.target}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex justify-center gap-3">
-                                        <button className={`w-14 h-14 rounded-full bg-${dzikir.color}-200 hover:bg-${dzikir.color}-300 flex items-center justify-center shadow-md transition-all active:scale-95`}>
-                                            <span className="material-symbols-outlined text-2xl text-gray-700">add</span>
-                                        </button>
-                                        <button className="w-10 h-10 rounded-full bg-white/80 hover:bg-gray-100 flex items-center justify-center shadow-sm transition-all self-end">
-                                            <span className="material-symbols-outlined text-lg text-gray-400">restart_alt</span>
-                                        </button>
-                                    </div>
-
-                                    {dzikir.count >= dzikir.target && (
-                                        <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center shadow-md rotate-12">
-                                            <span className="material-symbols-outlined text-base text-white">done</span>
-                                        </div>
-                                    )}
+                        {dzikirList.length === 0 ? (
+                            <div className="text-center py-12">
+                                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <span className="material-symbols-outlined text-5xl text-gray-300">pace</span>
                                 </div>
-                            ))}
-                        </div>
+                                <p className="font-handwriting text-xl text-gray-400">Ketuk untuk mulai berdzikir...</p>
+                                <p className="font-note text-sm text-gray-300 mt-2">Counter dzikir akan muncul di sini</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {dzikirList.map((dzikir, idx) => {
+                                    const data = dzikirData[dzikir.name] || { arabic: '', meaning: '', color: 'emerald' };
+                                    const colorClasses = getColorClasses(data.color);
+                                    const progress = Math.min((dzikir.count / dzikir.target) * 100, 100);
+                                    const isComplete = dzikir.count >= dzikir.target;
+
+                                    return (
+                                        <div key={dzikir.id || idx} className={`relative ${colorClasses.bg} rounded-2xl p-6 border ${colorClasses.border} shadow-sm hover:shadow-md transition-shadow group`}>
+                                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-5 bg-white/40 rotate-[1deg] rounded-sm shadow-sm"></div>
+
+                                            <div className="text-center mb-4">
+                                                <p className="text-3xl font-bold text-gray-800 leading-relaxed" style={{ fontFamily: 'serif' }}>{data.arabic}</p>
+                                                <p className="font-handwriting text-lg text-gray-600 mt-1">{dzikir.name}</p>
+                                                <p className="font-note text-sm text-gray-400">{data.meaning}</p>
+                                            </div>
+
+                                            {/* Counter circle */}
+                                            <div className="flex justify-center mb-4">
+                                                <div className="relative w-28 h-28 cursor-pointer" onClick={() => incrementDzikir(dzikir.name)}>
+                                                    <svg className="w-28 h-28 -rotate-90" viewBox="0 0 120 120">
+                                                        <circle cx="60" cy="60" r="52" fill="none" stroke="#e5e7eb" strokeWidth="8" />
+                                                        <circle
+                                                            cx="60" cy="60" r="52" fill="none"
+                                                            stroke={colorClasses.stroke}
+                                                            strokeWidth="8"
+                                                            strokeLinecap="round"
+                                                            strokeDasharray={`${(progress / 100) * 327} 327`}
+                                                        />
+                                                    </svg>
+                                                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                                        <span className="font-handwriting text-3xl font-bold text-gray-800">{dzikir.count}</span>
+                                                        <span className="text-xs text-gray-400">/ {dzikir.target}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex justify-center gap-3">
+                                                <button
+                                                    onClick={() => incrementDzikir(dzikir.name)}
+                                                    className={`w-14 h-14 rounded-full ${colorClasses.button} flex items-center justify-center shadow-md transition-all active:scale-95`}
+                                                >
+                                                    <span className="material-symbols-outlined text-2xl text-gray-700">add</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => resetDzikir(dzikir.name)}
+                                                    className="w-10 h-10 rounded-full bg-white/80 hover:bg-gray-100 flex items-center justify-center shadow-sm transition-all self-end"
+                                                >
+                                                    <span className="material-symbols-outlined text-lg text-gray-400">restart_alt</span>
+                                                </button>
+                                            </div>
+
+                                            {isComplete && (
+                                                <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center shadow-md rotate-12">
+                                                    <span className="material-symbols-outlined text-base text-white">done</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
 
-                    {/* Morning & Evening Dzikir */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Morning */}
-                        <div className="relative bg-page-bg shadow-notebook rounded-xl border border-gray-200 p-6 md:p-8 paper-lines">
-                            <div className="washi-tape -top-2 left-10 bg-yellow-100/80 rotate-[-2deg]"></div>
-                            <div className="flex items-center gap-3 mb-6 mt-2">
-                                <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center shadow-sm">
-                                    <span className="material-symbols-outlined text-yellow-600">wb_sunny</span>
-                                </div>
-                                <div>
-                                    <h3 className="font-handwriting text-2xl font-bold text-gray-700">Dzikir Pagi</h3>
-                                    <p className="font-note text-xs text-gray-400">Morning Adhkar</p>
-                                </div>
-                                <div className="ml-auto bg-yellow-100 text-yellow-700 text-xs font-bold px-3 py-1 rounded-full">
-                                    2/6
-                                </div>
-                            </div>
+                    {/* Weekly Progress */}
+                    {weeklyLogs && weeklyLogs.length > 0 && (
+                        <div className="relative bg-page-bg shadow-notebook rounded-xl border border-gray-200 p-6 md:p-8">
+                            <div className="washi-tape -top-2 left-10 bg-blue-100/80 rotate-[-2deg]"></div>
+                            <h3 className="font-handwriting text-2xl font-bold text-gray-700 mb-4 mt-2">Progress Minggu Ini</h3>
 
-                            <div className="space-y-3">
-                                {morningDzikir.map((item, idx) => (
-                                    <label key={idx} className="flex items-start gap-3 cursor-pointer group">
-                                        <div className={`mt-1 w-5 h-5 rounded border-2 flex-shrink-0 flex items-center justify-center transition-colors ${item.done ? 'bg-primary border-primary' : 'border-gray-300 group-hover:border-primary/50'}`}>
-                                            {item.done && <span className="material-symbols-outlined text-white text-sm">check</span>}
-                                        </div>
-                                        <span className={`font-note text-base leading-relaxed ${item.done ? 'text-gray-400 line-through' : 'text-gray-700'}`}>{item.text}</span>
-                                    </label>
+                            <div className="grid grid-cols-7 gap-2">
+                                {weeklyLogs.map((log, idx) => (
+                                    <div key={idx} className="text-center p-2 bg-white rounded-lg border border-gray-100">
+                                        <p className="font-note text-xs text-gray-400">
+                                            {new Date(log.date).toLocaleDateString('id-ID', { weekday: 'short' })}
+                                        </p>
+                                        <p className="font-handwriting text-lg font-bold text-primary">{log.total}</p>
+                                        <p className="font-note text-xs text-gray-300">{log.completed}/{stats?.totalDzikir || 6}</p>
+                                    </div>
                                 ))}
                             </div>
                         </div>
-
-                        {/* Evening */}
-                        <div className="relative bg-page-bg shadow-notebook rounded-xl border border-gray-200 p-6 md:p-8 paper-lines">
-                            <div className="washi-tape -top-2 right-10 bg-indigo-100/80 rotate-[2deg]"></div>
-                            <div className="flex items-center gap-3 mb-6 mt-2">
-                                <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center shadow-sm">
-                                    <span className="material-symbols-outlined text-indigo-600">dark_mode</span>
-                                </div>
-                                <div>
-                                    <h3 className="font-handwriting text-2xl font-bold text-gray-700">Dzikir Petang</h3>
-                                    <p className="font-note text-xs text-gray-400">Evening Adhkar</p>
-                                </div>
-                                <div className="ml-auto bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full">
-                                    1/6
-                                </div>
-                            </div>
-
-                            <div className="space-y-3">
-                                {eveningDzikir.map((item, idx) => (
-                                    <label key={idx} className="flex items-start gap-3 cursor-pointer group">
-                                        <div className={`mt-1 w-5 h-5 rounded border-2 flex-shrink-0 flex items-center justify-center transition-colors ${item.done ? 'bg-primary border-primary' : 'border-gray-300 group-hover:border-primary/50'}`}>
-                                            {item.done && <span className="material-symbols-outlined text-white text-sm">check</span>}
-                                        </div>
-                                        <span className={`font-note text-base leading-relaxed ${item.done ? 'text-gray-400 line-through' : 'text-gray-700'}`}>{item.text}</span>
-                                    </label>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Custom Dzikir List */}
-                    <div className="relative bg-page-bg shadow-notebook rounded-xl border border-gray-200 p-6 md:p-10">
-                        <div className="washi-tape -top-2 left-20 bg-pink-100/80 rotate-[-1deg]"></div>
-                        <div className="flex items-center justify-between mb-6 mt-2">
-                            <div>
-                                <h3 className="font-handwriting text-2xl font-bold text-gray-700">Dzikir Harian Lainnya</h3>
-                                <p className="font-note text-sm text-gray-400">Other daily remembrance</p>
-                            </div>
-                            <button className="flex items-center gap-2 text-sm font-bold text-primary bg-primary/10 hover:bg-primary/20 px-4 py-2 rounded-xl transition-colors shadow-sm">
-                                <span className="material-symbols-outlined text-[18px]">add</span> Tambah Dzikir
-                            </button>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {customDzikir.map((item, idx) => {
-                                const percentage = Math.round((item.count / item.target) * 100);
-                                const colors = ['bg-rose-50 border-rose-100', 'bg-amber-50 border-amber-100', 'bg-teal-50 border-teal-100', 'bg-sky-50 border-sky-100'];
-                                const barColors = ['bg-rose-400', 'bg-amber-400', 'bg-teal-400', 'bg-sky-400'];
-                                return (
-                                    <div key={idx} className={`relative ${colors[idx]} rounded-xl p-5 border shadow-sm`}>
-                                        <div className="flex items-center justify-between mb-3">
-                                            <span className="font-note text-base text-gray-700 font-medium">{item.text}</span>
-                                            <span className="font-handwriting text-lg font-bold text-gray-600">{item.count}/{item.target}</span>
-                                        </div>
-                                        <div className="w-full h-3 bg-white/80 rounded-full overflow-hidden shadow-inner">
-                                            <div className={`h-full ${barColors[idx]} rounded-full transition-all`} style={{ width: `${percentage}%` }}></div>
-                                        </div>
-                                        <div className="flex justify-between items-center mt-3">
-                                            <span className="text-xs text-gray-400">{percentage}% selesai</span>
-                                            <button className="w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center shadow-sm transition-all active:scale-95">
-                                                <span className="material-symbols-outlined text-sm text-gray-500">add</span>
-                                            </button>
-                                        </div>
-                                        {percentage >= 100 && (
-                                            <div className="absolute -top-2 -right-2 w-7 h-7 bg-yellow-400 rounded-full flex items-center justify-center shadow-md rotate-12">
-                                                <span className="material-symbols-outlined text-sm text-white">star</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
+                    )}
 
                     {/* Motivational sticky note */}
                     <div className="flex justify-center pb-8">

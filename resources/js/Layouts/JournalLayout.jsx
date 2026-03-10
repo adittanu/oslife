@@ -5,9 +5,14 @@ import Header from '@/Components/Header';
 import ThemeProvider from '@/Components/ThemeProvider';
 import MobileSidebar from '@/Components/MobileSidebar';
 import ChatWidget from '@/Components/ChatWidget';
+import GuidedTour from '@/Components/GuidedTour';
+import { useCursorMode } from '@/hooks/useCursorMode';
 
 export default function JournalLayout({ children, pageTitle, headerTitle, headerSubtitle, titleFontClass, bgIcon }) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    // Set cursor mode based on current route
+    useCursorMode();
 
     return (
         <ThemeProvider>
@@ -36,6 +41,7 @@ export default function JournalLayout({ children, pageTitle, headerTitle, header
             </main>
 
             {usePage().props.auth?.user && <ChatWidget />}
+            {usePage().props.auth?.user && <GuidedTour />}
         </div>
         </ThemeProvider>
     );

@@ -25,6 +25,8 @@
     },
     "dependencies": {
         "@ai-sdk/openai": "^3.0.41",
-        "ai": "^6.0.116"
+        "ai": "^6.0.116",
+        "driver.js": "^1.4.0",
+        "framer-motion": "^12.35.1"
     }
 }

@@ -24,8 +24,17 @@ use App\Http\Controllers\ScriptWriterController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\BrandKitController;
 use App\Http\Controllers\CollabNotesController;
+use App\Http\Controllers\WorkController;
 use App\Http\Controllers\Muslim\DailySpreadController as MuslimDailySpreadController;
 use App\Http\Controllers\Muslim\SholatTrackerController as MuslimSholatTrackerController;
+use App\Http\Controllers\Muslim\QuranJournalController as MuslimQuranJournalController;
+use App\Http\Controllers\Muslim\DzikirController as MuslimDzikirController;
+use App\Http\Controllers\Muslim\MuhasabahController as MuslimMuhasabahController;
+use App\Http\Controllers\Muslim\SedekahTrackerController as MuslimSedekahTrackerController;
+use App\Http\Controllers\Muslim\KajianNotesController as MuslimKajianNotesController;
+use App\Http\Controllers\Muslim\DoaController as MuslimDoaController;
+use App\Http\Controllers\Muslim\RamadanPlannerController as MuslimRamadanPlannerController;
+use App\Http\Controllers\Muslim\WeeklyMuhasabahController as MuslimWeeklyMuhasabahController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -59,6 +68,7 @@ Route::get('/gratitude', [GratitudeController::class, 'index']);
 Route::get('/idea-dump', [IdeaDumpController::class, 'index']);
 
 Route::get('/daily-spread', [DailySpreadController::class, 'index']);
+Route::redirect('/dashboard', '/daily-spread')->middleware('auth')->name('dashboard');
 
 Route::get('/task-log', [TaskLogController::class, 'index']);
 
@@ -172,6 +182,44 @@ Route::middleware('auth')->group(function () {
     Route::post('/api/muslim/sholat-tracker/log', [MuslimSholatTrackerController::class, 'saveLog']);
     Route::post('/api/muslim/sholat-tracker/sunnah', [MuslimSholatTrackerController::class, 'saveSunnah']);
 
+    // Muslim Quran Journal API
+    Route::post('/api/muslim/quran-journal/reading-log', [MuslimQuranJournalController::class, 'saveReadingLog']);
+    Route::post('/api/muslim/quran-journal/hifz', [MuslimQuranJournalController::class, 'saveHifz']);
+    Route::patch('/api/muslim/quran-journal/hifz/{id}', [MuslimQuranJournalController::class, 'updateHifz']);
+    Route::post('/api/muslim/quran-journal/tadabbur', [MuslimQuranJournalController::class, 'saveTadabbur']);
+    Route::patch('/api/muslim/quran-journal/tadabbur/{id}', [MuslimQuranJournalController::class, 'updateTadabbur']);
+    Route::delete('/api/muslim/quran-journal/tadabbur/{id}', [MuslimQuranJournalController::class, 'deleteTadabbur']);
+
+    // Muslim Dzikir API
+    Route::post('/api/muslim/dzikir/increment', [MuslimDzikirController::class, 'increment']);
+    Route::post('/api/muslim/dzikir/set', [MuslimDzikirController::class, 'setCount']);
+    Route::post('/api/muslim/dzikir/reset', [MuslimDzikirController::class, 'reset']);
+
+    // Muslim Muhasabah API
+    Route::post('/api/muslim/muhasabah', [MuslimMuhasabahController::class, 'save']);
+
+    // Muslim Sedekah Tracker API
+    Route::post('/api/muslim/sedekah', [MuslimSedekahTrackerController::class, 'store']);
+    Route::delete('/api/muslim/sedekah/{id}', [MuslimSedekahTrackerController::class, 'destroy']);
+
+    // Muslim Kajian Notes API
+    Route::post('/api/muslim/kajian-notes', [MuslimKajianNotesController::class, 'store']);
+    Route::patch('/api/muslim/kajian-notes/{id}', [MuslimKajianNotesController::class, 'update']);
+    Route::delete('/api/muslim/kajian-notes/{id}', [MuslimKajianNotesController::class, 'destroy']);
+
+    // Muslim Doa API
+    Route::post('/api/muslim/doa/favorite', [MuslimDoaController::class, 'toggleFavorite']);
+    Route::post('/api/muslim/doa/note', [MuslimDoaController::class, 'updateNote']);
+    Route::post('/api/muslim/doa/read', [MuslimDoaController::class, 'markRead']);
+
+    // Muslim Ramadan Planner API
+    Route::post('/api/muslim/ramadan/log', [MuslimRamadanPlannerController::class, 'saveLog']);
+    Route::post('/api/muslim/ramadan/goal', [MuslimRamadanPlannerController::class, 'saveGoal']);
+    Route::patch('/api/muslim/ramadan/goal/{id}', [MuslimRamadanPlannerController::class, 'updateGoalProgress']);
+
+    // Muslim Weekly Muhasabah API
+    Route::post('/api/muslim/weekly-muhasabah', [MuslimWeeklyMuhasabahController::class, 'save']);
+
     // Creator Mode APIs
     Route::post('/api/creator/content-posts', [ContentCalendarController::class, 'store']);
     Route::patch('/api/creator/content-posts/{post}', [ContentCalendarController::class, 'update']);
@@ -200,15 +248,15 @@ Route::middleware('auth')->group(function () {
 Route::get('/muslim/daily-spread', [MuslimDailySpreadController::class, 'index']);
 Route::get('/muslim/islamic-calendar', fn() => Inertia::render('Muslim/IslamicCalendar'));
 Route::get('/muslim/sholat-tracker', [MuslimSholatTrackerController::class, 'index']);
-Route::get('/muslim/quran-journal', fn() => Inertia::render('Muslim/QuranJournal'));
-Route::get('/muslim/dzikir', fn() => Inertia::render('Muslim/Dzikir'));
-Route::get('/muslim/doa', fn() => Inertia::render('Muslim/Doa'));
-Route::get('/muslim/kajian-notes', fn() => Inertia::render('Muslim/KajianNotes'));
-Route::get('/muslim/muhasabah', fn() => Inertia::render('Muslim/Muhasabah'));
-Route::get('/muslim/sedekah-tracker', fn() => Inertia::render('Muslim/SedekahTracker'));
-Route::get('/muslim/ramadan-planner', fn() => Inertia::render('Muslim/RamadanPlanner'));
+Route::get('/muslim/quran-journal', [MuslimQuranJournalController::class, 'index']);
+Route::get('/muslim/dzikir', [MuslimDzikirController::class, 'index']);
+Route::get('/muslim/doa', [MuslimDoaController::class, 'index']);
+Route::get('/muslim/kajian-notes', [MuslimKajianNotesController::class, 'index']);
+Route::get('/muslim/muhasabah', [MuslimMuhasabahController::class, 'index']);
+Route::get('/muslim/sedekah-tracker', [MuslimSedekahTrackerController::class, 'index']);
+Route::get('/muslim/ramadan-planner', [MuslimRamadanPlannerController::class, 'index']);
 Route::get('/muslim/habit-tracker', fn() => Inertia::render('Muslim/HabitTracker'));
-Route::get('/muslim/weekly-muhasabah', fn() => Inertia::render('Muslim/WeeklyMuhasabah'));
+Route::get('/muslim/weekly-muhasabah', [MuslimWeeklyMuhasabahController::class, 'index']);
 
 // Creator Mode Pages
 Route::get('/creator/content-calendar', [ContentCalendarController::class, 'index']);
@@ -218,14 +266,47 @@ Route::get('/creator/analytics', [AnalyticsController::class, 'index']);
 Route::get('/creator/brand-kit', [BrandKitController::class, 'index']);
 Route::get('/creator/collab-notes', [CollabNotesController::class, 'index']);
 
-// Work/Freelancer Mode Pages
-Route::get('/work/dashboard', fn() => Inertia::render('Work/Dashboard'));
-Route::get('/work/clients', fn() => Inertia::render('Work/Clients'));
-Route::get('/work/pipeline', fn() => Inertia::render('Work/Pipeline'));
-Route::get('/work/time-tracking', fn() => Inertia::render('Work/TimeTracking'));
-Route::get('/work/invoices', fn() => Inertia::render('Work/Invoices'));
-Route::get('/work/income', fn() => Inertia::render('Work/Income'));
-Route::get('/work/meeting-notes', fn() => Inertia::render('Work/MeetingNotes'));
-Route::get('/work/contracts', fn() => Inertia::render('Work/Contracts'));
+// Work/Freelancer Mode Pages (require auth)
+Route::middleware('auth')->group(function () {
+    Route::get('/work/dashboard', [WorkController::class, 'dashboard']);
+    Route::get('/work/clients', [WorkController::class, 'clients']);
+    Route::get('/work/pipeline', [WorkController::class, 'pipeline']);
+    Route::get('/work/time-tracking', [WorkController::class, 'timeTracking']);
+    Route::get('/work/invoices', [WorkController::class, 'invoices']);
+    Route::get('/work/income', [WorkController::class, 'income']);
+    Route::get('/work/meeting-notes', [WorkController::class, 'meetingNotes']);
+    Route::get('/work/contracts', [WorkController::class, 'contracts']);
+
+    // Work Mode API Routes
+    Route::get('/api/work/clients', [WorkController::class, 'apiClients']);
+    Route::post('/api/work/clients', [WorkController::class, 'apiClients']);
+    Route::put('/api/work/clients/{id}', [WorkController::class, 'apiClient']);
+    Route::delete('/api/work/clients/{id}', [WorkController::class, 'apiClient']);
+
+    Route::get('/api/work/projects', [WorkController::class, 'apiProjects']);
+    Route::post('/api/work/projects', [WorkController::class, 'apiProjects']);
+    Route::put('/api/work/projects/{id}', [WorkController::class, 'apiProject']);
+    Route::delete('/api/work/projects/{id}', [WorkController::class, 'apiProject']);
+
+    Route::get('/api/work/invoices', [WorkController::class, 'apiInvoices']);
+    Route::post('/api/work/invoices', [WorkController::class, 'apiInvoices']);
+    Route::put('/api/work/invoices/{id}', [WorkController::class, 'apiInvoice']);
+    Route::delete('/api/work/invoices/{id}', [WorkController::class, 'apiInvoice']);
+
+    Route::get('/api/work/time-entries', [WorkController::class, 'apiTimeEntries']);
+    Route::post('/api/work/time-entries', [WorkController::class, 'apiTimeEntries']);
+    Route::put('/api/work/time-entries/{id}', [WorkController::class, 'apiTimeEntry']);
+    Route::delete('/api/work/time-entries/{id}', [WorkController::class, 'apiTimeEntry']);
+
+    Route::get('/api/work/contracts', [WorkController::class, 'apiContracts']);
+    Route::post('/api/work/contracts', [WorkController::class, 'apiContracts']);
+    Route::put('/api/work/contracts/{id}', [WorkController::class, 'apiContract']);
+    Route::delete('/api/work/contracts/{id}', [WorkController::class, 'apiContract']);
+
+    Route::get('/api/work/meeting-notes', [WorkController::class, 'apiMeetingNotes']);
+    Route::post('/api/work/meeting-notes', [WorkController::class, 'apiMeetingNotes']);
+    Route::put('/api/work/meeting-notes/{id}', [WorkController::class, 'apiMeetingNote']);
+    Route::delete('/api/work/meeting-notes/{id}', [WorkController::class, 'apiMeetingNote']);
+});
 
 require __DIR__.'/auth.php';

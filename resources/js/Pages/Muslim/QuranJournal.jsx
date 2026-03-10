@@ -1,55 +1,140 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import JournalLayout from '@/Layouts/JournalLayout';
+import { router } from '@inertiajs/react';
 
-export default function QuranJournal() {
-    const readingLog = [
-        { date: '10 Ramadan', surah: 'Al-Baqarah', ayat: '1-141', juz: 1, pages: 20 },
-        { date: '11 Ramadan', surah: 'Al-Baqarah', ayat: '142-252', juz: 2, pages: 18 },
-        { date: '12 Ramadan', surah: 'Ali Imran', ayat: '1-91', juz: 3, pages: 16 },
-        { date: '13 Ramadan', surah: 'Ali Imran - An-Nisa', ayat: '92-176 / 1-23', juz: 4, pages: 20 },
-        { date: '14 Ramadan', surah: 'An-Nisa', ayat: '24-147', juz: 5, pages: 19 },
-        { date: '15 Ramadan', surah: 'An-Nisa - Al-Ma\'idah', ayat: '148-176 / 1-81', juz: 6, pages: 20 },
+export default function QuranJournal({ readingLogs: initialReadingLogs, hifzProgress: initialHifzProgress, tadabburNotes: initialTadabburNotes, stats }) {
+    // State for each section
+    const [readingLogs, setReadingLogs] = useState(initialReadingLogs || []);
+    const [hifzProgress, setHifzProgress] = useState(initialHifzProgress || []);
+    const [tadabburNotes, setTadabburNotes] = useState(initialTadabburNotes || []);
+
+    // Form states
+    const [newReadingLog, setNewReadingLog] = useState({
+        date: new Date().toISOString().split('T')[0],
+        juz: '',
+        surah: '',
+        ayat_start: '',
+        ayat_end: '',
+        pages: '',
+    });
+
+    const [newHifz, setNewHifz] = useState({
+        surah: '',
+        total_ayat: '',
+        memorized: 0,
+        status: 'not-started',
+    });
+
+    const [newTadabbur, setNewTadabbur] = useState({
+        surah: '',
+        ayat: '',
+        arabic: '',
+        reflection: '',
+        color: 'bg-blue-50',
+    });
+
+    // Auto-save debounce refs
+    const readingLogTimeoutRef = useRef(null);
+    const hifzTimeoutRef = useRef(null);
+    const tadabburTimeoutRef = useRef(null);
+
+    // Calculate progress stats
+    const totalJuz = stats?.juz || readingLogs.reduce((max, log) => Math.max(max, log.juz), 0);
+    const totalPages = stats?.pages || readingLogs.reduce((sum, log) => sum + (log.pages || 0), 0);
+    const khatamProgress = Math.round((totalJuz / 30) * 100);
+
+    // Color options for tadabbur notes
+    const colorOptions = [
+        { value: 'bg-blue-50', border: 'border-blue-200' },
+        { value: 'bg-green-50', border: 'border-green-200' },
+        { value: 'bg-purple-50', border: 'border-purple-200' },
+        { value: 'bg-amber-50', border: 'border-amber-200' },
+        { value: 'bg-pink-50', border: 'border-pink-200' },
     ];
 
-    const hafalanProgress = [
-        { surah: 'Al-Fatihah', ayat: 7, memorized: 7, status: 'done' },
-        { surah: 'An-Nas', ayat: 6, memorized: 6, status: 'done' },
-        { surah: 'Al-Falaq', ayat: 5, memorized: 5, status: 'done' },
-        { surah: 'Al-Ikhlas', ayat: 4, memorized: 4, status: 'done' },
-        { surah: 'Al-Lahab', ayat: 5, memorized: 5, status: 'done' },
-        { surah: 'An-Nashr', ayat: 3, memorized: 3, status: 'done' },
-        { surah: 'Al-Kafirun', ayat: 6, memorized: 6, status: 'done' },
-        { surah: 'Al-Kautsar', ayat: 3, memorized: 3, status: 'done' },
-        { surah: 'Al-Ma\'un', ayat: 7, memorized: 4, status: 'in-progress' },
-        { surah: 'Quraisy', ayat: 4, memorized: 0, status: 'not-started' },
-    ];
+    // Save reading log
+    const saveReadingLog = () => {
+        if (!newReadingLog.juz || !newReadingLog.surah) return;
 
-    const tadabburNotes = [
-        {
-            surah: 'Al-Baqarah',
-            ayat: '286',
-            arabic: 'لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا',
-            reflection: 'Allah tidak membebani seseorang melainkan sesuai kesanggupannya. Pengingat bahwa setiap ujian pasti mampu kita hadapi.',
-            color: 'bg-blue-50',
-            borderColor: 'border-blue-200',
-        },
-        {
-            surah: 'Ali Imran',
-            ayat: '139',
-            arabic: 'وَلَا تَهِنُوا وَلَا تَحْزَنُوا وَأَنتُمُ الْأَعْلَوْنَ',
-            reflection: 'Jangan bersedih dan jangan merasa lemah. Ayat ini memberikan kekuatan di saat-saat sulit dalam hidup.',
-            color: 'bg-green-50',
-            borderColor: 'border-green-200',
-        },
-        {
-            surah: 'Ar-Ra\'d',
-            ayat: '28',
-            arabic: 'أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ',
-            reflection: 'Ingatlah, hanya dengan mengingat Allah-lah hati menjadi tenang. Dzikir adalah obat untuk hati yang gelisah.',
-            color: 'bg-purple-50',
-            borderColor: 'border-purple-200',
-        },
-    ];
+        router.post('/api/muslim/quran-journal/reading-log', newReadingLog, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setReadingLogs([...readingLogs, { ...newReadingLog, id: Date.now() }]);
+                setNewReadingLog({
+                    date: new Date().toISOString().split('T')[0],
+                    juz: '',
+                    surah: '',
+                    ayat_start: '',
+                    ayat_end: '',
+                    pages: '',
+                });
+            },
+        });
+    };
+
+    // Save hifz progress
+    const saveHifz = () => {
+        if (!newHifz.surah || !newHifz.total_ayat) return;
+
+        router.post('/api/muslim/quran-journal/hifz', {
+            ...newHifz,
+            total_ayat: parseInt(newHifz.total_ayat),
+            memorized: parseInt(newHifz.memorized) || 0,
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setHifzProgress([...hifzProgress, { ...newHifz, id: Date.now() }]);
+                setNewHifz({
+                    surah: '',
+                    total_ayat: '',
+                    memorized: 0,
+                    status: 'not-started',
+                });
+            },
+        });
+    };
+
+    // Update hifz status
+    const updateHifzStatus = (id, memorized, status) => {
+        router.patch(`/api/muslim/quran-journal/hifz/${id}`, { memorized, status }, {
+            preserveScroll: true,
+        });
+    };
+
+    // Save tadabbur note
+    const saveTadabbur = () => {
+        if (!newTadabbur.surah || !newTadabbur.ayat) return;
+
+        router.post('/api/muslim/quran-journal/tadabbur', newTadabbur, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setTadabburNotes([...tadabburNotes, { ...newTadabbur, id: Date.now() }]);
+                setNewTadabbur({
+                    surah: '',
+                    ayat: '',
+                    arabic: '',
+                    reflection: '',
+                    color: 'bg-blue-50',
+                });
+            },
+        });
+    };
+
+    // Delete tadabbur note
+    const deleteTadabbur = (id) => {
+        router.delete(`/api/muslim/quran-journal/tadabbur/${id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setTadabburNotes(tadabburNotes.filter(note => note.id !== id));
+            },
+        });
+    };
+
+    // Get color border class
+    const getBorderClass = (colorClass) => {
+        const found = colorOptions.find(c => c.value === colorClass);
+        return found ? found.border : 'border-blue-200';
+    };
 
     return (
         <JournalLayout
@@ -90,15 +175,15 @@ export default function QuranJournal() {
                                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/60 via-primary/30 to-transparent"></div>
                                 <div className="grid grid-cols-3 gap-4 mb-6">
                                     <div className="text-center p-4 bg-primary/5 rounded-xl border border-primary/10">
-                                        <span className="font-handwriting text-4xl font-bold text-primary">6</span>
+                                        <span className="font-handwriting text-4xl font-bold text-primary">{totalJuz}</span>
                                         <p className="font-note text-sm text-gray-500 mt-1">Juz Selesai</p>
                                     </div>
                                     <div className="text-center p-4 bg-amber-50 rounded-xl border border-amber-100">
-                                        <span className="font-handwriting text-4xl font-bold text-amber-600">113</span>
+                                        <span className="font-handwriting text-4xl font-bold text-amber-600">{totalPages}</span>
                                         <p className="font-note text-sm text-gray-500 mt-1">Halaman Dibaca</p>
                                     </div>
                                     <div className="text-center p-4 bg-green-50 rounded-xl border border-green-100">
-                                        <span className="font-handwriting text-4xl font-bold text-green-600">20%</span>
+                                        <span className="font-handwriting text-4xl font-bold text-green-600">{khatamProgress}%</span>
                                         <p className="font-note text-sm text-gray-500 mt-1">Target Khatam</p>
                                     </div>
                                 </div>
@@ -107,21 +192,80 @@ export default function QuranJournal() {
                                 <div className="mb-2">
                                     <div className="flex justify-between text-sm mb-1">
                                         <span className="font-note text-gray-400">Juz 1</span>
-                                        <span className="font-handwriting text-primary font-bold">Juz 6 / 30</span>
+                                        <span className="font-handwriting text-primary font-bold">Juz {totalJuz} / 30</span>
                                         <span className="font-note text-gray-400">Juz 30</span>
                                     </div>
                                     <div className="w-full h-4 bg-gray-100 rounded-full overflow-hidden relative">
-                                        <div className="h-full bg-gradient-to-r from-primary/80 to-primary/40 rounded-full transition-all" style={{ width: '20%' }}></div>
+                                        <div className="h-full bg-gradient-to-r from-primary/80 to-primary/40 rounded-full transition-all" style={{ width: `${khatamProgress}%` }}></div>
                                         {Array.from({ length: 29 }, (_, i) => (
                                             <div key={i} className="absolute top-0 bottom-0 w-px bg-gray-200" style={{ left: `${((i + 1) / 30) * 100}%` }}></div>
                                         ))}
                                     </div>
                                 </div>
+                            </div>
+                        </div>
 
-                                <p className="font-note text-sm text-gray-400 mt-3 flex items-center gap-1">
-                                    <span className="material-symbols-outlined text-sm text-green-500">trending_up</span>
-                                    Sedang membaca: <span className="font-handwriting text-primary font-bold">Surah Al-Ma'idah, Ayat 82</span>
-                                </p>
+                        {/* Add Reading Log */}
+                        <div className="mb-6">
+                            <h4 className="font-handwriting text-2xl text-gray-700 mb-4 flex items-center gap-2">
+                                <span className="material-symbols-outlined text-primary">add_circle</span>
+                                Tambah Log Bacaan
+                            </h4>
+                            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3">
+                                <div className="grid grid-cols-2 gap-3">
+                                    <input
+                                        type="date"
+                                        value={newReadingLog.date}
+                                        onChange={(e) => setNewReadingLog({...newReadingLog, date: e.target.value})}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg font-note text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                                        placeholder="Tanggal"
+                                    />
+                                    <input
+                                        type="number"
+                                        value={newReadingLog.juz}
+                                        onChange={(e) => setNewReadingLog({...newReadingLog, juz: e.target.value})}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg font-note text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                                        placeholder="Juz (1-30)"
+                                        min="1"
+                                        max="30"
+                                    />
+                                </div>
+                                <input
+                                    type="text"
+                                    value={newReadingLog.surah}
+                                    onChange={(e) => setNewReadingLog({...newReadingLog, surah: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg font-note text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                                    placeholder="Nama Surah"
+                                />
+                                <div className="grid grid-cols-3 gap-3">
+                                    <input
+                                        type="number"
+                                        value={newReadingLog.ayat_start}
+                                        onChange={(e) => setNewReadingLog({...newReadingLog, ayat_start: e.target.value})}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg font-note text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                                        placeholder="Ayat Awal"
+                                    />
+                                    <input
+                                        type="number"
+                                        value={newReadingLog.ayat_end}
+                                        onChange={(e) => setNewReadingLog({...newReadingLog, ayat_end: e.target.value})}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg font-note text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                                        placeholder="Ayat Akhir"
+                                    />
+                                    <input
+                                        type="number"
+                                        value={newReadingLog.pages}
+                                        onChange={(e) => setNewReadingLog({...newReadingLog, pages: e.target.value})}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg font-note text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                                        placeholder="Halaman"
+                                    />
+                                </div>
+                                <button
+                                    onClick={saveReadingLog}
+                                    className="w-full py-2 bg-primary text-white rounded-lg font-handwriting text-lg hover:bg-primary/90 transition-colors"
+                                >
+                                    Simpan Log Bacaan
+                                </button>
                             </div>
                         </div>
 
@@ -131,36 +275,51 @@ export default function QuranJournal() {
                                 <span className="material-symbols-outlined text-primary">history</span>
                                 Log Bacaan Harian
                             </h4>
-                            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-                                <table className="w-full">
-                                    <thead>
-                                        <tr className="border-b border-gray-200 bg-gray-50/50">
-                                            <th className="text-left font-note text-sm text-gray-400 py-2 px-4">Tanggal</th>
-                                            <th className="text-left font-note text-sm text-gray-400 py-2 px-4">Surah</th>
-                                            <th className="text-left font-note text-sm text-gray-400 py-2 px-4">Ayat</th>
-                                            <th className="text-center font-note text-sm text-gray-400 py-2 px-4">Hal</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {readingLog.map((entry, i) => (
-                                            <tr key={i} className="border-b border-gray-50 hover:bg-gray-50/30 transition-colors">
-                                                <td className="py-2.5 px-4">
-                                                    <span className="font-handwriting text-primary font-bold text-sm">{entry.date}</span>
-                                                </td>
-                                                <td className="py-2.5 px-4">
-                                                    <span className="font-handwriting text-gray-700">{entry.surah}</span>
-                                                </td>
-                                                <td className="py-2.5 px-4">
-                                                    <span className="font-note text-sm text-gray-500">{entry.ayat}</span>
-                                                </td>
-                                                <td className="py-2.5 px-4 text-center">
-                                                    <span className="font-handwriting text-sm bg-primary/10 text-primary px-2 py-0.5 rounded-full">{entry.pages}</span>
-                                                </td>
+
+                            {readingLogs.length === 0 ? (
+                                <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-8 text-center">
+                                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <span className="material-symbols-outlined text-4xl text-gray-300">menu_book</span>
+                                    </div>
+                                    <p className="font-handwriting text-xl text-gray-400">Ketuk untuk tambah log bacaan...</p>
+                                    <p className="font-note text-sm text-gray-300 mt-2">Log tadarus harianmu akan muncul di sini</p>
+                                </div>
+                            ) : (
+                                <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                                    <table className="w-full">
+                                        <thead>
+                                            <tr className="border-b border-gray-200 bg-gray-50/50">
+                                                <th className="text-left font-note text-sm text-gray-400 py-2 px-4">Tanggal</th>
+                                                <th className="text-left font-note text-sm text-gray-400 py-2 px-4">Surah</th>
+                                                <th className="text-left font-note text-sm text-gray-400 py-2 px-4">Ayat</th>
+                                                <th className="text-center font-note text-sm text-gray-400 py-2 px-4">Hal</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                                        </thead>
+                                        <tbody>
+                                            {readingLogs.map((entry, i) => (
+                                                <tr key={entry.id || i} className="border-b border-gray-50 hover:bg-gray-50/30 transition-colors">
+                                                    <td className="py-2.5 px-4">
+                                                        <span className="font-handwriting text-primary font-bold text-sm">
+                                                            {new Date(entry.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                                                        </span>
+                                                    </td>
+                                                    <td className="py-2.5 px-4">
+                                                        <span className="font-handwriting text-gray-700">{entry.surah}</span>
+                                                    </td>
+                                                    <td className="py-2.5 px-4">
+                                                        <span className="font-note text-sm text-gray-500">
+                                                            {entry.ayat_start && entry.ayat_end ? `${entry.ayat_start}-${entry.ayat_end}` : '-'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="py-2.5 px-4 text-center">
+                                                        <span className="font-handwriting text-sm bg-primary/10 text-primary px-2 py-0.5 rounded-full">{entry.pages || '-'}</span>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -174,41 +333,83 @@ export default function QuranJournal() {
                                 <span className="material-symbols-outlined text-primary text-2xl">psychology</span>
                                 Progress Hafalan
                             </h3>
-                            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-                                <div className="flex items-center justify-between mb-4">
-                                    <span className="font-note text-sm text-gray-400">Juz 30 (Juz 'Amma)</span>
-                                    <span className="font-handwriting text-primary font-bold">8/37 surah</span>
+
+                            {/* Add Hifz */}
+                            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-4">
+                                <div className="grid grid-cols-2 gap-3 mb-3">
+                                    <input
+                                        type="text"
+                                        value={newHifz.surah}
+                                        onChange={(e) => setNewHifz({...newHifz, surah: e.target.value})}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg font-note text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                                        placeholder="Nama Surah"
+                                    />
+                                    <input
+                                        type="number"
+                                        value={newHifz.total_ayat}
+                                        onChange={(e) => setNewHifz({...newHifz, total_ayat: e.target.value})}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg font-note text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                                        placeholder="Total Ayat"
+                                    />
                                 </div>
-                                <div className="space-y-2 max-h-[250px] overflow-y-auto custom-scrollbar pr-2">
-                                    {hafalanProgress.map((item, i) => (
-                                        <div key={i} className="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0">
-                                            <div className="flex items-center gap-2">
-                                                <span className={`material-symbols-outlined text-lg ${
-                                                    item.status === 'done' ? 'text-green-500' :
-                                                    item.status === 'in-progress' ? 'text-amber-500' : 'text-gray-300'
-                                                }`}>
-                                                    {item.status === 'done' ? 'check_circle' :
-                                                     item.status === 'in-progress' ? 'timelapse' : 'radio_button_unchecked'}
-                                                </span>
-                                                <span className={`font-handwriting ${item.status === 'done' ? 'text-gray-500' : 'text-gray-800'}`}>
-                                                    {item.surah}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-note text-xs text-gray-400">{item.memorized}/{item.ayat} ayat</span>
-                                                {item.status === 'in-progress' && (
-                                                    <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                                                        <div className="h-full bg-amber-400 rounded-full" style={{ width: `${(item.memorized / item.ayat) * 100}%` }}></div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                                <div className="mt-3 p-2 bg-primary/5 rounded-lg text-center">
-                                    <span className="font-note text-sm text-primary">Sedang menghafal: <span className="font-handwriting font-bold">Al-Ma'un ayat 5</span></span>
-                                </div>
+                                <button
+                                    onClick={saveHifz}
+                                    className="w-full py-2 bg-primary text-white rounded-lg font-handwriting text-lg hover:bg-primary/90 transition-colors"
+                                >
+                                    Tambah Surah Hafalan
+                                </button>
                             </div>
+
+                            {hifzProgress.length === 0 ? (
+                                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center">
+                                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <span className="material-symbols-outlined text-4xl text-gray-300">psychology</span>
+                                    </div>
+                                    <p className="font-handwriting text-xl text-gray-400">Ketuk untuk tambah target hafalan...</p>
+                                    <p className="font-note text-sm text-gray-300 mt-2">Track progress hafalan Al-Qur'anmu</p>
+                                </div>
+                            ) : (
+                                <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                                    <div className="space-y-2 max-h-[250px] overflow-y-auto custom-scrollbar pr-2">
+                                        {hifzProgress.map((item, i) => (
+                                            <div key={item.id || i} className="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0">
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => {
+                                                            const newStatus = item.status === 'done' ? 'not-started' :
+                                                                             item.status === 'in-progress' ? 'done' : 'in-progress';
+                                                            updateHifzStatus(item.id, item.memorized, newStatus);
+                                                        }}
+                                                        className={`material-symbols-outlined text-lg ${
+                                                            item.status === 'done' ? 'text-green-500' :
+                                                            item.status === 'in-progress' ? 'text-amber-500' : 'text-gray-300 hover:text-primary'
+                                                        }`}
+                                                    >
+                                                        {item.status === 'done' ? 'check_circle' :
+                                                         item.status === 'in-progress' ? 'timelapse' : 'radio_button_unchecked'}
+                                                    </button>
+                                                    <span className={`font-handwriting ${item.status === 'done' ? 'text-gray-500 line-through' : 'text-gray-800'}`}>
+                                                        {item.surah}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-note text-xs text-gray-400">{item.memorized}/{item.total_ayat} ayat</span>
+                                                    {item.status === 'in-progress' && (
+                                                        <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                                            <div className="h-full bg-amber-400 rounded-full" style={{ width: `${(item.memorized / item.total_ayat) * 100}%` }}></div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="mt-3 p-2 bg-primary/5 rounded-lg text-center">
+                                        <span className="font-note text-sm text-primary">
+                                            Total: <span className="font-handwriting font-bold">{hifzProgress.filter(h => h.status === 'done').length}</span> surah selesai
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Tadabbur Notes */}
@@ -217,33 +418,97 @@ export default function QuranJournal() {
                                 <span className="material-symbols-outlined text-primary text-2xl">edit_note</span>
                                 Catatan Tadabbur
                             </h3>
-                            <div className="space-y-4">
-                                {tadabburNotes.map((note, i) => (
-                                    <div key={i} className={`${note.color} p-4 rounded-xl border ${note.borderColor} shadow-sm transform ${i % 2 === 0 ? 'rotate-[-0.5deg]' : 'rotate-[0.5deg]'} hover:rotate-0 transition-transform`}>
-                                        <div className="flex justify-between items-start mb-2">
-                                            <span className="font-note text-xs text-gray-500 bg-white/60 px-2 py-0.5 rounded-full">
-                                                QS. {note.surah}: {note.ayat}
-                                            </span>
-                                        </div>
-                                        <p className="font-handwriting text-lg text-gray-800 text-right leading-relaxed mb-2" dir="rtl">
-                                            {note.arabic}
-                                        </p>
-                                        <div className="border-t border-gray-200/50 pt-2">
-                                            <p className="font-note text-sm text-gray-600 leading-relaxed italic">
-                                                {note.reflection}
-                                            </p>
-                                        </div>
-                                    </div>
-                                ))}
+
+                            {/* Add Tadabbur */}
+                            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-4 space-y-3">
+                                <div className="grid grid-cols-2 gap-3">
+                                    <input
+                                        type="text"
+                                        value={newTadabbur.surah}
+                                        onChange={(e) => setNewTadabbur({...newTadabbur, surah: e.target.value})}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg font-note text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                                        placeholder="Nama Surah"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={newTadabbur.ayat}
+                                        onChange={(e) => setNewTadabbur({...newTadabbur, ayat: e.target.value})}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg font-note text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                                        placeholder="Ayat (contoh: 286)"
+                                    />
+                                </div>
+                                <input
+                                    type="text"
+                                    value={newTadabbur.arabic}
+                                    onChange={(e) => setNewTadabbur({...newTadabbur, arabic: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg font-note text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary text-right"
+                                    placeholder="Teks Arab (opsional)"
+                                    dir="rtl"
+                                />
+                                <textarea
+                                    value={newTadabbur.reflection}
+                                    onChange={(e) => setNewTadabbur({...newTadabbur, reflection: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg font-note text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                                    placeholder="Refleksi / Tadabbur..."
+                                    rows={2}
+                                />
+                                <div className="flex items-center gap-2">
+                                    <span className="font-note text-sm text-gray-500">Warna:</span>
+                                    {colorOptions.map((color) => (
+                                        <button
+                                            key={color.value}
+                                            onClick={() => setNewTadabbur({...newTadabbur, color: color.value})}
+                                            className={`w-6 h-6 rounded-full ${color.value} border-2 ${newTadabbur.color === color.value ? 'border-primary' : 'border-transparent'}`}
+                                        />
+                                    ))}
+                                </div>
+                                <button
+                                    onClick={saveTadabbur}
+                                    className="w-full py-2 bg-primary text-white rounded-lg font-handwriting text-lg hover:bg-primary/90 transition-colors"
+                                >
+                                    Simpan Catatan Tadabbur
+                                </button>
                             </div>
 
-                            {/* Add note sticky */}
-                            <div className="mt-4 bg-sticky-yellow p-4 shadow-sticky transform rotate-[1deg]">
-                                <div className="flex items-center gap-2 text-gray-400">
-                                    <span className="material-symbols-outlined">add_circle</span>
-                                    <span className="font-note text-sm">Tambah catatan tadabbur baru...</span>
+                            {tadabburNotes.length === 0 ? (
+                                <div className="bg-sticky-yellow p-6 shadow-sticky transform rotate-[1deg] text-center">
+                                    <div className="w-16 h-16 bg-amber-200/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <span className="material-symbols-outlined text-4xl text-amber-600">edit_note</span>
+                                    </div>
+                                    <p className="font-handwriting text-xl text-gray-600">Ketuk untuk tambah catatan tadabbur...</p>
+                                    <p className="font-note text-sm text-gray-500 mt-2">Simpan ayat-ayat favorit dan refleksimu</p>
                                 </div>
-                            </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {tadabburNotes.map((note, i) => (
+                                        <div key={note.id || i} className={`${note.color} p-4 rounded-xl border ${getBorderClass(note.color)} shadow-sm transform ${i % 2 === 0 ? 'rotate-[-0.5deg]' : 'rotate-[0.5deg]'} hover:rotate-0 transition-transform relative group`}>
+                                            <button
+                                                onClick={() => deleteTadabbur(note.id)}
+                                                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all"
+                                            >
+                                                <span className="material-symbols-outlined text-lg">close</span>
+                                            </button>
+                                            <div className="flex justify-between items-start mb-2">
+                                                <span className="font-note text-xs text-gray-500 bg-white/60 px-2 py-0.5 rounded-full">
+                                                    QS. {note.surah}: {note.ayat}
+                                                </span>
+                                            </div>
+                                            {note.arabic && (
+                                                <p className="font-handwriting text-lg text-gray-800 text-right leading-relaxed mb-2" dir="rtl">
+                                                    {note.arabic}
+                                                </p>
+                                            )}
+                                            {note.reflection && (
+                                                <div className="border-t border-gray-200/50 pt-2">
+                                                    <p className="font-note text-sm text-gray-600 leading-relaxed italic">
+                                                        {note.reflection}
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

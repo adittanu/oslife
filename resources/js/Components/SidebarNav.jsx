@@ -51,19 +51,21 @@ export default function SidebarNav({ onNavigate }) {
     return (
         <>
             <nav className="flex-1 px-4 py-2 flex flex-col gap-1 overflow-y-auto custom-scrollbar">
-                {config.main.map((item) => (
-                    <SidebarLink key={item.href} href={item.href} icon={item.icon} label={item.label} onClick={onNavigate} />
-                ))}
+                <div id="tour-main-nav">
+                    {config.main.map((item) => (
+                        <SidebarLink key={item.href} href={item.href} icon={item.icon} label={item.label} onClick={onNavigate} />
+                    ))}
+                </div>
 
                 <div className="mt-6 mb-2 px-4 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Collections</div>
-                <div className="space-y-1">
+                <div id="tour-collections" className="space-y-1">
                     {config.collections.map((item) => (
                         <CollectionLink key={item.href} href={item.href} icon={item.icon} label={item.label} onClick={onNavigate} />
                     ))}
                 </div>
 
                 <div className="mt-6 mb-2 px-4 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Tools</div>
-                <div className="space-y-1">
+                <div id="tour-tools" className="space-y-1">
                     {config.tools.map((item) => (
                         <CollectionLink key={item.href} href={item.href} icon={item.icon} label={item.label} onClick={onNavigate} />
                     ))}

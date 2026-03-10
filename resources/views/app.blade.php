@@ -6,11 +6,11 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <meta name="description" content="All-in-one life management system dengan estetika digital bullet journal. 4 Mode: Life, Muslim, Creator, Work.">
-        <meta name="author" content="Life OS">
+        <meta name="author" content="Mosiku">
 
         <!-- Open Graph -->
         <meta property="og:type" content="website">
-        <meta property="og:site_name" content="Life OS">
+        <meta property="og:site_name" content="Mosiku">
         <meta property="og:locale" content="id_ID">
 
         <!-- Twitter Card -->
@@ -23,7 +23,7 @@
         <link rel="manifest" href="/manifest.json">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="default">
-        <meta name="apple-mobile-web-app-title" content="Life OS">
+        <meta name="apple-mobile-web-app-title" content="Mosiku">
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
@@ -39,11 +39,12 @@
         @vite(['resources/js/app.jsx', "resources/js/Pages/{$page['component']}.jsx"])
         @inertiaHead
 
+        @verbatim
         <script type="application/ld+json">
         {
             "@context": "https://schema.org",
             "@type": "SoftwareApplication",
-            "name": "Life OS",
+            "name": "Mosiku",
             "applicationCategory": "ProductivityApplication",
             "operatingSystem": "Web",
             "description": "All-in-one life management system dengan estetika digital bullet journal",
@@ -63,6 +64,7 @@
             ]
         }
         </script>
+        @endverbatim
     </head>
     <body class="font-sans antialiased">
         @inertia

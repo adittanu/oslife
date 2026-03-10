@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" fill="none">
+  <!-- Body - mochi/blob shape -->
+  <path d="M100 20 C60 20, 30 70, 30 130 C30 190, 60 220, 100 220 C140 220, 170 190, 170 130 C170 70, 140 20, 100 20Z" fill="#F9A8D4" stroke="#6B4C5E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="0"/>
+  <!-- Left eye -->
+  <ellipse cx="75" cy="110" rx="12" ry="14" fill="#1a1a2e"/>
+  <ellipse cx="79" cy="104" rx="4" ry="5" fill="white"/>
+  <!-- Right eye -->
+  <ellipse cx="125" cy="110" rx="12" ry="14" fill="#1a1a2e"/>
+  <ellipse cx="129" cy="104" rx="4" ry="5" fill="white"/>
+  <!-- Blush cheeks -->
+  <ellipse cx="60" cy="130" rx="12" ry="8" fill="#F472B6" opacity="0.4"/>
+  <ellipse cx="140" cy="130" rx="12" ry="8" fill="#F472B6" opacity="0.4"/>
+  <!-- Smile -->
+  <path d="M88 140 Q100 155, 112 140" stroke="#6B4C5E" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- Left arm (stub) -->
+  <ellipse cx="35" cy="155" rx="15" ry="10" fill="#F9A8D4" stroke="#6B4C5E" stroke-width="2.5" transform="rotate(-20 35 155)"/>
+  <!-- Right arm (stub) holding pencil -->
+  <ellipse cx="165" cy="150" rx="15" ry="10" fill="#F9A8D4" stroke="#6B4C5E" stroke-width="2.5" transform="rotate(15 165 150)"/>
+  <!-- Pencil -->
+  <rect x="172" y="120" width="8" height="45" rx="2" fill="#FBBF24" stroke="#6B4C5E" stroke-width="1.5" transform="rotate(20 176 142)"/>
+  <polygon points="176,167 172,178 180,178" fill="#F9A8D4" stroke="#6B4C5E" stroke-width="1.5" transform="rotate(20 176 172)"/>
+  <rect x="172" y="120" width="8" height="8" rx="1" fill="#6B4C5E" transform="rotate(20 176 124)"/>
+  <!-- Left foot -->
+  <ellipse cx="80" cy="225" rx="16" ry="10" fill="#F9A8D4" stroke="#6B4C5E" stroke-width="2.5"/>
+  <!-- Right foot -->
+  <ellipse cx="120" cy="225" rx="16" ry="10" fill="#F9A8D4" stroke="#6B4C5E" stroke-width="2.5"/>
+  <!-- Bandana -->
+  <path d="M55 70 Q100 55, 145 70" stroke="#EC4899" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M145 70 L158 58 L150 80" fill="#EC4899" stroke="#6B4C5E" stroke-width="1.5"/>
+</svg>

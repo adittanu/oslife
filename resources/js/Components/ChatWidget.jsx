@@ -206,7 +206,7 @@ export default function ChatWidget() {
                                         </div>
                                         <p className="font-handwriting text-xl font-bold text-gray-700 mb-1">Hi there!</p>
                                         <p className="font-note text-sm text-gray-400 leading-relaxed">
-                                            I'm your personal Life OS assistant. Ask me anything about planning, productivity, or just chat!
+                                            I'm your personal Mosiku assistant. Ask me anything about planning, productivity, or just chat!
                                         </p>
                                         <div className="mt-4 flex flex-wrap gap-2 justify-center">
                                             {['Plan my day', 'Give me motivation', 'Help with goals'].map((suggestion, idx) => (

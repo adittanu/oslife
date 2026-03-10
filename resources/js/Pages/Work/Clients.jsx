@@ -1,21 +1,85 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { usePage } from '@inertiajs/react';
+import axios from 'axios';
 import JournalLayout from '@/Layouts/JournalLayout';
+import WorkEmptyState from '@/Components/WorkEmptyState';
 
-export default function Clients() {
-    const clients = [
-        { name: 'Sarah Mitchell', company: 'Acme Corp', email: 'sarah@acmecorp.com', status: 'Active', projects: 3, lastInteraction: 'Mar 7, 2026', avatar: 'S', color: 'bg-blue-200 text-blue-800' },
-        { name: 'James Park', company: 'ShopWell Inc', email: 'james@shopwell.io', status: 'Active', projects: 2, lastInteraction: 'Mar 5, 2026', avatar: 'J', color: 'bg-emerald-200 text-emerald-800' },
-        { name: 'Maria Garcia', company: 'GreenLeaf Co', email: 'maria@greenleaf.co', status: 'Active', projects: 1, lastInteraction: 'Mar 3, 2026', avatar: 'M', color: 'bg-purple-200 text-purple-800' },
-        { name: 'David Chen', company: 'FitTrack', email: 'david@fittrack.app', status: 'Active', projects: 1, lastInteraction: 'Feb 28, 2026', avatar: 'D', color: 'bg-pink-200 text-pink-800' },
-        { name: 'Emily Ross', company: 'TechStart Inc', email: 'emily@techstart.com', status: 'Lead', projects: 0, lastInteraction: 'Mar 6, 2026', avatar: 'E', color: 'bg-amber-200 text-amber-800' },
-        { name: 'Robert Kim', company: 'Nomad Studio', email: 'robert@nomadstudio.co', status: 'Lead', projects: 0, lastInteraction: 'Mar 1, 2026', avatar: 'R', color: 'bg-orange-200 text-orange-800' },
-        { name: 'Lisa Wang', company: 'Bright Ideas LLC', email: 'lisa@brightideas.com', status: 'Inactive', projects: 2, lastInteraction: 'Jan 15, 2026', avatar: 'L', color: 'bg-gray-200 text-gray-700' },
-    ];
+const STATUS_CONFIG = {
+    Active: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+    Lead: 'bg-amber-100 text-amber-700 border-amber-200',
+    Inactive: 'bg-gray-100 text-gray-500 border-gray-200',
+};
 
-    const statusConfig = {
-        Active: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-        Lead: 'bg-amber-100 text-amber-700 border-amber-200',
-        Inactive: 'bg-gray-100 text-gray-500 border-gray-200',
+const AVATAR_COLORS = [
+    'bg-blue-200 text-blue-800',
+    'bg-emerald-200 text-emerald-800',
+    'bg-purple-200 text-purple-800',
+    'bg-pink-200 text-pink-800',
+    'bg-amber-200 text-amber-800',
+    'bg-orange-200 text-orange-800',
+];
+
+export default function Clients({ clients: propClients }) {
+    const { auth } = usePage().props;
+    const isAuth = !!auth?.user;
+
+    const [clients, setClients] = useState(propClients || []);
+    const [showModal, setShowModal] = useState(false);
+    const [editingClient, setEditingClient] = useState(null);
+    const [formData, setFormData] = useState({
+        name: '',
+        company: '',
+        email: '',
+        phone: '',
+        status: 'Lead',
+        notes: '',
+        avatar_color: 'bg-blue-200'
+    });
+
+    useEffect(() => {
+        setClients(propClients || []);
+    }, [propClients]);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            if (editingClient?.id) {
+                const res = await axios.put(`/api/work/clients/${editingClient.id}`, formData);
+                setClients(clients.map(c => c.id === editingClient.id ? res.data : c));
+            } else {
+                const res = await axios.post('/api/work/clients', formData);
+                setClients([res.data, ...clients]);
+            }
+            setShowModal(false);
+            setEditingClient(null);
+            setFormData({ name: '', company: '', email: '', phone: '', status: 'Lead', notes: '', avatar_color: 'bg-blue-200' });
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleDelete = async (id) => {
+        if (!confirm('Delete this client?')) return;
+        try {
+            await axios.delete(`/api/work/clients/${id}`);
+            setClients(clients.filter(c => c.id !== id));
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const openEdit = (client) => {
+        setEditingClient(client);
+        setFormData({
+            name: client.name,
+            company: client.company || '',
+            email: client.email || '',
+            phone: client.phone || '',
+            status: client.status,
+            notes: client.notes || '',
+            avatar_color: client.avatar_color || 'bg-blue-200'
+        });
+        setShowModal(true);
     };
 
     const statusCounts = {
@@ -23,6 +87,107 @@ export default function Clients() {
         Lead: clients.filter(c => c.status === 'Lead').length,
         Inactive: clients.filter(c => c.status === 'Inactive').length,
     };
+
+    const openAdd = () => {
+        setEditingClient(null);
+        setFormData({ name: '', company: '', email: '', phone: '', status: 'Lead', notes: '', avatar_color: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)] });
+        setShowModal(true);
+    };
+
+    // Empty state
+    if (!clients.length) {
+        return (
+            <JournalLayout
+                pageTitle="Work OS - Clients"
+                headerTitle="Client Tracker"
+                headerSubtitle="Manage your relationships"
+                titleFontClass="font-handwriting"
+                bgIcon={<span className="material-symbols-outlined text-[120px] text-primary rotate-12">people</span>}
+            >
+                <div className="flex-1 overflow-auto custom-scrollbar p-4 md:p-8">
+                    <div className="max-w-6xl mx-auto">
+                        <WorkEmptyState
+                            icon="people"
+                            title="Belum ada klien"
+                            description="Tambahkan klien pertama untuk memulai workflow freelancer-mu"
+                            actionLabel="Add Client"
+                            onAction={openAdd}
+                        />
+                    </div>
+                </div>
+
+                {showModal && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowModal(false)}>
+                        <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
+                            <h3 className="font-handwriting text-xl font-bold mb-4">{editingClient ? 'Edit Client' : 'Add Client'}</h3>
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                <input
+                                    type="text"
+                                    placeholder="Name"
+                                    value={formData.name}
+                                    onChange={e => setFormData({...formData, name: e.target.value})}
+                                    className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                                    required
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Company"
+                                    value={formData.company}
+                                    onChange={e => setFormData({...formData, company: e.target.value})}
+                                    className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                                />
+                                <input
+                                    type="email"
+                                    placeholder="Email"
+                                    value={formData.email}
+                                    onChange={e => setFormData({...formData, email: e.target.value})}
+                                    className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                                />
+                                <input
+                                    type="tel"
+                                    placeholder="Phone"
+                                    value={formData.phone}
+                                    onChange={e => setFormData({...formData, phone: e.target.value})}
+                                    className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                                />
+                                <select
+                                    value={formData.status}
+                                    onChange={e => setFormData({...formData, status: e.target.value})}
+                                    className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                                >
+                                    <option value="Lead">Lead</option>
+                                    <option value="Active">Active</option>
+                                    <option value="Inactive">Inactive</option>
+                                </select>
+                                <textarea
+                                    placeholder="Notes"
+                                    value={formData.notes}
+                                    onChange={e => setFormData({...formData, notes: e.target.value})}
+                                    className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                                    rows={3}
+                                />
+                                <div className="flex gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowModal(false)}
+                                        className="flex-1 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="flex-1 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors"
+                                    >
+                                        {editingClient ? 'Update' : 'Add'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+            </JournalLayout>
+        );
+    }
 
     return (
         <JournalLayout
@@ -33,7 +198,6 @@ export default function Clients() {
             bgIcon={<span className="material-symbols-outlined text-[120px] text-primary rotate-12">people</span>}
         >
             <div className="flex-1 overflow-auto custom-scrollbar p-4 md:p-8">
-                {/* Decorative element */}
                 <div className="absolute bottom-20 left-10 opacity-10 pointer-events-none rotate-[-15deg]">
                     <span className="material-symbols-outlined text-[80px] text-primary">contacts</span>
                 </div>
@@ -50,7 +214,7 @@ export default function Clients() {
                                     {clients.length} total
                                 </span>
                             </div>
-                            <button className="flex items-center gap-2 text-sm font-bold text-primary bg-primary/10 hover:bg-primary/20 px-4 py-2 rounded-xl transition-colors shadow-sm">
+                            <button onClick={openAdd} className="flex items-center gap-2 text-sm font-bold text-primary bg-primary/10 hover:bg-primary/20 px-4 py-2 rounded-xl transition-colors shadow-sm">
                                 <span className="material-symbols-outlined text-[18px]">person_add</span> Add Client
                             </button>
                         </div>
@@ -58,7 +222,7 @@ export default function Clients() {
                         {/* Status Badges */}
                         <div className="flex flex-wrap gap-3 mt-4">
                             {Object.entries(statusCounts).map(([status, count]) => (
-                                <span key={status} className={`${statusConfig[status]} border text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5`}>
+                                <span key={status} className={`${STATUS_CONFIG[status]} border text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5`}>
                                     <span className="w-2 h-2 rounded-full bg-current opacity-60"></span>
                                     {status}: {count}
                                 </span>
@@ -72,19 +236,19 @@ export default function Clients() {
                             const tapeColors = ['bg-blue-100/80', 'bg-green-100/80', 'bg-purple-100/80', 'bg-pink-100/80', 'bg-amber-100/80', 'bg-orange-100/80', 'bg-gray-100/80'];
                             const rotations = ['rotate-[-1deg]', 'rotate-[1deg]', 'rotate-[-2deg]', 'rotate-[2deg]', 'rotate-[-1deg]', 'rotate-[1deg]', 'rotate-[0deg]'];
                             return (
-                                <div key={idx} className="relative bg-page-bg shadow-notebook rounded-xl border border-gray-200 p-6 paper-lines hover:shadow-lg transition-shadow">
+                                <div key={client.id || idx} className="relative bg-page-bg shadow-notebook rounded-xl border border-gray-200 p-6 paper-lines hover:shadow-lg transition-shadow">
                                     <div className={`washi-tape -top-2 left-8 ${tapeColors[idx % tapeColors.length]} ${rotations[idx % rotations.length]}`}></div>
 
                                     <div className="flex items-start gap-4 mt-2">
                                         {/* Avatar */}
-                                        <div className={`w-12 h-12 rounded-full ${client.color} flex items-center justify-center font-handwriting text-xl font-bold flex-shrink-0 shadow-sm`}>
-                                            {client.avatar}
+                                        <div className={`w-12 h-12 rounded-full ${client.avatar_color || AVATAR_COLORS[idx % AVATAR_COLORS.length]} flex items-center justify-center font-handwriting text-xl font-bold flex-shrink-0 shadow-sm`}>
+                                            {client.name.charAt(0).toUpperCase()}
                                         </div>
 
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 flex-wrap">
                                                 <h4 className="font-handwriting text-xl font-bold text-gray-800">{client.name}</h4>
-                                                <span className={`${statusConfig[client.status]} border text-xs font-bold px-2 py-0.5 rounded-full`}>
+                                                <span className={`${STATUS_CONFIG[client.status]} border text-xs font-bold px-2 py-0.5 rounded-full`}>
                                                     {client.status}
                                                 </span>
                                             </div>
@@ -95,28 +259,23 @@ export default function Clients() {
                                                     <span className="material-symbols-outlined text-sm text-gray-400">mail</span>
                                                     <span className="font-note text-sm text-gray-600 truncate">{client.email}</span>
                                                 </div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="material-symbols-outlined text-sm text-gray-400">folder</span>
-                                                    <span className="font-note text-sm text-gray-600">{client.projects} project{client.projects !== 1 ? 's' : ''}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="material-symbols-outlined text-sm text-gray-400">event</span>
-                                                    <span className="font-note text-xs text-gray-400">Last contact: {client.lastInteraction}</span>
-                                                </div>
+                                                {client.phone && (
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="material-symbols-outlined text-sm text-gray-400">phone</span>
+                                                        <span className="font-note text-sm text-gray-600">{client.phone}</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Action buttons */}
                                     <div className="flex gap-2 mt-4 pt-3 border-t border-gray-100">
-                                        <button className="flex-1 flex items-center justify-center gap-1.5 text-xs font-bold text-gray-500 hover:text-primary bg-gray-50 hover:bg-primary/5 py-2 rounded-lg transition-colors">
-                                            <span className="material-symbols-outlined text-sm">mail</span> Email
+                                        <button onClick={() => openEdit(client)} className="flex-1 flex items-center justify-center gap-1.5 text-xs font-bold text-gray-500 hover:text-primary bg-gray-50 hover:bg-primary/5 py-2 rounded-lg transition-colors">
+                                            <span className="material-symbols-outlined text-sm">edit</span> Edit
                                         </button>
-                                        <button className="flex-1 flex items-center justify-center gap-1.5 text-xs font-bold text-gray-500 hover:text-primary bg-gray-50 hover:bg-primary/5 py-2 rounded-lg transition-colors">
-                                            <span className="material-symbols-outlined text-sm">edit_note</span> Notes
-                                        </button>
-                                        <button className="flex-1 flex items-center justify-center gap-1.5 text-xs font-bold text-gray-500 hover:text-primary bg-gray-50 hover:bg-primary/5 py-2 rounded-lg transition-colors">
-                                            <span className="material-symbols-outlined text-sm">visibility</span> View
+                                        <button onClick={() => handleDelete(client.id)} className="flex-1 flex items-center justify-center gap-1.5 text-xs font-bold text-gray-500 hover:text-red-500 bg-gray-50 hover:bg-red-50 py-2 rounded-lg transition-colors">
+                                            <span className="material-symbols-outlined text-sm">delete</span> Delete
                                         </button>
                                     </div>
                                 </div>
@@ -139,6 +298,77 @@ export default function Clients() {
 
                 </div>
             </div>
+
+            {/* Modal */}
+            {showModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowModal(false)}>
+                    <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
+                        <h3 className="font-handwriting text-xl font-bold mb-4">{editingClient ? 'Edit Client' : 'Add Client'}</h3>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <input
+                                type="text"
+                                placeholder="Name"
+                                value={formData.name}
+                                onChange={e => setFormData({...formData, name: e.target.value})}
+                                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                                required
+                            />
+                            <input
+                                type="text"
+                                placeholder="Company"
+                                value={formData.company}
+                                onChange={e => setFormData({...formData, company: e.target.value})}
+                                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                            />
+                            <input
+                                type="email"
+                                placeholder="Email"
+                                value={formData.email}
+                                onChange={e => setFormData({...formData, email: e.target.value})}
+                                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                            />
+                            <input
+                                type="tel"
+                                placeholder="Phone"
+                                value={formData.phone}
+                                onChange={e => setFormData({...formData, phone: e.target.value})}
+                                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                            />
+                            <select
+                                value={formData.status}
+                                onChange={e => setFormData({...formData, status: e.target.value})}
+                                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                            >
+                                <option value="Lead">Lead</option>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                            <textarea
+                                placeholder="Notes"
+                                value={formData.notes}
+                                onChange={e => setFormData({...formData, notes: e.target.value})}
+                                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                                rows={3}
+                            />
+                            <div className="flex gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowModal(false)}
+                                    className="flex-1 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="flex-1 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors"
+                                >
+                                    {editingClient ? 'Update' : 'Add'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </JournalLayout>
     );
 }

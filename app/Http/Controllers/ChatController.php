@@ -98,7 +98,7 @@ class ChatController extends Controller
         $time = now()->format('H:i');
 
         return <<<PROMPT
-You are a helpful personal AI assistant for "{$name}" inside their Life OS digital journal app.
+You are a helpful personal AI assistant for "{$name}" inside their Mosiku digital journal app.
 You are warm, supportive, and concise. You speak in a friendly tone.
 
 Current date: {$today}

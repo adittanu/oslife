@@ -1,8 +1,12 @@
 import { Link } from '@inertiajs/react';
+import { useCursorMode } from '@/hooks/useCursorMode';
 
 export default function GuestLayout({ children }) {
+    // Set default cursor mode (life/pink) for guest pages
+    useCursorMode('life');
+
     return (
-        <div className="h-screen overflow-auto bg-journal-bg paper-texture flex">
+        <div className="min-h-screen bg-journal-bg paper-texture flex">
             {/* Left decorative panel */}
             <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center bg-white/30">
                 <div className="dot-grid absolute inset-0 opacity-30"></div>
@@ -19,13 +23,10 @@ export default function GuestLayout({ children }) {
 
                 <div className="relative z-10 text-center px-12">
                     <Link href="/" className="inline-flex items-center gap-3 mb-8">
-                        <div
-                            className="bg-center bg-no-repeat bg-cover rounded-2xl h-16 w-16 border-2 border-primary rotate-3 shadow-md"
-                            style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuA_k8zodvgRy8J2Vg_lS-vpqOiCOMN7YDmjiDQ6rPpf1E9BQdiL5yaBRegMph3ndGJG5iBGCoGeXXoiD8gBnHTIlWdkb-qemjG6P1UGMrF9IOotUALq9sL__D-Qeoaniq5p_wGKkKop7xzg6fNL1yz0jRGw44WbxxNv3fpKFrvWOx2Oz-KVXmDDkuTKFl84eLDUWsFz1JYQ3jVM-GAgy-vMes50uH8ukigGXHVXQ7sDPzC639P7W_Ukma5OSle2SLxGV7Rs8X5KEdc')" }}
-                        ></div>
+                        <img src="/images/ciku-default.svg" alt="Mosiku" className="h-16 w-16 rotate-3 drop-shadow-md" />
                     </Link>
-                    <h1 className="text-5xl font-elegant text-gray-800 mb-4 leading-tight">Life OS</h1>
-                    <p className="text-xl font-handwriting text-primary mb-6">Organize Your Entire Life</p>
+                    <h1 className="text-5xl font-elegant text-gray-800 mb-4 leading-tight">Mosiku</h1>
+                    <p className="text-xl font-handwriting text-primary mb-6">Semua hidupmu, satu catatan</p>
                     <p className="text-gray-500 font-note text-lg max-w-sm mx-auto">
                         Sistem manajemen hidup all-in-one dengan estetika digital bullet journal.
                     </p>
@@ -38,11 +39,8 @@ export default function GuestLayout({ children }) {
                     {/* Mobile branding */}
                     <div className="lg:hidden text-center mb-8">
                         <Link href="/" className="inline-flex items-center gap-3">
-                            <div
-                                className="bg-center bg-no-repeat bg-cover rounded-xl h-12 w-12 border-2 border-primary rotate-3 shadow-md"
-                                style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuA_k8zodvgRy8J2Vg_lS-vpqOiCOMN7YDmjiDQ6rPpf1E9BQdiL5yaBRegMph3ndGJG5iBGCoGeXXoiD8gBnHTIlWdkb-qemjG6P1UGMrF9IOotUALq9sL__D-Qeoaniq5p_wGKkKop7xzg6fNL1yz0jRGw44WbxxNv3fpKFrvWOx2Oz-KVXmDDkuTKFl84eLDUWsFz1JYQ3jVM-GAgy-vMes50uH8ukigGXHVXQ7sDPzC639P7W_Ukma5OSle2SLxGV7Rs8X5KEdc')" }}
-                            ></div>
-                            <span className="text-primary text-2xl font-handwriting font-bold">Life OS</span>
+                            <img src="/images/ciku-default.svg" alt="Mosiku" className="h-12 w-12 rotate-3 drop-shadow-md" />
+                            <span className="text-primary text-2xl font-handwriting font-bold">Mosiku</span>
                         </Link>
                     </div>
 

@@ -9,7 +9,7 @@ const modes = [
     { value: 'work', label: 'Work' },
 ];
 
-export default function ModeSwitcher({ className = '', compact = false }) {
+export default function ModeSwitcher({ className = '', compact = false, id }) {
     const { auth } = usePage().props;
     const currentUrl = usePage().url;
     const currentMode = detectMode(auth?.user, currentUrl);
@@ -25,7 +25,7 @@ export default function ModeSwitcher({ className = '', compact = false }) {
     }
 
     return (
-        <div className={className}>
+        <div id={id} className={className}>
             <div className="flex gap-1">
                 {modes.map(({ value, label }) => (
                     <button

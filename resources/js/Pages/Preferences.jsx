@@ -427,9 +427,9 @@ export default function Preferences() {
 
     return (
         <JournalLayout
-            pageTitle="Life OS - Preferences"
+            pageTitle="Mosiku - Preferences"
             headerTitle="Preferences"
-            headerSubtitle="Make Life OS truly yours."
+            headerSubtitle="Make Mosiku truly yours."
             titleFontClass="font-handwriting"
             bgIcon={<span className="material-symbols-outlined text-[100px] text-gray-300 rotate-12">settings</span>}
         >

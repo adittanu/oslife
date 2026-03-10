@@ -2,6 +2,15 @@ import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 
+const sectionVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut', staggerChildren: 0.08 } },
+};
+const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } },
+};
+
 const modeData = [
     { name: 'Life', icon: 'favorite', color: 'pink', tape: 'bg-pink-200/80', rotate: 'rotate-[-1deg]', pages: 12, tagline: 'Organize your daily life', features: ['Daily Spread', 'Calendar', 'Task Log', 'Habit Tracker', 'Notes', 'Finances', 'Idea Dump', 'Gratitude', 'Mood Tracker', 'Goals', 'Focus Timer', 'Weekly Review'] },
     { name: 'Muslim', icon: 'mosque', color: 'green', tape: 'bg-green-200/80', rotate: 'rotate-[2deg]', pages: 12, tagline: 'Ibadah tracker lengkap', features: ['Daily Spread Islami', 'Islamic Calendar', 'Sholat Tracker', "Al-Qur'an Journal", 'Dzikir Counter', 'Doa Collection', 'Kajian Notes', 'Muhasabah', 'Sedekah Tracker', 'Ramadan Planner', 'Habit Islami', 'Weekly Muhasabah'] },
@@ -77,18 +86,18 @@ export default function Welcome({ auth }) {
     return (
         <>
             <Head>
-                <title>Life OS - Organize Your Entire Life</title>
+                <title>Mosiku - Semua Hidupmu, Satu Catatan</title>
                 <meta name="description" content="All-in-one life management system dengan estetika digital bullet journal. 4 Mode: Life, Muslim, Creator, Work dalam satu platform." />
-                <meta property="og:title" content="Life OS - Organize Your Entire Life" />
+                <meta property="og:title" content="Mosiku - Semua Hidupmu, Satu Catatan" />
                 <meta property="og:description" content="All-in-one life management system dengan estetika digital bullet journal. 4 Mode dalam satu platform." />
-                <meta property="og:url" content="https://lifeos.app" />
-                <link rel="canonical" href="https://lifeos.app" />
+                <meta property="og:url" content="https://mosiku.app" />
+                <link rel="canonical" href="https://mosiku.app" />
             </Head>
             <div className="bg-journal-bg paper-texture text-text-journal font-display scroll-smooth overflow-x-hidden">
                 <nav className="fixed top-0 w-full z-50 bg-journal-bg/80 backdrop-blur-md border-b border-orange-100 px-6 py-4 flex justify-between items-center">
                     <div className="flex items-center gap-3">
-                        <div className="bg-center bg-no-repeat bg-cover rounded-xl h-10 w-10 border-2 border-primary rotate-3 shadow-md" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuA_k8zodvgRy8J2Vg_lS-vpqOiCOMN7YDmjiDQ6rPpf1E9BQdiL5yaBRegMph3ndGJG5iBGCoGeXXoiD8gBnHTIlWdkb-qemjG6P1UGMrF9IOotUALq9sL__D-Qeoaniq5p_wGKkKop7xzg6fNL1yz0jRGw44WbxxNv3fpKFrvWOx2Oz-KVXmDDkuTKFl84eLDUWsFz1JYQ3jVM-GAgy-vMes50uH8ukigGXHVXQ7sDPzC639P7W_Ukma5OSle2SLxGV7Rs8X5KEdc')" }}></div>
-                        <span className="text-primary text-2xl font-handwriting font-bold">Life OS</span>
+                        <img src="/images/ciku-default.svg" alt="Mosiku" className="h-10 w-10 rotate-3 drop-shadow-md" />
+                        <span className="text-primary text-2xl font-handwriting font-bold">Mosiku</span>
                     </div>
 
                     <div className="hidden md:flex gap-8 font-semibold text-gray-600">
@@ -179,31 +188,28 @@ export default function Welcome({ auth }) {
 
                     {/* Modes */}
                     <section className="py-20 px-6 bg-white/30" id="modes">
-                        <div className="max-w-7xl mx-auto">
-                            <motion.div
-                                className="text-center mb-16"
-                                initial={{ opacity: 0, y: 30 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true, margin: '-80px' }}
-                                transition={{ duration: 0.6, ease: 'easeOut' }}
-                            >
+                        <motion.div
+                            className="max-w-7xl mx-auto"
+                            variants={sectionVariants}
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={{ once: true, margin: '-80px' }}
+                        >
+                            <motion.div className="text-center mb-16" variants={itemVariants}>
                                 <h2 className="text-4xl md:text-5xl font-handwriting font-bold text-gray-700">4 Mode, 1 Aplikasi</h2>
                                 <p className="font-note text-gray-500 mt-3 text-lg">Pilih mode sesuai kebutuhanmu — setiap mode mengubah seluruh tampilan dan fitur.</p>
                                 <div className="h-1 w-24 bg-pink-200 mx-auto mt-4 rounded-full"></div>
                             </motion.div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                                {modeData.map((mode, i) => {
+                                {modeData.map((mode) => {
                                     const iconColors = { pink: 'text-pink-500', green: 'text-green-500', orange: 'text-orange-500', blue: 'text-blue-500' };
                                     return (
                                         <motion.button
                                             key={mode.name}
                                             onClick={() => setActiveMode(mode)}
                                             className="group cursor-pointer text-left"
-                                            initial={{ opacity: 0, y: 40 }}
-                                            whileInView={{ opacity: 1, y: 0 }}
-                                            viewport={{ once: true, margin: '-60px' }}
-                                            transition={{ duration: 0.5, ease: 'easeOut', delay: i * 0.1 }}
+                                            variants={itemVariants}
                                         >
                                             <div className={`relative bg-page-bg rounded-2xl shadow-notebook p-6 border border-gray-100 transition-all group-hover:-translate-y-2 group-hover:shadow-lg ${mode.rotate}`}>
                                                 <div className={`washi-tape -top-2 left-6 ${mode.tape} rotate-2`}></div>
@@ -221,19 +227,19 @@ export default function Welcome({ auth }) {
                                     );
                                 })}
                             </div>
-                        </div>
+                        </motion.div>
                     </section>
 
                     {/* How It Works */}
                     <section className="py-20 px-6">
-                        <div className="max-w-4xl mx-auto">
-                            <motion.div
-                                className="text-center mb-16"
-                                initial={{ opacity: 0, y: 30 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true, margin: '-80px' }}
-                                transition={{ duration: 0.6, ease: 'easeOut' }}
-                            >
+                        <motion.div
+                            className="max-w-4xl mx-auto"
+                            variants={sectionVariants}
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={{ once: true, margin: '-80px' }}
+                        >
+                            <motion.div className="text-center mb-16" variants={itemVariants}>
                                 <h2 className="text-4xl md:text-5xl font-elegant text-gray-800">Cara Kerjanya</h2>
                                 <p className="font-note text-gray-500 mt-3 text-lg">Mulai dalam 3 langkah sederhana</p>
                             </motion.div>
@@ -242,14 +248,11 @@ export default function Welcome({ auth }) {
                                     { step: '1', icon: 'person_add', title: 'Daftar Gratis', desc: 'Buat akun dalam hitungan detik. Tanpa kartu kredit.' },
                                     { step: '2', icon: 'tune', title: 'Pilih Mode', desc: 'Life, Muslim, Creator, atau Work — sesuai kebutuhanmu.' },
                                     { step: '3', icon: 'rocket_launch', title: 'Mulai Produktif', desc: 'Kelola hidupmu dengan journal digital yang estetik.' },
-                                ].map((item, i) => (
+                                ].map((item) => (
                                     <motion.div
                                         key={item.step}
                                         className="text-center relative"
-                                        initial={{ opacity: 0, y: 30 }}
-                                        whileInView={{ opacity: 1, y: 0 }}
-                                        viewport={{ once: true, margin: '-60px' }}
-                                        transition={{ duration: 0.5, ease: 'easeOut', delay: i * 0.15 }}
+                                        variants={itemVariants}
                                     >
                                         <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                                             <span className="material-symbols-outlined text-3xl text-primary">{item.icon}</span>
@@ -260,19 +263,19 @@ export default function Welcome({ auth }) {
                                     </motion.div>
                                 ))}
                             </div>
-                        </div>
+                        </motion.div>
                     </section>
 
                     {/* Features */}
                     <section className="py-20 px-6" id="features">
-                        <div className="max-w-6xl mx-auto">
-                            <motion.div
-                                className="text-center mb-16"
-                                initial={{ opacity: 0, y: 30 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true, margin: '-80px' }}
-                                transition={{ duration: 0.6, ease: 'easeOut' }}
-                            >
+                        <motion.div
+                            className="max-w-6xl mx-auto"
+                            variants={sectionVariants}
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={{ once: true, margin: '-80px' }}
+                        >
+                            <motion.div className="text-center mb-16" variants={itemVariants}>
                                 <h2 className="text-4xl md:text-5xl font-elegant text-gray-800">Fitur Unggulan</h2>
                                 <p className="font-note text-gray-500 mt-3 text-lg">Semua yang kamu butuhkan dalam satu tempat</p>
                             </motion.div>
@@ -287,10 +290,7 @@ export default function Welcome({ auth }) {
                                     return (
                                         <motion.div
                                             key={feat.title}
-                                            initial={{ opacity: 0, y: 30 }}
-                                            whileInView={{ opacity: 1, y: 0 }}
-                                            viewport={{ once: true, margin: '-60px' }}
-                                            transition={{ duration: 0.5, ease: 'easeOut', delay: i * 0.1 }}
+                                            variants={itemVariants}
                                         >
                                             <Wrapper {...(feat.href ? { href: feat.href } : {})} className="flex flex-col items-center group cursor-pointer">
                                                 <div className={`w-20 h-20 ${feat.bg} rounded-2xl flex items-center justify-center ${feat.rotate} shadow-sticky mb-6 group-hover:scale-110 transition-transform`}>
@@ -329,19 +329,19 @@ export default function Welcome({ auth }) {
                                     </motion.div>
                                 ))}
                             </div>
-                        </div>
+                        </motion.div>
                     </section>
 
                     {/* Screenshot Gallery */}
                     <section className="py-20 px-6 bg-white/30">
-                        <div className="max-w-6xl mx-auto">
-                            <motion.div
-                                className="text-center mb-16"
-                                initial={{ opacity: 0, y: 30 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true, margin: '-80px' }}
-                                transition={{ duration: 0.6, ease: 'easeOut' }}
-                            >
+                        <motion.div
+                            className="max-w-6xl mx-auto"
+                            variants={sectionVariants}
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={{ once: true, margin: '-80px' }}
+                        >
+                            <motion.div className="text-center mb-16" variants={itemVariants}>
                                 <h2 className="text-4xl md:text-5xl font-elegant text-gray-800">Lihat Tampilan Setiap Mode</h2>
                                 <p className="font-note text-gray-500 mt-3 text-lg">Desain estetik yang bikin kamu betah</p>
                             </motion.div>
@@ -359,10 +359,7 @@ export default function Welcome({ auth }) {
                                         <motion.div
                                             key={mode.name}
                                             className={`rounded-2xl border ${borderColors[mode.color]} overflow-hidden shadow-lg`}
-                                            initial={{ opacity: 0, y: 30 }}
-                                            whileInView={{ opacity: 1, y: 0 }}
-                                            viewport={{ once: true, margin: '-60px' }}
-                                            transition={{ duration: 0.5, ease: 'easeOut', delay: i * 0.1 }}
+                                            variants={itemVariants}
                                         >
                                             <div className="bg-gray-100 px-4 py-2.5 flex items-center gap-2 border-b border-gray-200">
                                                 <div className="flex gap-1.5">
@@ -385,7 +382,7 @@ export default function Welcome({ auth }) {
                                     );
                                 })}
                             </div>
-                        </div>
+                        </motion.div>
                     </section>
 
                     {/* Pricing */}
@@ -398,14 +395,14 @@ export default function Welcome({ auth }) {
                             <span className="material-symbols-outlined text-[100px] text-yellow-400">stars</span>
                         </motion.div>
 
-                        <div className="max-w-6xl mx-auto relative z-10">
-                            <motion.div
-                                className="text-center mb-16"
-                                initial={{ opacity: 0, y: 30 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true, margin: '-80px' }}
-                                transition={{ duration: 0.6, ease: 'easeOut' }}
-                            >
+                        <motion.div
+                            className="max-w-6xl mx-auto relative z-10"
+                            variants={sectionVariants}
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={{ once: true, margin: '-80px' }}
+                        >
+                            <motion.div className="text-center mb-16" variants={itemVariants}>
                                 <h2 className="text-5xl font-elegant text-gray-800">Mulai Hidup Terorganisir</h2>
                                 <p className="font-handwriting text-2xl text-primary mt-2">Pilih paket yang sesuai untukmu</p>
                             </motion.div>
@@ -414,10 +411,7 @@ export default function Welcome({ auth }) {
                                 {/* Free Plan */}
                                 <motion.div
                                     className="bg-page-bg p-8 rounded-2xl shadow-notebook border border-gray-100 flex flex-col relative"
-                                    initial={{ opacity: 0, y: 40 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true, margin: '-60px' }}
-                                    transition={{ duration: 0.5, ease: 'easeOut' }}
+                                    variants={itemVariants}
                                 >
                                     <div className="washi-tape-accent -top-3 left-1/2 -translate-x-1/2 bg-gray-200/80 w-24"></div>
                                     <h3 className="text-2xl font-bold mb-2">Free</h3>
@@ -436,10 +430,7 @@ export default function Welcome({ auth }) {
                                 {/* Pro Plan */}
                                 <motion.div
                                     className="bg-page-bg p-8 rounded-2xl shadow-notebook border-2 border-primary flex flex-col relative md:scale-105 z-20"
-                                    initial={{ opacity: 0, y: 40 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true, margin: '-60px' }}
-                                    transition={{ duration: 0.5, ease: 'easeOut', delay: 0.1 }}
+                                    variants={itemVariants}
                                 >
                                     <div className="washi-tape-accent -top-3 left-1/2 -translate-x-1/2 bg-primary/20 w-32 rotate-1"></div>
                                     <div className="absolute -top-4 right-4 bg-primary text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">Populer</div>
@@ -462,10 +453,7 @@ export default function Welcome({ auth }) {
                                 {/* Team Plan */}
                                 <motion.div
                                     className="bg-page-bg p-8 rounded-2xl shadow-notebook border border-gray-100 flex flex-col relative"
-                                    initial={{ opacity: 0, y: 40 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true, margin: '-60px' }}
-                                    transition={{ duration: 0.5, ease: 'easeOut', delay: 0.2 }}
+                                    variants={itemVariants}
                                 >
                                     <div className="washi-tape-accent -top-3 left-1/2 -translate-x-1/2 bg-blue-100/80 w-24 -rotate-1"></div>
                                     <h3 className="text-2xl font-bold mb-2">Team</h3>
@@ -488,10 +476,7 @@ export default function Welcome({ auth }) {
                             {/* Comparison Table */}
                             <motion.div
                                 className="mt-16 overflow-x-auto"
-                                initial={{ opacity: 0, y: 30 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true, margin: '-60px' }}
-                                transition={{ duration: 0.6, ease: 'easeOut' }}
+                                variants={itemVariants}
                             >
                                 <table className="w-full bg-page-bg rounded-2xl shadow-notebook border border-gray-100 overflow-hidden">
                                     <thead>
@@ -530,24 +515,27 @@ export default function Welcome({ auth }) {
                                     </tbody>
                                 </table>
                             </motion.div>
-                        </div>
+                        </motion.div>
                     </section>
 
                     {/* Testimonials */}
                     <section className="py-20 px-6">
-                        <div className="max-w-5xl mx-auto">
+                        <motion.div
+                            className="max-w-5xl mx-auto"
+                            variants={sectionVariants}
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={{ once: true, margin: '-80px' }}
+                        >
                             <motion.h2
                                 className="text-3xl md:text-4xl font-elegant text-center mb-12"
-                                initial={{ opacity: 0, y: 30 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true, margin: '-80px' }}
-                                transition={{ duration: 0.6, ease: 'easeOut' }}
+                                variants={itemVariants}
                             >
                                 Apa Kata Pengguna Kami
                             </motion.h2>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 {[
-                                    { text: '"Life OS benar-benar mengubah cara saya mengelola waktu. Desainnya sangat menenangkan!"', name: 'Siti Aminah', initials: 'SA', bg: 'bg-sticky-yellow', avatarBg: 'bg-yellow-200', avatarText: 'text-yellow-700', rotate: 'rotate-[-1deg]' },
+                                    { text: '"Mosiku benar-benar mengubah cara saya mengelola waktu. Desainnya sangat menenangkan!"', name: 'Siti Aminah', initials: 'SA', bg: 'bg-sticky-yellow', avatarBg: 'bg-yellow-200', avatarText: 'text-yellow-700', rotate: 'rotate-[-1deg]' },
                                     { text: '"Muslim Mode sangat membantu menjaga rutinitas ibadah di tengah kesibukan kerja."', name: 'Budi Santoso', initials: 'BS', bg: 'bg-sticky-pink', avatarBg: 'bg-pink-200', avatarText: 'text-pink-700', rotate: 'rotate-[2deg]' },
                                     { text: '"Creator Mode bikin planning konten jadi jauh lebih terstruktur. Love it!"', name: 'Dina Putri', initials: 'DP', bg: 'bg-sticky-blue', avatarBg: 'bg-blue-200', avatarText: 'text-blue-700', rotate: 'rotate-[-1.5deg]' },
                                     { text: '"Sebagai freelancer, Work Mode ini game changer. Invoice & client tracking jadi rapi."', name: 'Rizky Pratama', initials: 'RP', bg: 'bg-sticky-green', avatarBg: 'bg-green-200', avatarText: 'text-green-700', rotate: 'rotate-[1deg]' },
@@ -557,10 +545,7 @@ export default function Welcome({ auth }) {
                                     <motion.div
                                         key={t.name}
                                         className={`${t.bg} p-6 shadow-sticky ${t.rotate} relative`}
-                                        initial={{ opacity: 0, y: 30 }}
-                                        whileInView={{ opacity: 1, y: 0 }}
-                                        viewport={{ once: true, margin: '-40px' }}
-                                        transition={{ duration: 0.5, ease: 'easeOut', delay: i * 0.08 }}
+                                        variants={itemVariants}
                                     >
                                         <p className="font-note text-lg mb-4 italic">{t.text}</p>
                                         <div className="flex items-center gap-3">
@@ -570,27 +555,27 @@ export default function Welcome({ auth }) {
                                     </motion.div>
                                 ))}
                             </div>
-                        </div>
+                        </motion.div>
                     </section>
 
                     {/* FAQ */}
                     <section className="py-20 px-6 bg-white/30">
-                        <div className="max-w-3xl mx-auto">
-                            <motion.div
-                                className="text-center mb-12"
-                                initial={{ opacity: 0, y: 30 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true, margin: '-80px' }}
-                                transition={{ duration: 0.6, ease: 'easeOut' }}
-                            >
+                        <motion.div
+                            className="max-w-3xl mx-auto"
+                            variants={sectionVariants}
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={{ once: true, margin: '-80px' }}
+                        >
+                            <motion.div className="text-center mb-12" variants={itemVariants}>
                                 <h2 className="text-4xl md:text-5xl font-elegant text-gray-800">Pertanyaan Umum</h2>
                                 <p className="font-note text-gray-500 mt-3 text-lg">Jawaban untuk pertanyaan yang sering ditanyakan</p>
                             </motion.div>
                             <div className="space-y-3">
                                 {[
-                                    { q: 'Apakah Life OS benar-benar gratis?', a: 'Ya! Plan Free bisa dipakai selamanya tanpa kartu kredit. Kamu bisa upgrade ke Pro atau Team kapan saja untuk fitur lebih lengkap.' },
+                                    { q: 'Apakah Mosiku benar-benar gratis?', a: 'Ya! Plan Free bisa dipakai selamanya tanpa kartu kredit. Kamu bisa upgrade ke Pro atau Team kapan saja untuk fitur lebih lengkap.' },
                                     { q: 'Apakah data saya aman?', a: 'Tentu. Data kamu tersimpan di server yang terenkripsi dan kami tidak pernah membagikan data pribadi ke pihak ketiga.' },
-                                    { q: 'Bisa dipakai offline?', a: 'Life OS bisa di-install ke home screen dan tetap bisa diakses saat offline. Data akan otomatis sync saat koneksi kembali.' },
+                                    { q: 'Bisa dipakai offline?', a: 'Mosiku bisa di-install ke home screen dan tetap bisa diakses saat offline. Data akan otomatis sync saat koneksi kembali.' },
                                     { q: 'Apa bedanya 4 mode yang tersedia?', a: 'Setiap mode mengubah tampilan dan fitur sesuai kebutuhan: Life untuk produktivitas harian, Muslim untuk ibadah, Creator untuk content creation, dan Work untuk freelancing.' },
                                     { q: 'Bisa ganti mode kapan saja?', a: 'Bisa! Kamu bisa switch mode kapan saja dari sidebar. Semua data di setiap mode tetap tersimpan.' },
                                     { q: 'Bagaimana cara membayar plan Pro/Team?', a: 'Pembayaran diproses melalui Mayar.id yang mendukung transfer bank, e-wallet, dan kartu kredit. Aman dan terpercaya.' },
@@ -598,10 +583,7 @@ export default function Welcome({ auth }) {
                                     <motion.div
                                         key={i}
                                         className="bg-page-bg rounded-xl border border-gray-100 shadow-sm overflow-hidden"
-                                        initial={{ opacity: 0, y: 20 }}
-                                        whileInView={{ opacity: 1, y: 0 }}
-                                        viewport={{ once: true, margin: '-40px' }}
-                                        transition={{ duration: 0.4, ease: 'easeOut', delay: i * 0.05 }}
+                                        variants={itemVariants}
                                     >
                                         <button
                                             onClick={() => setOpenFaq(openFaq === i ? null : i)}
@@ -620,7 +602,7 @@ export default function Welcome({ auth }) {
                                     </motion.div>
                                 ))}
                             </div>
-                        </div>
+                        </motion.div>
                     </section>
 
                     {/* CTA Final */}
@@ -633,7 +615,7 @@ export default function Welcome({ auth }) {
                             transition={{ duration: 0.6, ease: 'easeOut' }}
                         >
                             <h2 className="text-4xl md:text-5xl font-elegant text-gray-800 mb-4">Siap Mengorganisir Hidupmu?</h2>
-                            <p className="font-note text-xl text-gray-500 mb-8">Gabung ribuan pengguna yang sudah lebih produktif dengan Life OS.</p>
+                            <p className="font-note text-xl text-gray-500 mb-8">Gabung ribuan pengguna yang sudah lebih produktif dengan Mosiku.</p>
                             <Link href={auth?.user ? "/daily-spread" : "/register"} className="washi-tape-btn text-xl">
                                 {auth?.user ? 'Go to Dashboard' : 'Mulai Gratis Sekarang'}
                             </Link>
@@ -653,8 +635,8 @@ export default function Welcome({ auth }) {
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
                             <div className="col-span-1 md:col-span-2">
                                 <div className="flex items-center gap-3 mb-6">
-                                    <div className="bg-center bg-no-repeat bg-cover rounded-xl h-10 w-10 border-2 border-primary rotate-3 shadow-md" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuA_k8zodvgRy8J2Vg_lS-vpqOiCOMN7YDmjiDQ6rPpf1E9BQdiL5yaBRegMph3ndGJG5iBGCoGeXXoiD8gBnHTIlWdkb-qemjG6P1UGMrF9IOotUALq9sL__D-Qeoaniq5p_wGKkKop7xzg6fNL1yz0jRGw44WbxxNv3fpKFrvWOx2Oz-KVXmDDkuTKFl84eLDUWsFz1JYQ3jVM-GAgy-vMes50uH8ukigGXHVXQ7sDPzC639P7W_Ukma5OSle2SLxGV7Rs8X5KEdc')" }}></div>
-                                    <span className="text-primary text-2xl font-handwriting font-bold">Life OS</span>
+                                    <img src="/images/ciku-default.svg" alt="Mosiku" className="h-10 w-10 rotate-3 drop-shadow-md" />
+                                    <span className="text-primary text-2xl font-handwriting font-bold">Mosiku</span>
                                 </div>
                                 <p className="text-gray-500 max-w-sm font-note text-lg">Ekosistem produktivitas yang mindful, estetik, dan terintegrasi untuk kehidupan modern.</p>
                             </div>
@@ -684,7 +666,7 @@ export default function Welcome({ auth }) {
                         </div>
 
                         <div className="border-t border-gray-100 pt-8 text-center text-sm text-gray-400 font-medium">
-                            © 2025 Life OS. All rights reserved. Made with heart.
+                            © 2025 Mosiku. All rights reserved. Made with heart.
                         </div>
                     </div>
                 </motion.footer>

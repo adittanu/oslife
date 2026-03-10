@@ -11,8 +11,8 @@ export function detectMode(user, url) {
 
 export const modeConfig = {
     life: {
-        label: 'Life OS v2.4',
-        brandTitle: 'My Journal',
+        label: 'Life Mode',
+        brandTitle: 'Mosiku',
         defaultTheme: 'pink',
         homePath: '/daily-spread',
         main: [
@@ -35,8 +35,8 @@ export const modeConfig = {
         ],
     },
     muslim: {
-        label: 'Muslim OS v2.4',
-        brandTitle: 'My Journal',
+        label: 'Muslim Mode',
+        brandTitle: 'Mosiku',
         defaultTheme: 'green',
         homePath: '/muslim/daily-spread',
         main: [
@@ -59,8 +59,8 @@ export const modeConfig = {
         ],
     },
     creator: {
-        label: 'Creator OS v2.4',
-        brandTitle: 'My Journal',
+        label: 'Creator Mode',
+        brandTitle: 'Mosiku',
         defaultTheme: 'orange',
         homePath: '/creator/content-calendar',
         main: [
@@ -79,8 +79,8 @@ export const modeConfig = {
         ],
     },
     work: {
-        label: 'Work OS v2.4',
-        brandTitle: 'My Journal',
+        label: 'Work Mode',
+        brandTitle: 'Mosiku',
         defaultTheme: 'blue',
         homePath: '/work/dashboard',
         main: [

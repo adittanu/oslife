@@ -1,10 +1,49 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { router } from '@inertiajs/react';
+import axios from 'axios';
 import JournalLayout from '@/Layouts/JournalLayout';
 
-export default function Gratitude() {
+export default function Gratitude({ entries: propEntries }) {
+    const [entries, setEntries] = useState(propEntries || []);
+    const [newEntry, setNewEntry] = useState('');
+
+    useEffect(() => {
+        setEntries(propEntries || []);
+    }, [propEntries]);
+
+    const handleAddEntry = async () => {
+        if (!newEntry.trim()) return;
+        try {
+            const res = await axios.post('/api/gratitude', {
+                content: newEntry.trim(),
+                media_type: 'text',
+            });
+            setEntries([res.data, ...entries]);
+            setNewEntry('');
+            router.reload({ only: ['entries'] });
+        } catch (e) {
+            console.error('Failed to add gratitude entry', e);
+        }
+    };
+
+    const handleDeleteEntry = async (id) => {
+        try {
+            await axios.delete(`/api/gratitude/${id}`);
+            setEntries(entries.filter(e => e.id !== id));
+            router.reload({ only: ['entries'] });
+        } catch (e) {
+            console.error('Failed to delete entry', e);
+        }
+    };
+
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    };
+
     return (
-        <JournalLayout 
-            pageTitle="Life OS Gratitude Journal Page"
+        <JournalLayout
+            pageTitle="Mosiku Gratitude Journal Page"
             headerTitle="Gratitude Journal"
             headerSubtitle="Cultivating thankfulness every single day."
             titleFontClass="font-handwriting"
@@ -29,50 +68,44 @@ export default function Gratitude() {
                                 <div className="h-0.5 w-32 bg-pink-200 mx-auto mt-2 rounded-full"></div>
                             </div>
                         </div>
-                        
+
                         <div className="relative h-full w-full px-2 space-y-10 mt-10">
-                            <div className="flex gap-4 items-baseline group">
-                                <span className="font-handwriting text-2xl text-pink-400 w-8">1.</span>
-                                <p className="font-handwriting text-3xl text-gray-600 border-b border-transparent leading-relaxed w-full">
-                                    The smell of fresh coffee this morning <span className="material-symbols-outlined text-lg text-yellow-600 align-middle ml-1">coffee</span>
-                                </p>
-                                <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute right-0">
-                                    <span className="material-symbols-outlined text-pink-300">favorite</span>
+                            {entries.length === 0 ? (
+                                <div className="text-center py-12">
+                                    <span className="material-symbols-outlined text-6xl text-gray-200 mb-4 block">spa</span>
+                                    <p className="font-note text-lg text-gray-300 italic">No entries yet. Start your gratitude journey!</p>
                                 </div>
-                            </div>
+                            ) : (
+                                entries.map((entry, i) => (
+                                    <div key={entry.id} className="flex gap-4 items-baseline group relative">
+                                        <span className="font-handwriting text-2xl text-pink-400 w-8">{i + 1}.</span>
+                                        <p className="font-handwriting text-3xl text-gray-600 border-b border-transparent leading-relaxed w-full">
+                                            {entry.content}
+                                        </p>
+                                        <button
+                                            onClick={() => handleDeleteEntry(entry.id)}
+                                            className="opacity-0 group-hover:opacity-100 transition-opacity absolute right-0 text-gray-400 hover:text-red-500"
+                                        >
+                                            <span className="material-symbols-outlined">close</span>
+                                        </button>
+                                    </div>
+                                ))
+                            )}
+
                             <div className="flex gap-4 items-baseline group">
-                                <span className="font-handwriting text-2xl text-pink-400 w-8">2.</span>
-                                <p className="font-handwriting text-3xl text-gray-600 border-b border-transparent leading-relaxed w-full">
-                                    A supportive message from Mom.
-                                </p>
-                                <div className="absolute left-[30%] -top-4 opacity-30 rotate-12">
-                                    <span className="material-symbols-outlined text-3xl text-red-300">favorite</span>
-                                </div>
-                            </div>
-                            <div className="flex gap-4 items-baseline group">
-                                <span className="font-handwriting text-2xl text-pink-400 w-8">3.</span>
-                                <p className="font-handwriting text-3xl text-gray-600 border-b border-transparent leading-relaxed w-full">
-                                    Finally finishing that difficult project at work!
-                                </p>
-                                <div className="ml-2 inline-block rotate-12">
-                                    <span className="text-2xl">✨</span>
-                                </div>
-                            </div>
-                            <div className="flex gap-4 items-baseline group">
-                                <span className="font-handwriting text-2xl text-pink-400 w-8">4.</span>
-                                <p className="font-handwriting text-3xl text-gray-600 border-b border-transparent leading-relaxed w-full">
-                                    The sun coming out after the rain.
-                                </p>
-                            </div>
-                            <div className="flex gap-4 items-baseline group">
-                                <span className="font-handwriting text-2xl text-pink-400 w-8">5.</span>
-                                <p className="font-handwriting text-3xl text-gray-400 border-b border-dotted border-gray-300 leading-relaxed w-full italic opacity-50">
-                                    Write something...
-                                </p>
+                                <span className="font-handwriting text-2xl text-pink-400 w-8">+</span>
+                                <input
+                                    className="font-handwriting text-3xl text-gray-400 border-b border-dotted border-gray-300 leading-relaxed w-full outline-none focus:border-pink-300 transition-colors italic"
+                                    placeholder="Add something you're grateful for..."
+                                    type="text"
+                                    value={newEntry}
+                                    onChange={(e) => setNewEntry(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleAddEntry()}
+                                />
                             </div>
                         </div>
                         <div className="absolute bottom-10 left-10">
-                            <img alt="Flower doodle" className="w-24 opacity-40 mix-blend-multiply rotate-[-15deg]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqdPueTGeW3RvB3PKh2Qs2ocOBqmsggqpkZx8wzTCZeMJW4CurIBP6-D-VOtp15H_ul8AcIeR0tI2jM5rM7GBAwhWyvgmFdq4HBpQFtkoZwC-KUCsQI5S2m-0rHp6qEOmKtBL_lL7QoH0oHUVRYU7COsvlwgAet3qn0tc9S-Wp3e3_cGfTSQhsi-IixtyhQZvpB8a7Yn1A9SJ8qowkRQ77zyGoMaVnny6CsnsRfCDy2ULZUDGoFnvbm3p3XOXf7DKBXsA-Z9OPF7k"/>
+                            <img alt="Flower doodle" className="w-24 opacity-40 mix-blend-multiply rotate-[-15deg]" src="/images/ciku-default.svg"/>
                         </div>
                     </div>
 
@@ -86,54 +119,30 @@ export default function Gratitude() {
                         </div>
 
                         <div className="relative h-[600px] w-full">
-                            <div className="absolute top-0 left-4 z-10 rotate-[-3deg] hover:rotate-0 transition-transform duration-300 cursor-pointer group">
-                                <div className="bg-white p-3 pb-8 shadow-photo w-56 transform group-hover:scale-105 transition-transform">
-                                    <div className="h-40 bg-gray-200 overflow-hidden mb-2">
-                                        <img alt="Sunset view" className="w-full h-full object-cover filter sepia-[.3] contrast-[.9]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9lQRClYUzyoTMhEn1q8FSX6KD9ner1TI8Rs5Vev6Fdk4tdVOum_OJsn9TkueU5N0Whf36I4C47tO0IOpMDgBua0wg9fXTwGfv6AC9WDv1r7ggZ86CrEj3CZw9fIxEc6Pjppg74F6GhdnCdjREyKYAoDf1CSdhOr9CSWuKUS5rWzkrkTM58x8dQ47KLrXfeRHb9fSTrnvxaKyzOHT8NfwH9a1_Pty4vNknA4UyFufNRJZSi2pYGIsaYGMIkLFjHw0pfP_m4ZuaB3g"/>
-                                    </div>
-                                    <div className="text-center">
-                                        <p className="font-note text-gray-600 text-lg">Golden hour walk 🌅</p>
-                                        <p className="font-sans text-[10px] text-gray-400 uppercase tracking-widest mt-1">Oct 12</p>
-                                    </div>
-                                </div>
-                                <div className="absolute -top-3 left-[35%] w-20 h-6 bg-yellow-100/60 blur-[1px] rotate-[-2deg] z-20"></div>
-                            </div>
-                            
-                            <div className="absolute top-20 right-8 z-20 rotate-[4deg] hover:rotate-0 transition-transform duration-300 cursor-pointer group">
-                                <div className="bg-white p-3 pb-8 shadow-photo w-48 transform group-hover:scale-105 transition-transform">
-                                    <div className="h-40 bg-gray-200 overflow-hidden mb-2">
-                                        <img alt="Cat sleeping" className="w-full h-full object-cover grayscale-[0.2]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCM6IHR6TxO6qjn-A9ikpb0QuEGjr7zs0EQU-_DQ6E9zjksASTuNGjO2ybF5UAj_3cQuaE4mTYfRLv52VsMYKhc_NnA2qG7mjaJvlvBNML2_Pbz6NUkYV9X2p_Mk8KDiBnPYphn5G4LcBJ67tuc6lDIsiJG08h-fINCMUCziEkD2IBgV-RgQbDifKTAsPZcoiBzWINO46RFMznSbRfkgKXqRB4UqXiuckvvNFg_I7QGyAAtB8IQfARRWJ6t6hfe0z8u3mNpFIPKAjk"/>
-                                    </div>
-                                    <div className="text-center">
-                                        <p className="font-note text-gray-600 text-lg">Luna sleeping 🐱</p>
+                            {entries.length > 0 && entries.slice(0, 4).map((entry, i) => (
+                                <div
+                                    key={entry.id}
+                                    className={`absolute z-10 rotate-[-3deg] hover:rotate-0 transition-transform duration-300 cursor-pointer group ${
+                                        i === 0 ? 'top-0 left-4' : i === 1 ? 'top-20 right-8' : i === 2 ? 'bottom-32 left-10' : 'bottom-10 right-20'
+                                    }`}
+                                >
+                                    <div className="bg-white p-3 pb-8 shadow-photo w-56 transform group-hover:scale-105 transition-transform">
+                                        <div className="h-40 bg-gradient-to-br from-pink-50 to-purple-50 flex items-center justify-center mb-2">
+                                            <span className="material-symbols-outlined text-6xl text-pink-300">favorite</span>
+                                        </div>
+                                        <div className="text-center">
+                                            <p className="font-note text-gray-600 text-sm line-clamp-2">{entry.content}</p>
+                                            <p className="font-sans text-[10px] text-gray-400 uppercase tracking-widest mt-1">{formatDate(entry.created_at)}</p>
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="absolute -top-2 right-[20%] w-16 h-8 bg-pink-200/50 rotate-[4deg] z-30 shadow-sm mix-blend-multiply"></div>
-                            </div>
+                            ))}
 
-                            <div className="absolute bottom-32 left-10 z-10 rotate-[-2deg] group">
-                                <div className="bg-sticky-yellow p-4 shadow-sticky w-48 relative">
-                                    <div className="absolute -top-3 left-[40%] w-12 h-4 bg-gray-200/40 rotate-[90deg] z-20 rounded-sm shadow-sm"></div>
-                                    <p className="font-handwriting text-xl text-gray-800 leading-snug text-center">
-                                        "Enjoy the little things, for one day you may look back and realize they were the big things."
-                                    </p>
-                                    <div className="mt-2 flex justify-center">
-                                        <span className="material-symbols-outlined text-pink-400 text-sm">favorite</span>
-                                    </div>
+                            {entries.length === 0 && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <p className="font-note text-gray-400 italic">Your moments of joy will appear here</p>
                                 </div>
-                            </div>
-
-                            <div className="absolute bottom-10 right-20 z-30 rotate-[-6deg] hover:rotate-[-2deg] transition-transform duration-300 group">
-                                <div className="bg-white p-2 pb-6 shadow-photo-rotate w-40">
-                                    <div className="h-32 bg-gray-100 overflow-hidden">
-                                        <img alt="Coffee cup" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxh5TfhyVlAszP-4nbiWB3U1QCy6om-TZJ1VuRIOCgAlVwm5LUtnM_rjvLdGtIo8euUDfHbYutqvvskbLLWr4KzNXR1-flONpCMy6USyLocGz5Ey6jLsNKcrb6KRqDXEXVsFsGjP4VHjho_HZWWpsq3Lc620H8rkFm3uQu-O_zbXGEr-LQyq7hFHcnosRiyVOnjibbkpQwpN2hOhwp3a7Z6H00vX2xU8pMAOvIbBMPz4Fxp-6wI9a7vHmHGyfK7bH0Rx5UpBDDvLA"/>
-                                    </div>
-                                    <div className="text-center mt-2">
-                                        <p className="font-sketch text-gray-500 text-sm transform -rotate-2">Yummy latte!</p>
-                                    </div>
-                                </div>
-                                <div className="absolute -bottom-4 -right-4 text-3xl opacity-80 rotate-12">✨</div>
-                            </div>
+                            )}
 
                             <div className="absolute top-[40%] left-[40%] opacity-60 z-0">
                                 <svg height="100" viewBox="0 0 100 100" width="100">

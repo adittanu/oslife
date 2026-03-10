@@ -1,47 +1,57 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import JournalLayout from '@/Layouts/JournalLayout';
+import { router } from '@inertiajs/react';
 
-export default function Muhasabah() {
-    const goodDeeds = [
-        { text: 'Shalat 5 waktu tepat waktu', done: true },
-        { text: 'Shalat Dhuha', done: true },
-        { text: 'Membaca Al-Quran 1 juz', done: false },
-        { text: 'Bersedekah kepada tetangga', done: true },
-        { text: 'Membantu teman yang kesulitan', done: true },
-        { text: 'Tahajjud', done: false },
+export default function Muhasabah({ todayEntry: initialEntry, recentEntries, weeklyMoods, stats }) {
+    const today = new Date().toISOString().split('T')[0];
+
+    // Form state
+    const [entry, setEntry] = useState({
+        date: today,
+        gratitude: initialEntry?.gratitude || '',
+        improvement: initialEntry?.improvement || '',
+        achievement: initialEntry?.achievement || '',
+        tomorrow_goal: initialEntry?.tomorrow_goal || '',
+        reflection: initialEntry?.reflection || '',
+        mood: initialEntry?.mood || null,
+    });
+
+    // Auto-save debounce ref
+    const saveTimeoutRef = useRef(null);
+
+    // Mood options
+    const moodOptions = [
+        { value: 'happy', label: 'Senang', icon: '😊', color: 'bg-yellow-100 border-yellow-300 text-yellow-700' },
+        { value: 'grateful', label: 'Syukur', icon: '🤲', color: 'bg-amber-100 border-amber-300 text-amber-700' },
+        { value: 'peaceful', label: 'Tenang', icon: '😌', color: 'bg-green-100 border-green-300 text-green-700' },
+        { value: 'neutral', label: 'Biasa', icon: '😐', color: 'bg-gray-100 border-gray-300 text-gray-700' },
+        { value: 'sad', label: 'Sedih', icon: '😢', color: 'bg-blue-100 border-blue-300 text-blue-700' },
+        { value: 'anxious', label: 'Khawatir', icon: '😰', color: 'bg-purple-100 border-purple-300 text-purple-700' },
     ];
 
-    const sinsToRepent = [
-        { text: 'Berkata kasar kepada orang tua', level: 'berat' },
-        { text: 'Menunda-nunda shalat', level: 'sedang' },
-        { text: 'Ghibah saat ngobrol dengan teman', level: 'sedang' },
-        { text: 'Bermain HP berlebihan saat waktu produktif', level: 'ringan' },
-    ];
+    // Auto-save with debounce
+    const saveEntry = () => {
+        if (saveTimeoutRef.current) {
+            clearTimeout(saveTimeoutRef.current);
+        }
 
-    const improvements = [
-        { text: 'Lebih sabar menghadapi kemacetan', priority: 'tinggi' },
-        { text: 'Bangun lebih awal untuk tahajjud', priority: 'tinggi' },
-        { text: 'Kurangi scrolling media sosial', priority: 'sedang' },
-        { text: 'Perbanyak membaca buku ilmu', priority: 'sedang' },
-        { text: 'Lebih sering silaturahmi ke saudara', priority: 'rendah' },
-    ];
+        saveTimeoutRef.current = setTimeout(() => {
+            router.post('/api/muslim/muhasabah', entry, {
+                preserveScroll: true,
+            });
+        }, 1000);
+    };
 
-    const gratitudeItems = [
-        'Masih diberi kesehatan dan kekuatan beribadah',
-        'Keluarga yang sehat dan harmonis',
-        'Rezeki yang cukup hari ini',
-        'Diberi kesempatan untuk bertaubat',
-    ];
+    // Update field and trigger auto-save
+    const updateField = (field, value) => {
+        setEntry(prev => ({ ...prev, [field]: value }));
+        saveEntry();
+    };
 
-    const istighfarTracker = [
-        { day: 'Senin', count: 100, target: 100, done: true },
-        { day: 'Selasa', count: 80, target: 100, done: false },
-        { day: 'Rabu', count: 100, target: 100, done: true },
-        { day: 'Kamis', count: 45, target: 100, done: false },
-        { day: 'Jumat', count: 100, target: 100, done: true },
-        { day: 'Sabtu', count: 70, target: 100, done: false },
-        { day: 'Ahad', count: 0, target: 100, done: false },
-    ];
+    // Get mood info
+    const getMoodInfo = (moodValue) => {
+        return moodOptions.find(m => m.value === moodValue);
+    };
 
     return (
         <JournalLayout
@@ -63,245 +73,194 @@ export default function Muhasabah() {
                         <div className="washi-tape -top-2 left-1/2 -translate-x-1/2 bg-violet-100/80 rotate-1"></div>
                         <div className="mt-2">
                             <p className="font-note text-sm text-gray-400 mb-1">Muhasabah Harian</p>
-                            <h3 className="font-handwriting text-3xl font-bold text-gray-700">Ahad, 8 Maret 2026</h3>
-                            <p className="font-note text-sm text-gray-400 mt-1">8 Sya'ban 1447 H</p>
+                            <h3 className="font-handwriting text-3xl font-bold text-gray-700">
+                                {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                            </h3>
                         </div>
+
+                        {/* Stats */}
                         <div className="flex justify-center gap-6 mt-4">
                             <div className="text-center">
-                                <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-1">
-                                    <span className="material-symbols-outlined text-emerald-600">thumb_up</span>
+                                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-1">
+                                    <span className="font-handwriting text-xl font-bold text-primary">{stats?.streak || 0}</span>
                                 </div>
-                                <p className="font-note text-xs text-gray-500">4 kebaikan</p>
+                                <p className="font-note text-xs text-gray-500">Streak</p>
                             </div>
                             <div className="text-center">
-                                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-1">
-                                    <span className="material-symbols-outlined text-red-400">warning</span>
+                                <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-1">
+                                    <span className="font-handwriting text-xl font-bold text-amber-600">{stats?.totalEntries || 0}</span>
                                 </div>
-                                <p className="font-note text-xs text-gray-500">4 dosa</p>
+                                <p className="font-note text-xs text-gray-500">Total Entry</p>
                             </div>
-                            <div className="text-center">
-                                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-1">
-                                    <span className="material-symbols-outlined text-blue-500">trending_up</span>
-                                </div>
-                                <p className="font-note text-xs text-gray-500">5 perbaikan</p>
-                            </div>
+                        </div>
+                    </div>
+
+                    {/* Mood Selector */}
+                    <div className="relative bg-page-bg shadow-notebook rounded-xl border border-gray-200 p-6">
+                        <div className="washi-tape -top-2 left-10 bg-pink-100/70 rotate-[-2deg]"></div>
+                        <h3 className="font-handwriting text-2xl font-bold text-gray-700 mb-4 mt-2">Bagaimana perasaanmu hari ini?</h3>
+
+                        <div className="flex flex-wrap gap-3">
+                            {moodOptions.map((mood) => (
+                                <button
+                                    key={mood.value}
+                                    onClick={() => updateField('mood', mood.value)}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 transition-all ${
+                                        entry.mood === mood.value
+                                            ? mood.color
+                                            : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'
+                                    }`}
+                                >
+                                    <span className="text-xl">{mood.icon}</span>
+                                    <span className="font-note text-sm">{mood.label}</span>
+                                </button>
+                            ))}
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                        {/* Good Deeds */}
-                        <div className="relative bg-emerald-50/60 shadow-notebook rounded-xl border border-emerald-100 p-6 md:p-8 paper-lines">
+                        {/* Gratitude */}
+                        <div className="relative bg-amber-50/50 shadow-notebook rounded-xl border border-amber-100 p-6 md:p-8">
+                            <div className="washi-tape -top-2 right-10 bg-amber-100/70 rotate-[-1deg]"></div>
+                            <div className="absolute -top-3 left-8 z-10">
+                                <div className="w-6 h-10 border-2 border-amber-300 rounded-t-full bg-transparent"></div>
+                            </div>
+
+                            <div className="flex items-center gap-3 mb-4 mt-2">
+                                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shadow-sm">
+                                    <span className="material-symbols-outlined text-amber-600">favorite</span>
+                                </div>
+                                <div>
+                                    <h3 className="font-handwriting text-2xl font-bold text-gray-700">Syukur Hari Ini</h3>
+                                    <p className="font-note text-xs text-gray-400">Apa yang kamu syukuri hari ini?</p>
+                                </div>
+                            </div>
+
+                            {entry.gratitude || entry.mood ? (
+                                <textarea
+                                    value={entry.gratitude}
+                                    onChange={(e) => updateField('gratitude', e.target.value)}
+                                    className="w-full bg-white/60 border border-amber-100 rounded-xl p-4 font-note text-base text-gray-700 leading-relaxed placeholder-gray-300 focus:ring-2 focus:ring-amber-200 focus:border-amber-300"
+                                    placeholder="Tuliskan nikmat-nikmat yang kamu syukuri hari ini..."
+                                    rows={4}
+                                />
+                            ) : (
+                                <div
+                                    onClick={() => updateField('gratitude', ' ')}
+                                    className="bg-white/40 rounded-xl p-6 border border-dashed border-amber-200 cursor-pointer hover:bg-white/60 transition-colors text-center"
+                                >
+                                    <span className="material-symbols-outlined text-4xl text-amber-300 mb-2">add_circle</span>
+                                    <p className="font-handwriting text-lg text-amber-400">Ketuk untuk tambah syukur...</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Achievement */}
+                        <div className="relative bg-emerald-50/60 shadow-notebook rounded-xl border border-emerald-100 p-6 md:p-8">
                             <div className="washi-tape -top-2 left-12 bg-emerald-100/80 rotate-[-2deg]"></div>
-                            {/* Paper clip */}
                             <div className="absolute -top-3 right-8 z-10">
                                 <div className="w-6 h-10 border-2 border-emerald-300 rounded-t-full bg-transparent"></div>
                             </div>
 
-                            <div className="flex items-center gap-3 mb-6 mt-2">
+                            <div className="flex items-center gap-3 mb-4 mt-2">
                                 <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shadow-sm">
                                     <span className="material-symbols-outlined text-emerald-600">volunteer_activism</span>
                                 </div>
                                 <div>
-                                    <h3 className="font-handwriting text-2xl font-bold text-gray-700">Amal Baik Hari Ini</h3>
-                                    <p className="font-note text-xs text-gray-400">What good did I do today?</p>
+                                    <h3 className="font-handwriting text-2xl font-bold text-gray-700">Pencapaian Hari Ini</h3>
+                                    <p className="font-note text-xs text-gray-400">Apa kebaikan yang kamu lakukan?</p>
                                 </div>
                             </div>
 
-                            <div className="space-y-3">
-                                {goodDeeds.map((item, idx) => (
-                                    <label key={idx} className="flex items-start gap-3 cursor-pointer group">
-                                        <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-colors ${item.done ? 'bg-emerald-500 border-emerald-500' : 'border-gray-300 group-hover:border-emerald-300'}`}>
-                                            {item.done && <span className="material-symbols-outlined text-white text-sm">check</span>}
-                                        </div>
-                                        <span className={`font-note text-base leading-relaxed ${item.done ? 'text-gray-500 line-through' : 'text-gray-700'}`}>{item.text}</span>
-                                    </label>
-                                ))}
-                            </div>
-
-                            <button className="mt-4 flex items-center gap-1 text-sm font-note text-emerald-500 hover:text-emerald-600 transition-colors">
-                                <span className="material-symbols-outlined text-sm">add</span> Tambah amal baik
-                            </button>
+                            {entry.achievement ? (
+                                <textarea
+                                    value={entry.achievement}
+                                    onChange={(e) => updateField('achievement', e.target.value)}
+                                    className="w-full bg-white/60 border border-emerald-100 rounded-xl p-4 font-note text-base text-gray-700 leading-relaxed placeholder-gray-300 focus:ring-2 focus:ring-emerald-200 focus:border-emerald-300"
+                                    placeholder="Amal baik yang kamu lakukan hari ini..."
+                                    rows={4}
+                                />
+                            ) : (
+                                <div
+                                    onClick={() => updateField('achievement', ' ')}
+                                    className="bg-white/40 rounded-xl p-6 border border-dashed border-emerald-200 cursor-pointer hover:bg-white/60 transition-colors text-center"
+                                >
+                                    <span className="material-symbols-outlined text-4xl text-emerald-300 mb-2">add_circle</span>
+                                    <p className="font-handwriting text-lg text-emerald-400">Ketuk untuk tambah pencapaian...</p>
+                                </div>
+                            )}
                         </div>
 
-                        {/* Sins to Repent */}
-                        <div className="relative bg-red-50/40 shadow-notebook rounded-xl border border-red-100 p-6 md:p-8 paper-lines">
-                            <div className="washi-tape -top-2 right-12 bg-red-100/70 rotate-[2deg]"></div>
-
-                            <div className="flex items-center gap-3 mb-6 mt-2">
-                                <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shadow-sm">
-                                    <span className="material-symbols-outlined text-red-400">heart_broken</span>
-                                </div>
-                                <div>
-                                    <h3 className="font-handwriting text-2xl font-bold text-gray-700">Dosa yang Harus Ditaubati</h3>
-                                    <p className="font-note text-xs text-gray-400">What sins do I need to repent?</p>
-                                </div>
-                            </div>
-
-                            <div className="space-y-3">
-                                {sinsToRepent.map((item, idx) => (
-                                    <div key={idx} className="flex items-start gap-3 bg-white/50 rounded-lg p-3 border border-white/80">
-                                        <span className="material-symbols-outlined text-red-300 mt-0.5 text-lg">radio_button_unchecked</span>
-                                        <div className="flex-1">
-                                            <p className="font-note text-base text-gray-700">{item.text}</p>
-                                        </div>
-                                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${
-                                            item.level === 'berat' ? 'bg-red-100 text-red-600' :
-                                            item.level === 'sedang' ? 'bg-amber-100 text-amber-600' :
-                                            'bg-gray-100 text-gray-500'
-                                        }`}>
-                                            {item.level}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="mt-5 p-4 bg-white/40 rounded-xl border border-red-100/50">
-                                <p className="font-handwriting text-sm text-gray-500 mb-2 flex items-center gap-1">
-                                    <span className="material-symbols-outlined text-sm text-red-300">edit_note</span>
-                                    Catatan taubat:
-                                </p>
-                                <p className="font-note text-sm text-gray-600 italic leading-relaxed">
-                                    "Ya Allah, ampunilah segala dosa-dosaku. Aku menyesal dan berjanji untuk tidak mengulanginya. Bantu aku menjadi hamba yang lebih baik..."
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* What to Improve */}
+                        {/* Improvement */}
                         <div className="relative bg-blue-50/50 shadow-notebook rounded-xl border border-blue-100 p-6 md:p-8">
                             <div className="washi-tape -top-2 left-1/2 -translate-x-1/2 bg-blue-100/70 rotate-[1deg]"></div>
 
-                            <div className="flex items-center gap-3 mb-6 mt-2">
+                            <div className="flex items-center gap-3 mb-4 mt-2">
                                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shadow-sm">
                                     <span className="material-symbols-outlined text-blue-500">trending_up</span>
                                 </div>
                                 <div>
                                     <h3 className="font-handwriting text-2xl font-bold text-gray-700">Yang Perlu Diperbaiki</h3>
-                                    <p className="font-note text-xs text-gray-400">What should I improve?</p>
+                                    <p className="font-note text-xs text-gray-400">Apa yang bisa kamu perbaiki?</p>
                                 </div>
                             </div>
 
-                            <div className="space-y-3">
-                                {improvements.map((item, idx) => (
-                                    <div key={idx} className="flex items-center gap-3 bg-white/50 rounded-lg p-3 border border-white/80">
-                                        <span className="font-handwriting text-lg font-bold text-blue-400 w-6">{idx + 1}.</span>
-                                        <p className="font-note text-base text-gray-700 flex-1">{item.text}</p>
-                                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${
-                                            item.priority === 'tinggi' ? 'bg-red-100 text-red-500' :
-                                            item.priority === 'sedang' ? 'bg-amber-100 text-amber-600' :
-                                            'bg-green-100 text-green-600'
-                                        }`}>
-                                            {item.priority}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <button className="mt-4 flex items-center gap-1 text-sm font-note text-blue-500 hover:text-blue-600 transition-colors">
-                                <span className="material-symbols-outlined text-sm">add</span> Tambah target perbaikan
-                            </button>
-                        </div>
-
-                        {/* Gratitude to Allah */}
-                        <div className="relative bg-amber-50/50 shadow-notebook rounded-xl border border-amber-100 p-6 md:p-8">
-                            <div className="washi-tape -top-2 right-10 bg-amber-100/70 rotate-[-1deg]"></div>
-                            {/* Paper clip */}
-                            <div className="absolute -top-3 left-8 z-10">
-                                <div className="w-6 h-10 border-2 border-amber-300 rounded-t-full bg-transparent"></div>
-                            </div>
-
-                            <div className="flex items-center gap-3 mb-6 mt-2">
-                                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shadow-sm">
-                                    <span className="material-symbols-outlined text-amber-600">favorite</span>
-                                </div>
-                                <div>
-                                    <h3 className="font-handwriting text-2xl font-bold text-gray-700">Syukur kepada Allah</h3>
-                                    <p className="font-note text-xs text-gray-400">Gratitude to Allah</p>
-                                </div>
-                            </div>
-
-                            <div className="space-y-4">
-                                {gratitudeItems.map((item, idx) => (
-                                    <div key={idx} className="flex items-start gap-3">
-                                        <span className="material-symbols-outlined text-amber-400 mt-0.5">star</span>
-                                        <p className="font-note text-base text-gray-700 leading-relaxed">{item}</p>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="mt-5 bg-white/40 rounded-xl p-4 border border-amber-100/50">
+                            {entry.improvement ? (
                                 <textarea
-                                    className="w-full bg-transparent border-none outline-none resize-none font-note text-base text-gray-600 leading-relaxed placeholder-gray-300 focus:ring-0"
-                                    placeholder="Tuliskan nikmat lain yang kamu syukuri hari ini..."
-                                    rows={2}
-                                ></textarea>
-                            </div>
+                                    value={entry.improvement}
+                                    onChange={(e) => updateField('improvement', e.target.value)}
+                                    className="w-full bg-white/60 border border-blue-100 rounded-xl p-4 font-note text-base text-gray-700 leading-relaxed placeholder-gray-300 focus:ring-2 focus:ring-blue-200 focus:border-blue-300"
+                                    placeholder="Hal-hal yang perlu diperbaiki..."
+                                    rows={4}
+                                />
+                            ) : (
+                                <div
+                                    onClick={() => updateField('improvement', ' ')}
+                                    className="bg-white/40 rounded-xl p-6 border border-dashed border-blue-200 cursor-pointer hover:bg-white/60 transition-colors text-center"
+                                >
+                                    <span className="material-symbols-outlined text-4xl text-blue-300 mb-2">add_circle</span>
+                                    <p className="font-handwriting text-lg text-blue-400">Ketuk untuk tambah perbaikan...</p>
+                                </div>
+                            )}
                         </div>
 
-                    </div>
+                        {/* Tomorrow Goal */}
+                        <div className="relative bg-purple-50/50 shadow-notebook rounded-xl border border-purple-100 p-6 md:p-8">
+                            <div className="washi-tape -top-2 right-12 bg-purple-100/70 rotate-[2deg]"></div>
 
-                    {/* Taubat & Istighfar Tracker */}
-                    <div className="relative bg-page-bg shadow-notebook rounded-xl border border-gray-200 p-6 md:p-10">
-                        <div className="washi-tape -top-2 left-1/2 -translate-x-1/2 bg-purple-100/80 rotate-[-1deg]"></div>
-
-                        <div className="flex items-center justify-between mb-6 mt-2">
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 mb-4 mt-2">
                                 <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center shadow-sm">
-                                    <span className="material-symbols-outlined text-purple-500">refresh</span>
+                                    <span className="material-symbols-outlined text-purple-500">flag</span>
                                 </div>
                                 <div>
-                                    <h3 className="font-handwriting text-2xl font-bold text-gray-700">Istighfar Mingguan</h3>
-                                    <p className="font-note text-xs text-gray-400">Target: 100x istighfar per hari</p>
+                                    <h3 className="font-handwriting text-2xl font-bold text-gray-700">Target Esok Hari</h3>
+                                    <p className="font-note text-xs text-gray-400">Apa rencana besok?</p>
                                 </div>
                             </div>
-                            <div className="bg-purple-100 text-purple-700 text-sm font-bold px-4 py-2 rounded-full">
-                                3/7 hari tercapai
-                            </div>
+
+                            {entry.tomorrow_goal ? (
+                                <textarea
+                                    value={entry.tomorrow_goal}
+                                    onChange={(e) => updateField('tomorrow_goal', e.target.value)}
+                                    className="w-full bg-white/60 border border-purple-100 rounded-xl p-4 font-note text-base text-gray-700 leading-relaxed placeholder-gray-300 focus:ring-2 focus:ring-purple-200 focus:border-purple-300"
+                                    placeholder="Target dan rencana untuk besok..."
+                                    rows={4}
+                                />
+                            ) : (
+                                <div
+                                    onClick={() => updateField('tomorrow_goal', ' ')}
+                                    className="bg-white/40 rounded-xl p-6 border border-dashed border-purple-200 cursor-pointer hover:bg-white/60 transition-colors text-center"
+                                >
+                                    <span className="material-symbols-outlined text-4xl text-purple-300 mb-2">add_circle</span>
+                                    <p className="font-handwriting text-lg text-purple-400">Ketuk untuk tambah target...</p>
+                                </div>
+                            )}
                         </div>
 
-                        <div className="grid grid-cols-7 gap-3">
-                            {istighfarTracker.map((day, idx) => {
-                                const percentage = Math.round((day.count / day.target) * 100);
-                                return (
-                                    <div key={idx} className={`relative text-center p-3 rounded-xl border transition-all ${
-                                        day.done ? 'bg-purple-50 border-purple-200 shadow-sm' : 'bg-white/60 border-gray-200'
-                                    }`}>
-                                        <p className="font-note text-xs text-gray-500 mb-2">{day.day}</p>
-                                        <div className="relative w-12 h-12 mx-auto mb-2">
-                                            <svg className="w-12 h-12 -rotate-90" viewBox="0 0 48 48">
-                                                <circle cx="24" cy="24" r="20" fill="none" stroke="#e5e7eb" strokeWidth="4" />
-                                                <circle
-                                                    cx="24" cy="24" r="20" fill="none"
-                                                    stroke={day.done ? '#8b5cf6' : '#d1d5db'}
-                                                    strokeWidth="4"
-                                                    strokeLinecap="round"
-                                                    strokeDasharray={`${(day.count / day.target) * 126} 126`}
-                                                />
-                                            </svg>
-                                            <div className="absolute inset-0 flex items-center justify-center">
-                                                {day.done ? (
-                                                    <span className="material-symbols-outlined text-purple-500 text-lg">check</span>
-                                                ) : (
-                                                    <span className="font-handwriting text-xs font-bold text-gray-500">{day.count}</span>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <p className="font-note text-xs text-gray-400">{percentage}%</p>
-                                    </div>
-                                );
-                            })}
-                        </div>
-
-                        {/* Istighfar text */}
-                        <div className="mt-6 text-center bg-purple-50/50 rounded-xl p-4 border border-purple-100/50">
-                            <p className="text-2xl text-gray-800 mb-1" style={{ fontFamily: 'serif' }}>
-                                أَسْتَغْفِرُ اللّٰهَ الْعَظِيْمَ
-                            </p>
-                            <p className="font-note text-sm text-gray-500 italic">Astaghfirullahal 'adziim - Aku memohon ampun kepada Allah Yang Maha Agung</p>
-                        </div>
                     </div>
 
-                    {/* Daily reflection journal entry */}
+                    {/* Reflection */}
                     <div className="relative bg-page-bg shadow-notebook rounded-xl border border-gray-200 p-6 md:p-10 paper-lines">
                         <div className="washi-tape -top-2 left-20 bg-pink-100/70 rotate-[1deg]"></div>
 
@@ -310,12 +269,46 @@ export default function Muhasabah() {
                             <h3 className="font-handwriting text-2xl font-bold text-gray-700">Refleksi Hari Ini</h3>
                         </div>
 
-                        <textarea
-                            className="w-full bg-transparent border-none outline-none resize-none font-note text-lg text-gray-700 leading-[2.2rem] placeholder-gray-300 focus:ring-0 min-h-[120px]"
-                            placeholder="Tuliskan refleksi harianmu di sini... Bagaimana perasaanmu hari ini? Apa yang kamu pelajari tentang dirimu?"
-                            defaultValue="Hari ini aku merasa bersyukur karena masih diberi kesempatan untuk memperbaiki diri. Aku sadar masih banyak kekurangan, terutama dalam menjaga lisan. Semoga Allah memberi kekuatan untuk istiqomah dalam kebaikan. Allahumma a'inni 'ala dzikrika wa syukrika wa husni 'ibadatik."
-                        ></textarea>
+                        {entry.reflection ? (
+                            <textarea
+                                value={entry.reflection}
+                                onChange={(e) => updateField('reflection', e.target.value)}
+                                className="w-full bg-transparent border-none outline-none resize-none font-note text-lg text-gray-700 leading-[2.2rem] placeholder-gray-300 focus:ring-0 min-h-[120px]"
+                                placeholder="Tuliskan refleksi harianmu di sini... Bagaimana perasaanmu hari ini? Apa yang kamu pelajari tentang dirimu?"
+                            />
+                        ) : (
+                            <div
+                                onClick={() => updateField('reflection', ' ')}
+                                className="bg-white/40 rounded-xl p-8 border border-dashed border-gray-200 cursor-pointer hover:bg-white/60 transition-colors text-center"
+                            >
+                                <span className="material-symbols-outlined text-4xl text-gray-300 mb-2">edit_note</span>
+                                <p className="font-handwriting text-lg text-gray-400">Ketuk untuk menulis refleksi...</p>
+                                <p className="font-note text-sm text-gray-300 mt-1">Bagikan pemikiran dan perasaanmu hari ini</p>
+                            </div>
+                        )}
                     </div>
+
+                    {/* Weekly Mood Summary */}
+                    {weeklyMoods && Object.keys(weeklyMoods).length > 0 && (
+                        <div className="relative bg-page-bg shadow-notebook rounded-xl border border-gray-200 p-6">
+                            <h3 className="font-handwriting text-xl font-bold text-gray-700 mb-4">Mood Minggu Ini</h3>
+                            <div className="flex gap-2">
+                                {Object.entries(weeklyMoods).map(([date, mood]) => {
+                                    const moodInfo = getMoodInfo(mood);
+                                    return (
+                                        <div key={date} className="text-center flex-1">
+                                            <div className={`w-10 h-10 rounded-full ${moodInfo?.color || 'bg-gray-100'} flex items-center justify-center mx-auto mb-1`}>
+                                                <span className="text-lg">{moodInfo?.icon || '😐'}</span>
+                                            </div>
+                                            <p className="font-note text-xs text-gray-400">
+                                                {new Date(date).toLocaleDateString('id-ID', { weekday: 'short' })}
+                                            </p>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Bottom motivational sticky */}
                     <div className="flex justify-center pb-8">

@@ -1,77 +1,171 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { usePage } from '@inertiajs/react';
+import axios from 'axios';
 import JournalLayout from '@/Layouts/JournalLayout';
+import WorkEmptyState from '@/Components/WorkEmptyState';
 
-export default function Invoices() {
-    const summary = [
-        { label: 'Total Outstanding', value: '$4,250.00', icon: 'pending_actions', bg: 'bg-yellow-50', color: 'text-yellow-700' },
-        { label: 'Paid This Month', value: '$8,750.00', icon: 'check_circle', bg: 'bg-green-50', color: 'text-green-700' },
-        { label: 'Overdue', value: '2', icon: 'warning', bg: 'bg-red-50', color: 'text-red-700' },
-        { label: 'Total Invoices', value: '6', icon: 'receipt_long', bg: 'bg-blue-50', color: 'text-blue-700' },
-    ];
+const STATUS_CONFIG = {
+    Paid: 'bg-green-100 text-green-700 border-green-200',
+    Pending: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+    Overdue: 'bg-red-100 text-red-700 border-red-200',
+    Cancelled: 'bg-gray-100 text-gray-500 border-gray-200',
+};
 
-    const invoices = [
-        { number: 'INV-001', client: 'Acme Studios', amount: '$3,500.00', date: 'Mar 1, 2026', status: 'Paid' },
-        { number: 'INV-002', client: 'Bright Ideas Co.', amount: '$2,250.00', date: 'Mar 3, 2026', status: 'Pending' },
-        { number: 'INV-003', client: 'Pixel Perfect LLC', amount: '$1,800.00', date: 'Feb 15, 2026', status: 'Overdue' },
-        { number: 'INV-004', client: 'Nova Digital', amount: '$5,250.00', date: 'Mar 5, 2026', status: 'Paid' },
-        { number: 'INV-005', client: 'Sunset Agency', amount: '$2,000.00', date: 'Feb 20, 2026', status: 'Overdue' },
-        { number: 'INV-006', client: 'Acme Studios', amount: '$2,450.00', date: 'Mar 8, 2026', status: 'Pending' },
-    ];
+const STATUS_ICON = {
+    Paid: 'check_circle',
+    Pending: 'schedule',
+    Overdue: 'error',
+    Cancelled: 'cancel',
+};
 
-    const statusStyle = (status) => {
-        switch (status) {
-            case 'Paid': return 'bg-green-100 text-green-700 border-green-200';
-            case 'Pending': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-            case 'Overdue': return 'bg-red-100 text-red-700 border-red-200';
-            default: return '';
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(amount || 0);
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return '-';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function generateInvoiceNumber() {
+    const num = Math.floor(Math.random() * 9000) + 1000;
+    return `INV-${num}`;
+}
+
+export default function Invoices({ invoices: propInvoices, clients: propClients }) {
+    const [invoices, setInvoices] = useState(propInvoices || []);
+    const [clients, setClients] = useState(propClients || []);
+    const [showModal, setShowModal] = useState(false);
+    const [editingInvoice, setEditingInvoice] = useState(null);
+    const [formData, setFormData] = useState({
+        client_id: '',
+        invoice_number: '',
+        amount: '',
+        status: 'Pending',
+        issue_date: new Date().toISOString().split('T')[0],
+        due_date: '',
+        description: ''
+    });
+
+    useEffect(() => { setInvoices(propInvoices || []); }, [propInvoices]);
+    useEffect(() => { setClients(propClients || []); }, [propClients]);
+
+    const summary = useMemo(() => {
+        const totalOutstanding = invoices.filter(i => i.status === 'Pending').reduce((sum, i) => sum + parseFloat(i.amount || 0), 0);
+        const thisMonth = new Date().toISOString().slice(0, 7);
+        const paidThisMonth = invoices.filter(i => i.status === 'Paid' && i.paid_date?.startsWith(thisMonth)).reduce((sum, i) => sum + parseFloat(i.amount || 0), 0);
+        const overdue = invoices.filter(i => i.status === 'Overdue' || (i.status === 'Pending' && new Date(i.due_date) < new Date())).length;
+        return {
+            totalOutstanding: formatCurrency(totalOutstanding),
+            paidThisMonth: formatCurrency(paidThisMonth),
+            overdue,
+            total: invoices.length
+        };
+    }, [invoices]);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            if (editingInvoice?.id) {
+                const res = await axios.put(`/api/work/invoices/${editingInvoice.id}`, formData);
+                setInvoices(invoices.map(i => i.id === editingInvoice.id ? res.data : i));
+            } else {
+                const res = await axios.post('/api/work/invoices', formData);
+                setInvoices([res.data, ...invoices]);
+            }
+            setShowModal(false);
+            setEditingInvoice(null);
+            setFormData({ client_id: '', invoice_number: generateInvoiceNumber(), amount: '', status: 'Pending', issue_date: new Date().toISOString().split('T')[0], due_date: '', description: '' });
+        } catch (err) {
+            console.error(err);
         }
     };
 
-    const statusIcon = (status) => {
-        switch (status) {
-            case 'Paid': return 'check_circle';
-            case 'Pending': return 'schedule';
-            case 'Overdue': return 'error';
-            default: return '';
+    const handleDelete = async (id) => {
+        if (!confirm('Delete this invoice?')) return;
+        try {
+            await axios.delete(`/api/work/invoices/${id}`);
+            setInvoices(invoices.filter(i => i.id !== id));
+        } catch (err) {
+            console.error(err);
         }
     };
+
+    const markAsPaid = async (invoice) => {
+        try {
+            const res = await axios.put(`/api/work/invoices/${invoice.id}`, { status: 'Paid', paid_date: new Date().toISOString().split('T')[0] });
+            setInvoices(invoices.map(i => i.id === invoice.id ? res.data : i));
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const openEdit = (invoice) => {
+        setEditingInvoice(invoice);
+        setFormData({
+            client_id: invoice.client_id || '',
+            invoice_number: invoice.invoice_number || '',
+            amount: invoice.amount || '',
+            status: invoice.status || 'Pending',
+            issue_date: invoice.issue_date || '',
+            due_date: invoice.due_date || '',
+            description: invoice.description || ''
+        });
+        setShowModal(true);
+    };
+
+    const openAdd = () => {
+        const nextMonth = new Date();
+        nextMonth.setMonth(nextMonth.getMonth() + 1);
+        setEditingInvoice(null);
+        setFormData({ client_id: clients[0]?.id || '', invoice_number: generateInvoiceNumber(), amount: '', status: 'Pending', issue_date: new Date().toISOString().split('T')[0], due_date: nextMonth.toISOString().split('T')[0], description: '' });
+        setShowModal(true);
+    };
+
+    const summaryData = [
+        { label: 'Total Outstanding', value: summary.totalOutstanding, icon: 'pending_actions', bg: 'bg-yellow-50', color: 'text-yellow-700' },
+        { label: 'Paid This Month', value: summary.paidThisMonth, icon: 'check_circle', bg: 'bg-green-50', color: 'text-green-700' },
+        { label: 'Overdue', value: summary.overdue.toString(), icon: 'warning', bg: 'bg-red-50', color: 'text-red-700' },
+        { label: 'Total Invoices', value: summary.total.toString(), icon: 'receipt_long', bg: 'bg-blue-50', color: 'text-blue-700' },
+    ];
+
+    if (!invoices.length) {
+        return (
+            <JournalLayout pageTitle="Work OS - Invoices" headerTitle="Invoices" headerSubtitle="Track payments & billing" titleFontClass="font-handwriting">
+                <div className="flex-1 overflow-auto custom-scrollbar p-4 md:p-8">
+                    <div className="max-w-6xl mx-auto">
+                        <WorkEmptyState icon="receipt_long" title="Belum ada invoice" description="Buat invoice pertamamu untuk mulai melacak pembayaran" actionLabel="Create Invoice" onAction={openAdd} />
+                    </div>
+                </div>
+                {showModal && <InvoiceModal formData={formData} setFormData={setFormData} clients={clients} handleSubmit={handleSubmit} editingInvoice={editingInvoice} setShowModal={setShowModal} />}
+            </JournalLayout>
+        );
+    }
 
     return (
-        <JournalLayout
-            pageTitle="Work OS - Invoices"
-            headerTitle="Invoices"
-            headerSubtitle="Track payments & billing"
-            titleFontClass="font-handwriting"
-            bgIcon={<span className="material-symbols-outlined text-[120px] text-primary rotate-12">receipt_long</span>}
-        >
+        <JournalLayout pageTitle="Work OS - Invoices" headerTitle="Invoices" headerSubtitle="Track payments & billing" titleFontClass="font-handwriting" bgIcon={<span className="material-symbols-outlined text-[120px] text-primary rotate-12">receipt_long</span>}>
             <div className="flex-1 overflow-auto custom-scrollbar p-4 md:p-8">
                 <div className="max-w-6xl mx-auto space-y-8">
-
-                    {/* Summary Cards */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        {summary.map((s, i) => (
+                        {summaryData.map((s, i) => (
                             <div key={i} className={`${s.bg} rounded-2xl shadow-notebook border border-gray-100 p-5 relative overflow-hidden hover:-translate-y-1 transition-transform`}>
-                                <div className="absolute top-2 right-2 opacity-10">
-                                    <span className="material-symbols-outlined text-[48px] text-gray-800">{s.icon}</span>
-                                </div>
+                                <div className="absolute top-2 right-2 opacity-10"><span className="material-symbols-outlined text-[48px] text-gray-800">{s.icon}</span></div>
                                 <p className="font-note text-sm text-gray-500">{s.label}</p>
                                 <p className={`font-handwriting text-3xl font-bold mt-1 ${s.color}`}>{s.value}</p>
                             </div>
                         ))}
                     </div>
 
-                    {/* Create Invoice Button & Invoice List */}
                     <div className="bg-page-bg rounded-2xl shadow-notebook border border-gray-100 p-6 relative">
                         <div className="washi-tape -top-2 left-1/2 -translate-x-1/2 bg-blue-100/80 rotate-1"></div>
                         <div className="flex justify-between items-center mt-2 mb-6">
                             <h3 className="font-handwriting text-2xl font-bold text-gray-700">Invoice Log</h3>
-                            <button className="flex items-center gap-2 bg-primary/90 text-white font-note text-sm px-4 py-2 rounded-xl shadow hover:bg-primary transition-colors">
-                                <span className="material-symbols-outlined text-[18px]">add</span>
-                                Create Invoice
+                            <button onClick={openAdd} className="flex items-center gap-2 bg-primary/90 text-white font-note text-sm px-4 py-2 rounded-xl shadow hover:bg-primary transition-colors">
+                                <span className="material-symbols-outlined text-[18px]">add</span> Create Invoice
                             </button>
                         </div>
 
-                        {/* Invoice Table */}
                         <div className="overflow-x-auto">
                             <table className="w-full text-left font-note text-gray-700">
                                 <thead>
@@ -86,32 +180,21 @@ export default function Invoices() {
                                 </thead>
                                 <tbody>
                                     {invoices.map((inv, i) => (
-                                        <tr key={i} className="border-b border-gray-100 hover:bg-white/60 transition-colors">
+                                        <tr key={inv.id || i} className="border-b border-gray-100 hover:bg-white/60 transition-colors">
+                                            <td className="py-4 px-2"><span className="font-handwriting text-lg font-bold text-primary">{inv.invoice_number}</span></td>
+                                            <td className="py-4 px-2"><span className="font-handwriting text-lg text-gray-800">{inv.client?.name || '-'}</span></td>
+                                            <td className="py-4 px-2"><span className="font-handwriting text-lg font-bold text-gray-800">{formatCurrency(inv.amount)}</span></td>
+                                            <td className="py-4 px-2"><span className="font-note text-sm text-gray-500">{formatDate(inv.issue_date)}</span></td>
                                             <td className="py-4 px-2">
-                                                <span className="font-handwriting text-lg font-bold text-primary">{inv.number}</span>
-                                            </td>
-                                            <td className="py-4 px-2">
-                                                <span className="font-handwriting text-lg text-gray-800">{inv.client}</span>
-                                            </td>
-                                            <td className="py-4 px-2">
-                                                <span className="font-handwriting text-lg font-bold text-gray-800">{inv.amount}</span>
-                                            </td>
-                                            <td className="py-4 px-2">
-                                                <span className="font-note text-sm text-gray-500">{inv.date}</span>
-                                            </td>
-                                            <td className="py-4 px-2">
-                                                <span className={`inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full border ${statusStyle(inv.status)}`}>
-                                                    <span className="material-symbols-outlined text-[14px]">{statusIcon(inv.status)}</span>
+                                                <span className={`inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full border ${STATUS_CONFIG[inv.status]}`}>
+                                                    <span className="material-symbols-outlined text-[14px]">{STATUS_ICON[inv.status]}</span>
                                                     {inv.status}
                                                 </span>
                                             </td>
                                             <td className="py-4 px-2 text-right">
-                                                <button className="text-gray-400 hover:text-primary transition-colors">
-                                                    <span className="material-symbols-outlined text-[20px]">visibility</span>
-                                                </button>
-                                                <button className="text-gray-400 hover:text-primary transition-colors ml-2">
-                                                    <span className="material-symbols-outlined text-[20px]">download</span>
-                                                </button>
+                                                {inv.status !== 'Paid' && <button onClick={() => markAsPaid(inv)} className="text-green-500 hover:text-green-700 transition-colors" title="Mark as Paid"><span className="material-symbols-outlined text-[20px]">check_circle</span></button>}
+                                                <button onClick={() => openEdit(inv)} className="text-gray-400 hover:text-primary transition-colors ml-2"><span className="material-symbols-outlined text-[20px]">edit</span></button>
+                                                <button onClick={() => handleDelete(inv.id)} className="text-gray-400 hover:text-red-500 transition-colors ml-2"><span className="material-symbols-outlined text-[20px]">delete</span></button>
                                             </td>
                                         </tr>
                                     ))}
@@ -120,44 +203,60 @@ export default function Invoices() {
                         </div>
                     </div>
 
-                    {/* Quick Notes Sticky */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div className="bg-sticky-yellow p-6 shadow-sticky rotate-[1deg] relative">
                             <div className="washi-tape w-16 h-4 bg-pink-200/60 rotate-[-5deg] -top-2 left-1/2 -translate-x-1/2"></div>
-                            <h4 className="font-handwriting text-xl font-bold text-gray-800 mb-3 flex items-center gap-2">
-                                <span className="material-symbols-outlined text-orange-500">tips_and_updates</span>
-                                Reminder
-                            </h4>
-                            <p className="font-note text-sm text-gray-600 leading-relaxed">
-                                Follow up with Pixel Perfect LLC and Sunset Agency on overdue invoices. Consider adding late fees after 30 days.
-                            </p>
+                            <h4 className="font-handwriting text-xl font-bold text-gray-800 mb-3 flex items-center gap-2"><span className="material-symbols-outlined text-orange-500">tips_and_updates</span>Reminder</h4>
+                            <p className="font-note text-sm text-gray-600 leading-relaxed">Klik tombol centang untuk menandai invoice sebagai lunas.</p>
                         </div>
-
                         <div className="bg-blue-50 p-5 rounded-xl shadow-notebook rotate-[-1deg] border border-blue-100">
-                            <h4 className="font-handwriting text-lg font-bold text-blue-800 mb-2 flex items-center gap-2">
-                                <span className="material-symbols-outlined text-blue-600">trending_up</span>
-                                This Month
-                            </h4>
-                            <p className="font-note text-sm text-gray-600">6 invoices sent</p>
-                            <p className="font-note text-sm text-gray-600">2 paid, 2 pending, 2 overdue</p>
-                            <p className="font-note text-sm text-green-600 font-bold mt-2">Collection rate: 67%</p>
-                        </div>
-
-                        <div className="bg-green-50 p-5 rounded-xl shadow-notebook rotate-[2deg] border border-green-100">
-                            <h4 className="font-handwriting text-lg font-bold text-green-800 mb-2 flex items-center gap-2">
-                                <span className="material-symbols-outlined text-green-600">account_balance</span>
-                                Payment Methods
-                            </h4>
-                            <div className="space-y-1 font-note text-sm text-gray-600">
-                                <p>Bank Transfer - 60%</p>
-                                <p>PayPal - 25%</p>
-                                <p>Stripe - 15%</p>
-                            </div>
+                            <h4 className="font-handwriting text-lg font-bold text-blue-800 mb-2 flex items-center gap-2"><span className="material-symbols-outlined text-blue-600">trending_up</span>This Month</h4>
+                            <p className="font-note text-sm text-gray-600">{summary.total} invoices sent</p>
+                            <p className="font-note text-sm text-green-600 font-bold mt-2">Total: {formatCurrency(invoices.reduce((sum, i) => sum + parseFloat(i.amount || 0), 0))}</p>
                         </div>
                     </div>
-
                 </div>
             </div>
+            {showModal && <InvoiceModal formData={formData} setFormData={setFormData} clients={clients} handleSubmit={handleSubmit} editingInvoice={editingInvoice} setShowModal={setShowModal} />}
         </JournalLayout>
+    );
+}
+
+function InvoiceModal({ formData, setFormData, clients, handleSubmit, editingInvoice, setShowModal }) {
+    return (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowModal(false)}>
+            <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                <h3 className="font-handwriting text-xl font-bold mb-4">{editingInvoice ? 'Edit Invoice' : 'Create Invoice'}</h3>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <select value={formData.client_id} onChange={e => setFormData({...formData, client_id: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" required>
+                        <option value="">Select Client</option>
+                        {clients.map(c => <option key={c.id} value={c.id}>{c.name} - {c.company}</option>)}
+                    </select>
+                    <input type="text" placeholder="Invoice Number" value={formData.invoice_number} onChange={e => setFormData({...formData, invoice_number: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" required />
+                    <input type="number" placeholder="Amount" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" step="0.01" required />
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="font-note text-sm text-gray-500">Issue Date</label>
+                            <input type="date" value={formData.issue_date} onChange={e => setFormData({...formData, issue_date: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" required />
+                        </div>
+                        <div>
+                            <label className="font-note text-sm text-gray-500">Due Date</label>
+                            <input type="date" value={formData.due_date} onChange={e => setFormData({...formData, due_date: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" required />
+                        </div>
+                    </div>
+                    <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none">
+                        <option value="Pending">Pending</option>
+                        <option value="Paid">Paid</option>
+                        <option value="Overdue">Overdue</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                    <textarea placeholder="Description" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" rows={3} />
+                    <div className="flex gap-3">
+                        <button type="button" onClick={() => setShowModal(false)} className="flex-1 py-3 border border-gray-200 rounded-xl hover:bg-gray-50">Cancel</button>
+                        <button type="submit" className="flex-1 py-3 bg-primary text-white rounded-xl hover:bg-primary/90">{editingInvoice ? 'Update' : 'Create'}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     );
 }

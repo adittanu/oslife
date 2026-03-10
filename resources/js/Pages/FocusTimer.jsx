@@ -1,11 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { router } from '@inertiajs/react';
+import axios from 'axios';
 import JournalLayout from '@/Layouts/JournalLayout';
 
-export default function FocusTimer() {
-    const [mode, setMode] = useState('focus'); // focus, short, long
+export default function FocusTimer({ todaySessions: propSessions, stats: propStats }) {
+    const [mode, setMode] = useState('focus');
     const [timeLeft, setTimeLeft] = useState(25 * 60);
     const [isRunning, setIsRunning] = useState(false);
-    const [sessions, setSessions] = useState(3);
+    const [sessions, setSessions] = useState(propStats?.total_sessions || 0);
+    const [tasks, setTasks] = useState([]);
+    const [newTask, setNewTask] = useState('');
+    const [activeSession, setActiveSession] = useState(null);
     const intervalRef = useRef(null);
 
     const modes = {
@@ -19,11 +24,17 @@ export default function FocusTimer() {
             intervalRef.current = setInterval(() => {
                 setTimeLeft(t => t - 1);
             }, 1000);
+        } else if (timeLeft === 0 && isRunning) {
+            handleCompleteSession();
         } else {
             clearInterval(intervalRef.current);
         }
         return () => clearInterval(intervalRef.current);
     }, [isRunning, timeLeft]);
+
+    useEffect(() => {
+        setSessions(propStats?.total_sessions || 0);
+    }, [propStats]);
 
     const switchMode = (newMode) => {
         setMode(newMode);
@@ -36,20 +47,57 @@ export default function FocusTimer() {
         setIsRunning(false);
     };
 
+    const startSession = async () => {
+        try {
+            const res = await axios.post('/api/focus/sessions', {
+                date: new Date().toISOString().split('T')[0],
+                duration: modes[mode].duration,
+                mode: mode,
+                tasks: tasks.map(t => ({ text: t, done: false })),
+            });
+            setActiveSession(res.data);
+        } catch (e) {
+            console.error('Failed to start session', e);
+        }
+    };
+
+    const handleCompleteSession = async () => {
+        setIsRunning(false);
+        if (activeSession?.id) {
+            try {
+                await axios.patch(`/api/focus/sessions/${activeSession.id}`, { completed: true });
+                setSessions(s => s + 1);
+            } catch (e) {
+                console.error('Failed to complete session', e);
+            }
+        }
+        setTimeLeft(modes[mode].duration);
+    };
+
+    const addTask = async () => {
+        if (!newTask.trim()) return;
+        try {
+            if (activeSession?.id) {
+                const res = await axios.post(`/api/focus/sessions/${activeSession.id}/tasks`, {
+                    text: newTask.trim(),
+                });
+                setTasks(res.data.tasks || [...tasks, newTask.trim()]);
+            } else {
+                setTasks([...tasks, newTask.trim()]);
+            }
+            setNewTask('');
+        } catch (e) {
+            console.error('Failed to add task', e);
+        }
+    };
+
     const minutes = Math.floor(timeLeft / 60);
     const seconds = timeLeft % 60;
     const progress = ((modes[mode].duration - timeLeft) / modes[mode].duration) * 100;
 
-    const todayTasks = [
-        { text: 'Review Q4 analytics report', done: true },
-        { text: 'Write blog post draft', done: false },
-        { text: 'Design landing page mockup', done: false },
-        { text: 'Reply to emails', done: false },
-    ];
-
     return (
         <JournalLayout
-            pageTitle="Life OS - Focus Timer"
+            pageTitle="Mosiku - Focus Timer"
             headerTitle="Focus Timer"
             headerSubtitle="Deep work, one session at a time."
             titleFontClass="font-handwriting"
@@ -112,7 +160,10 @@ export default function FocusTimer() {
                                 <span className="material-symbols-outlined">refresh</span>
                             </button>
                             <button
-                                onClick={() => setIsRunning(!isRunning)}
+                                onClick={() => {
+                                    if (!isRunning && !activeSession) startSession();
+                                    setIsRunning(!isRunning);
+                                }}
                                 className="w-16 h-16 rounded-full bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/30 hover:opacity-90 transition-opacity"
                             >
                                 <span className="material-symbols-outlined text-3xl">
@@ -130,9 +181,9 @@ export default function FocusTimer() {
                         {/* Session dots */}
                         <div className="flex gap-2 mt-6">
                             {[...Array(4)].map((_, i) => (
-                                <div key={i} className={`w-3 h-3 rounded-full ${i < sessions ? 'bg-primary' : 'bg-gray-200'}`}></div>
+                                <div key={i} className={`w-3 h-3 rounded-full ${i < sessions % 4 ? 'bg-primary' : 'bg-gray-200'}`}></div>
                             ))}
-                            <span className="font-note text-xs text-gray-400 ml-2">{sessions}/4 sessions</span>
+                            <span className="font-note text-xs text-gray-400 ml-2">{sessions} sessions today</span>
                         </div>
                     </div>
 
@@ -142,19 +193,26 @@ export default function FocusTimer() {
 
                         <h3 className="font-handwriting text-2xl font-bold text-gray-700 mb-6">Focus Tasks</h3>
                         <div className="space-y-3 mb-10">
-                            {todayTasks.map((task, i) => (
-                                <div key={i} className="flex items-center gap-3 group">
-                                    <span className={`material-symbols-outlined text-lg ${task.done ? 'text-green-500' : 'text-gray-300'}`}>
-                                        {task.done ? 'check_circle' : 'radio_button_unchecked'}
-                                    </span>
-                                    <span className={`font-note text-lg ${task.done ? 'text-gray-400 line-through' : 'text-gray-700'}`}>
-                                        {task.text}
-                                    </span>
-                                </div>
-                            ))}
+                            {tasks.length === 0 ? (
+                                <p className="font-note text-gray-400 italic">No tasks added yet</p>
+                            ) : (
+                                tasks.map((task, i) => (
+                                    <div key={i} className="flex items-center gap-3 group">
+                                        <span className="material-symbols-outlined text-gray-300 text-lg">radio_button_unchecked</span>
+                                        <span className="font-note text-lg text-gray-700">{typeof task === 'string' ? task : task.text}</span>
+                                    </div>
+                                ))
+                            )}
                             <div className="flex items-center gap-3 mt-4">
                                 <span className="material-symbols-outlined text-gray-300">add</span>
-                                <input className="w-full bg-transparent border-none focus:ring-0 font-note text-lg text-gray-500 placeholder-gray-300" placeholder="Add focus task..." type="text" />
+                                <input
+                                    className="w-full bg-transparent border-none focus:ring-0 font-note text-lg text-gray-500 placeholder-gray-300"
+                                    placeholder="Add focus task..."
+                                    type="text"
+                                    value={newTask}
+                                    onChange={(e) => setNewTask(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && addTask()}
+                                />
                             </div>
                         </div>
 
@@ -162,20 +220,20 @@ export default function FocusTimer() {
                         <h3 className="font-handwriting text-2xl font-bold text-gray-700 mb-4">Today's Stats</h3>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="bg-sticky-pink p-4 rounded-xl shadow-sm text-center">
-                                <span className="font-handwriting text-3xl font-bold text-gray-800">3</span>
+                                <span className="font-handwriting text-3xl font-bold text-gray-800">{propStats?.total_sessions || 0}</span>
                                 <p className="font-note text-sm text-gray-500">Sessions</p>
                             </div>
                             <div className="bg-sticky-blue p-4 rounded-xl shadow-sm text-center">
-                                <span className="font-handwriting text-3xl font-bold text-gray-800">75m</span>
+                                <span className="font-handwriting text-3xl font-bold text-gray-800">{propStats?.total_minutes || 0}m</span>
                                 <p className="font-note text-sm text-gray-500">Focus Time</p>
                             </div>
                             <div className="bg-sticky-green p-4 rounded-xl shadow-sm text-center">
-                                <span className="font-handwriting text-3xl font-bold text-gray-800">1</span>
+                                <span className="font-handwriting text-3xl font-bold text-gray-800">{tasks.filter(t => typeof t === 'object' ? t.done : false).length}</span>
                                 <p className="font-note text-sm text-gray-500">Tasks Done</p>
                             </div>
                             <div className="bg-sticky-yellow p-4 rounded-xl shadow-sm text-center">
                                 <span className="font-handwriting text-3xl font-bold text-gray-800">🔥</span>
-                                <p className="font-note text-sm text-gray-500">5 Day Streak</p>
+                                <p className="font-note text-sm text-gray-500">{propStats?.streak || 0} Day Streak</p>
                             </div>
                         </div>
 

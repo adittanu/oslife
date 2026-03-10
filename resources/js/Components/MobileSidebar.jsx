@@ -56,7 +56,7 @@ export default function MobileSidebar({ open, onClose }) {
                     <div className="p-5 pb-3">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="bg-center bg-no-repeat bg-cover rounded-xl h-10 w-10 border-2 border-primary rotate-3 shadow-md" style={{backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuA_k8zodvgRy8J2Vg_lS-vpqOiCOMN7YDmjiDQ6rPpf1E9BQdiL5yaBRegMph3ndGJG5iBGCoGeXXoiD8gBnHTIlWdkb-qemjG6P1UGMrF9IOotUALq9sL__D-Qeoaniq5p_wGKkKop7xzg6fNL1yz0jRGw44WbxxNv3fpKFrvWOx2Oz-KVXmDDkuTKFl84eLDUWsFz1JYQ3jVM-GAgy-vMes50uH8ukigGXHVXQ7sDPzC639P7W_Ukma5OSle2SLxGV7Rs8X5KEdc")'}}></div>
+                                <img src={`/images/ciku-${mode === 'life' ? 'default' : mode}.svg`} alt="Mosiku" className="h-10 w-10 rotate-3 drop-shadow-md" />
                                 <div className="flex flex-col">
                                     <h1 className="text-primary text-lg font-handwriting font-bold leading-tight">{config.brandTitle}</h1>
                                     <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">{config.label}</p>

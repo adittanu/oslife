@@ -1,10 +1,104 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { router } from '@inertiajs/react';
+import axios from 'axios';
 import JournalLayout from '@/Layouts/JournalLayout';
 
-export default function WeeklyReview() {
+export default function WeeklyReview({ currentReview: propCurrent, pastReviews: propPast }) {
+    const [currentReview, setCurrentReview] = useState(propCurrent);
+    const [wins, setWins] = useState([]);
+    const [challenges, setChallenges] = useState([]);
+    const [lessons, setLessons] = useState('');
+    const [priorities, setPriorities] = useState([]);
+    const [scores, setScores] = useState({});
+    const [gratitude, setGratitude] = useState('');
+
+    const [newWin, setNewWin] = useState('');
+    const [newChallenge, setNewChallenge] = useState('');
+    const [newPriority, setNewPriority] = useState('');
+
+    useEffect(() => {
+        if (propCurrent) {
+            setWins(propCurrent.wins || []);
+            setChallenges(propCurrent.challenges || []);
+            setLessons(propCurrent.lessons || '');
+            setPriorities(propCurrent.priorities || []);
+            setScores(propCurrent.scores || {});
+        }
+    }, [propCurrent]);
+
+    const weekStart = new Date();
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+
+    const formatDate = (date) => {
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    };
+
+    const handleSaveReview = async () => {
+        try {
+            if (currentReview?.id) {
+                const res = await axios.patch(`/api/weekly-review/${currentReview.id}`, {
+                    wins,
+                    challenges,
+                    lessons,
+                    priorities,
+                    scores,
+                });
+                setCurrentReview(res.data);
+            } else {
+                const res = await axios.post('/api/weekly-review', {
+                    week_start: weekStart.toISOString().split('T')[0],
+                    week_end: weekEnd.toISOString().split('T')[0],
+                    wins,
+                    challenges,
+                    lessons,
+                    priorities,
+                    scores,
+                });
+                setCurrentReview(res.data);
+            }
+            router.reload({ only: ['currentReview'] });
+        } catch (e) {
+            console.error('Failed to save review', e);
+        }
+    };
+
+    const addWin = () => {
+        if (newWin.trim()) {
+            setWins([...wins, newWin.trim()]);
+            setNewWin('');
+        }
+    };
+
+    const addChallenge = () => {
+        if (newChallenge.trim()) {
+            setChallenges([...challenges, newChallenge.trim()]);
+            setNewChallenge('');
+        }
+    };
+
+    const addPriority = () => {
+        if (newPriority.trim()) {
+            setPriorities([...priorities, newPriority.trim()]);
+            setNewPriority('');
+        }
+    };
+
+    const updateScore = (category, value) => {
+        setScores({ ...scores, [category]: value });
+    };
+
+    const scoreCategories = [
+        { label: 'Productivity', color: 'bg-primary' },
+        { label: 'Health', color: 'bg-green-500' },
+        { label: 'Relationships', color: 'bg-blue-500' },
+        { label: 'Happiness', color: 'bg-yellow-500' },
+    ];
+
     return (
         <JournalLayout
-            pageTitle="Life OS - Weekly Review"
+            pageTitle="Mosiku - Weekly Review"
             headerTitle="Weekly Review"
             headerSubtitle="Reflect, learn, and plan ahead."
             titleFontClass="font-handwriting"
@@ -20,8 +114,8 @@ export default function WeeklyReview() {
                         <div className="washi-tape -top-2 left-1/2 -translate-x-1/2 bg-purple-100/80 rotate-1"></div>
 
                         <div className="text-center mb-8">
-                            <h3 className="font-handwriting text-3xl font-bold text-gray-700 mt-2">Week 10 Review</h3>
-                            <p className="font-note text-gray-400">March 3 - 9, 2026</p>
+                            <h3 className="font-handwriting text-3xl font-bold text-gray-700 mt-2">Week Review</h3>
+                            <p className="font-note text-gray-400">{formatDate(weekStart)} - {formatDate(weekEnd)}</p>
                         </div>
 
                         {/* Wins */}
@@ -31,11 +125,7 @@ export default function WeeklyReview() {
                                 <h4 className="font-handwriting text-2xl font-bold text-gray-700">Wins This Week</h4>
                             </div>
                             <div className="space-y-3 pl-2">
-                                {[
-                                    'Finished the project proposal ahead of deadline',
-                                    'Maintained 5-day workout streak',
-                                    'Read 2 chapters of Atomic Habits',
-                                ].map((win, i) => (
+                                {wins.map((win, i) => (
                                     <div key={i} className="flex items-start gap-3">
                                         <span className="material-symbols-outlined text-green-500 text-lg mt-0.5">check_circle</span>
                                         <p className="font-handwriting text-xl text-gray-700">{win}</p>
@@ -43,7 +133,14 @@ export default function WeeklyReview() {
                                 ))}
                                 <div className="flex items-start gap-3">
                                     <span className="material-symbols-outlined text-gray-300 text-lg mt-0.5">add_circle</span>
-                                    <input className="w-full bg-transparent border-none focus:ring-0 font-handwriting text-xl text-gray-500 placeholder-gray-300" placeholder="Add a win..." type="text" />
+                                    <input
+                                        className="w-full bg-transparent border-none focus:ring-0 font-handwriting text-xl text-gray-500 placeholder-gray-300"
+                                        placeholder="Add a win..."
+                                        type="text"
+                                        value={newWin}
+                                        onChange={(e) => setNewWin(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && addWin()}
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -55,10 +152,7 @@ export default function WeeklyReview() {
                                 <h4 className="font-handwriting text-2xl font-bold text-gray-700">Challenges</h4>
                             </div>
                             <div className="space-y-3 pl-2">
-                                {[
-                                    'Struggled with focus on Wednesday',
-                                    'Skipped morning routine twice',
-                                ].map((challenge, i) => (
+                                {challenges.map((challenge, i) => (
                                     <div key={i} className="flex items-start gap-3">
                                         <span className="material-symbols-outlined text-orange-400 text-lg mt-0.5">pending</span>
                                         <p className="font-handwriting text-xl text-gray-700">{challenge}</p>
@@ -66,7 +160,14 @@ export default function WeeklyReview() {
                                 ))}
                                 <div className="flex items-start gap-3">
                                     <span className="material-symbols-outlined text-gray-300 text-lg mt-0.5">add_circle</span>
-                                    <input className="w-full bg-transparent border-none focus:ring-0 font-handwriting text-xl text-gray-500 placeholder-gray-300" placeholder="Add a challenge..." type="text" />
+                                    <input
+                                        className="w-full bg-transparent border-none focus:ring-0 font-handwriting text-xl text-gray-500 placeholder-gray-300"
+                                        placeholder="Add a challenge..."
+                                        type="text"
+                                        value={newChallenge}
+                                        onChange={(e) => setNewChallenge(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && addChallenge()}
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -76,7 +177,9 @@ export default function WeeklyReview() {
                             <h4 className="font-sketch text-lg text-purple-800 mb-2 border-b border-purple-200 pb-1">Lessons Learned</h4>
                             <textarea
                                 className="w-full bg-transparent border-none resize-none font-handwriting text-xl text-gray-700 leading-relaxed focus:ring-0 outline-none min-h-[80px]"
-                                defaultValue="Need to set specific time blocks for deep work. Morning is my most productive time — protect it."
+                                placeholder="What did you learn this week?"
+                                value={lessons}
+                                onChange={(e) => setLessons(e.target.value)}
                             ></textarea>
                         </div>
                     </div>
@@ -87,7 +190,7 @@ export default function WeeklyReview() {
 
                         <div className="text-center mb-8">
                             <h3 className="font-handwriting text-3xl font-bold text-gray-700">Next Week Plan</h3>
-                            <p className="font-note text-gray-400">March 10 - 16, 2026</p>
+                            <p className="font-note text-gray-400">Looking ahead</p>
                         </div>
 
                         {/* Top priorities */}
@@ -97,16 +200,25 @@ export default function WeeklyReview() {
                                 <h4 className="font-handwriting text-2xl font-bold text-gray-700">Top 3 Priorities</h4>
                             </div>
                             <div className="space-y-4">
-                                {[
-                                    { num: '1', text: 'Submit final project deliverable', color: 'bg-sticky-pink' },
-                                    { num: '2', text: 'Prepare for client presentation', color: 'bg-sticky-blue' },
-                                    { num: '3', text: 'Start new habit: journaling before bed', color: 'bg-sticky-green' },
-                                ].map((p, i) => (
-                                    <div key={i} className={`${p.color} p-4 rounded-xl shadow-sm flex items-start gap-3`}>
-                                        <span className="font-handwriting text-2xl font-bold text-gray-400">{p.num}.</span>
-                                        <p className="font-handwriting text-xl text-gray-800">{p.text}</p>
+                                {priorities.slice(0, 3).map((p, i) => (
+                                    <div key={i} className={`p-4 rounded-xl shadow-sm flex items-start gap-3 ${
+                                        i === 0 ? 'bg-sticky-pink' : i === 1 ? 'bg-sticky-blue' : 'bg-sticky-green'
+                                    }`}>
+                                        <span className="font-handwriting text-2xl font-bold text-gray-400">{i + 1}.</span>
+                                        <p className="font-handwriting text-xl text-gray-800">{p}</p>
                                     </div>
                                 ))}
+                                <div className="flex items-center gap-3">
+                                    <span className="material-symbols-outlined text-gray-300">add_circle</span>
+                                    <input
+                                        className="w-full bg-transparent border-none focus:ring-0 font-handwriting text-xl text-gray-500 placeholder-gray-300"
+                                        placeholder="Add a priority..."
+                                        type="text"
+                                        value={newPriority}
+                                        onChange={(e) => setNewPriority(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && addPriority()}
+                                    />
+                                </div>
                             </div>
                         </div>
 
@@ -114,19 +226,24 @@ export default function WeeklyReview() {
                         <div className="mb-8">
                             <h4 className="font-handwriting text-2xl font-bold text-gray-700 mb-4">This Week's Score</h4>
                             <div className="grid grid-cols-2 gap-3">
-                                {[
-                                    { label: 'Productivity', score: 8, color: 'bg-primary' },
-                                    { label: 'Health', score: 7, color: 'bg-green-500' },
-                                    { label: 'Relationships', score: 6, color: 'bg-blue-500' },
-                                    { label: 'Happiness', score: 8, color: 'bg-yellow-500' },
-                                ].map((s, i) => (
-                                    <div key={i} className="bg-white/60 rounded-xl p-3 border border-gray-100">
+                                {scoreCategories.map((s) => (
+                                    <div key={s.label} className="bg-white/60 rounded-xl p-3 border border-gray-100">
                                         <div className="flex justify-between items-center mb-2">
                                             <span className="font-note text-sm text-gray-500">{s.label}</span>
-                                            <span className="font-handwriting text-lg font-bold text-gray-700">{s.score}/10</span>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="10"
+                                                className="w-12 text-center border rounded font-handwriting"
+                                                value={scores[s.label] || ''}
+                                                onChange={(e) => updateScore(s.label, parseInt(e.target.value) || 0)}
+                                            />
                                         </div>
                                         <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                                            <div className={`h-full rounded-full ${s.color}`} style={{ width: `${s.score * 10}%` }}></div>
+                                            <div
+                                                className={`h-full rounded-full ${s.color}`}
+                                                style={{ width: `${((scores[s.label] || 0) / 10) * 100}%` }}
+                                            ></div>
                                         </div>
                                     </div>
                                 ))}
@@ -138,9 +255,19 @@ export default function WeeklyReview() {
                             <h4 className="font-sketch text-lg text-yellow-800 mb-2 border-b border-yellow-300 pb-1">Grateful For This Week</h4>
                             <textarea
                                 className="w-full bg-transparent border-none resize-none font-handwriting text-xl text-gray-700 leading-relaxed focus:ring-0 outline-none min-h-[60px]"
-                                defaultValue="My supportive team, the rainy morning that made me slow down, and a good cup of coffee."
+                                placeholder="What are you grateful for?"
+                                value={gratitude}
+                                onChange={(e) => setGratitude(e.target.value)}
                             ></textarea>
                         </div>
+
+                        {/* Save button */}
+                        <button
+                            onClick={handleSaveReview}
+                            className="mt-8 w-full py-3 bg-primary text-white rounded-xl font-handwriting text-xl hover:opacity-90 transition-opacity"
+                        >
+                            Save Weekly Review
+                        </button>
 
                         <div className="absolute bottom-8 right-8 opacity-15 pointer-events-none rotate-12">
                             <span className="material-symbols-outlined text-[80px] text-yellow-300">stars</span>
