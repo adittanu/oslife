@@ -5,7 +5,12 @@ function formatCurrency(amount) {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount || 0);
 }
 
-export default function Dashboard({ stats }) {
+function formatDate(dateStr) {
+    if (!dateStr) return '-';
+    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+export default function Dashboard({ stats, recentActivity = [], upcomingFocus = [] }) {
     const summaryCards = [
         { label: 'Active Projects', value: stats?.activeProjects || '0', icon: 'folder_open', bg: 'bg-blue-50', iconColor: 'text-blue-500', border: 'border-blue-100' },
         { label: 'Pending Invoices', value: stats?.pendingInvoices || '0', icon: 'receipt_long', bg: 'bg-amber-50', iconColor: 'text-amber-500', border: 'border-amber-100' },
@@ -34,14 +39,22 @@ export default function Dashboard({ stats }) {
                             <div className="washi-tape -top-2 left-10 bg-blue-100/80 rotate-[-2deg]"></div>
                             <h3 className="font-handwriting text-2xl font-bold text-gray-700 mt-2 mb-5 flex items-center gap-2"><span className="material-symbols-outlined text-blue-400">history</span>Recent Activity</h3>
                             <div className="space-y-3">
-                                <div className="flex items-start gap-3 bg-white/60 rounded-xl p-3 border border-gray-100">
-                                    <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5"><span className="material-symbols-outlined text-lg">folder_open</span></div>
-                                    <div className="flex-1 min-w-0"><p className="font-note text-sm text-gray-700">{stats?.totalClients || 0} total clients</p><p className="font-note text-xs text-gray-400">All time</p></div>
-                                </div>
-                                <div className="flex items-start gap-3 bg-white/60 rounded-xl p-3 border border-gray-100">
-                                    <div className="w-9 h-9 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center flex-shrink-0 mt-0.5"><span className="material-symbols-outlined text-lg">warning</span></div>
-                                    <div className="flex-1 min-w-0"><p className="font-note text-sm text-gray-700">{stats?.overdueInvoices || 0} overdue invoices</p><p className="font-note text-xs text-gray-400">Action needed</p></div>
-                                </div>
+                                {recentActivity.length > 0 ? recentActivity.map((item) => (
+                                    <div key={`${item.type}-${item.title}-${item.date}`} className="flex items-start gap-3 bg-white/60 rounded-xl p-3 border border-gray-100">
+                                        <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                            <span className="material-symbols-outlined text-lg">{item.icon}</span>
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-note text-sm text-gray-700">{item.title}</p>
+                                            <p className="font-note text-xs text-gray-400">{item.meta} • {formatDate(item.date)}</p>
+                                        </div>
+                                    </div>
+                                )) : (
+                                    <div className="flex items-start gap-3 bg-white/60 rounded-xl p-3 border border-gray-100">
+                                        <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5"><span className="material-symbols-outlined text-lg">history</span></div>
+                                        <div className="flex-1 min-w-0"><p className="font-note text-sm text-gray-700">Belum ada aktivitas terbaru</p><p className="font-note text-xs text-gray-400">Mulai tambahkan klien, proyek, atau invoice</p></div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -59,6 +72,22 @@ export default function Dashboard({ stats }) {
                                 <h4 className="font-handwriting text-lg font-bold text-emerald-800 mb-2 flex items-center gap-2"><span className="material-symbols-outlined text-emerald-600">trending_up</span>This Month</h4>
                                 <div className="space-y-2">
                                     <div className="flex justify-between font-note text-sm text-gray-600"><span>Income</span><span className="font-bold text-emerald-700">{formatCurrency(stats?.incomeThisMonth)}</span></div>
+                                </div>
+                            </div>
+                            <div className="bg-blue-50 p-5 rounded-xl shadow-notebook rotate-[1deg] border border-blue-100">
+                                <h4 className="font-handwriting text-lg font-bold text-blue-800 mb-2 flex items-center gap-2"><span className="material-symbols-outlined text-blue-600">upcoming</span>Upcoming Focus</h4>
+                                <div className="space-y-2">
+                                    {upcomingFocus.length > 0 ? upcomingFocus.map((item) => (
+                                        <div key={`${item.label}-${item.date}`} className="flex items-start justify-between gap-3">
+                                            <div>
+                                                <p className="font-note text-sm text-gray-700">{item.label}</p>
+                                                <p className="font-note text-xs text-gray-400">{item.detail}</p>
+                                            </div>
+                                            <span className="font-note text-xs font-bold text-blue-700">{formatDate(item.date)}</span>
+                                        </div>
+                                    )) : (
+                                        <p className="font-note text-sm text-gray-500">Belum ada deadline dekat.</p>
+                                    )}
                                 </div>
                             </div>
                         </div>

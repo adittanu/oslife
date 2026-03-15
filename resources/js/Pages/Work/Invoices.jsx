@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { usePage } from '@inertiajs/react';
 import axios from 'axios';
 import JournalLayout from '@/Layouts/JournalLayout';
 import WorkEmptyState from '@/Components/WorkEmptyState';
@@ -33,9 +32,10 @@ function generateInvoiceNumber() {
     return `INV-${num}`;
 }
 
-export default function Invoices({ invoices: propInvoices, clients: propClients }) {
+export default function Invoices({ invoices: propInvoices, clients: propClients, projects: propProjects }) {
     const [invoices, setInvoices] = useState(propInvoices || []);
     const [clients, setClients] = useState(propClients || []);
+    const [projects, setProjects] = useState(propProjects || []);
     const [showModal, setShowModal] = useState(false);
     const [editingInvoice, setEditingInvoice] = useState(null);
     const [formData, setFormData] = useState({
@@ -45,11 +45,14 @@ export default function Invoices({ invoices: propInvoices, clients: propClients 
         status: 'Pending',
         issue_date: new Date().toISOString().split('T')[0],
         due_date: '',
-        description: ''
+        description: '',
+        project_id: '',
+        paid_date: '',
     });
 
     useEffect(() => { setInvoices(propInvoices || []); }, [propInvoices]);
     useEffect(() => { setClients(propClients || []); }, [propClients]);
+    useEffect(() => { setProjects(propProjects || []); }, [propProjects]);
 
     const summary = useMemo(() => {
         const totalOutstanding = invoices.filter(i => i.status === 'Pending').reduce((sum, i) => sum + parseFloat(i.amount || 0), 0);
@@ -68,15 +71,23 @@ export default function Invoices({ invoices: propInvoices, clients: propClients 
         e.preventDefault();
         try {
             if (editingInvoice?.id) {
-                const res = await axios.put(`/api/work/invoices/${editingInvoice.id}`, formData);
+                const res = await axios.put(`/api/work/invoices/${editingInvoice.id}`, {
+                    ...formData,
+                    project_id: formData.project_id || null,
+                    paid_date: formData.paid_date || null,
+                });
                 setInvoices(invoices.map(i => i.id === editingInvoice.id ? res.data : i));
             } else {
-                const res = await axios.post('/api/work/invoices', formData);
+                const res = await axios.post('/api/work/invoices', {
+                    ...formData,
+                    project_id: formData.project_id || null,
+                    paid_date: formData.paid_date || null,
+                });
                 setInvoices([res.data, ...invoices]);
             }
             setShowModal(false);
             setEditingInvoice(null);
-            setFormData({ client_id: '', invoice_number: generateInvoiceNumber(), amount: '', status: 'Pending', issue_date: new Date().toISOString().split('T')[0], due_date: '', description: '' });
+            setFormData({ client_id: '', invoice_number: generateInvoiceNumber(), amount: '', status: 'Pending', issue_date: new Date().toISOString().split('T')[0], due_date: '', description: '', project_id: '', paid_date: '' });
         } catch (err) {
             console.error(err);
         }
@@ -108,9 +119,11 @@ export default function Invoices({ invoices: propInvoices, clients: propClients 
             invoice_number: invoice.invoice_number || '',
             amount: invoice.amount || '',
             status: invoice.status || 'Pending',
-            issue_date: invoice.issue_date || '',
-            due_date: invoice.due_date || '',
-            description: invoice.description || ''
+            issue_date: invoice.issue_date ? String(invoice.issue_date).slice(0, 10) : '',
+            due_date: invoice.due_date ? String(invoice.due_date).slice(0, 10) : '',
+            description: invoice.description || '',
+            project_id: invoice.project_id || '',
+            paid_date: invoice.paid_date ? String(invoice.paid_date).slice(0, 10) : '',
         });
         setShowModal(true);
     };
@@ -119,7 +132,7 @@ export default function Invoices({ invoices: propInvoices, clients: propClients 
         const nextMonth = new Date();
         nextMonth.setMonth(nextMonth.getMonth() + 1);
         setEditingInvoice(null);
-        setFormData({ client_id: clients[0]?.id || '', invoice_number: generateInvoiceNumber(), amount: '', status: 'Pending', issue_date: new Date().toISOString().split('T')[0], due_date: nextMonth.toISOString().split('T')[0], description: '' });
+        setFormData({ client_id: clients[0]?.id || '', invoice_number: generateInvoiceNumber(), amount: '', status: 'Pending', issue_date: new Date().toISOString().split('T')[0], due_date: nextMonth.toISOString().split('T')[0], description: '', project_id: '', paid_date: '' });
         setShowModal(true);
     };
 
@@ -138,7 +151,7 @@ export default function Invoices({ invoices: propInvoices, clients: propClients 
                         <WorkEmptyState icon="receipt_long" title="Belum ada invoice" description="Buat invoice pertamamu untuk mulai melacak pembayaran" actionLabel="Create Invoice" onAction={openAdd} />
                     </div>
                 </div>
-                {showModal && <InvoiceModal formData={formData} setFormData={setFormData} clients={clients} handleSubmit={handleSubmit} editingInvoice={editingInvoice} setShowModal={setShowModal} />}
+                {showModal && <InvoiceModal formData={formData} setFormData={setFormData} clients={clients} projects={projects} handleSubmit={handleSubmit} editingInvoice={editingInvoice} setShowModal={setShowModal} />}
             </JournalLayout>
         );
     }
@@ -182,7 +195,12 @@ export default function Invoices({ invoices: propInvoices, clients: propClients 
                                     {invoices.map((inv, i) => (
                                         <tr key={inv.id || i} className="border-b border-gray-100 hover:bg-white/60 transition-colors">
                                             <td className="py-4 px-2"><span className="font-handwriting text-lg font-bold text-primary">{inv.invoice_number}</span></td>
-                                            <td className="py-4 px-2"><span className="font-handwriting text-lg text-gray-800">{inv.client?.name || '-'}</span></td>
+                                            <td className="py-4 px-2">
+                                                <div>
+                                                    <span className="font-handwriting text-lg text-gray-800">{inv.client?.name || '-'}</span>
+                                                    {inv.project?.name && <p className="font-note text-xs text-gray-400 mt-1">{inv.project.name}</p>}
+                                                </div>
+                                            </td>
                                             <td className="py-4 px-2"><span className="font-handwriting text-lg font-bold text-gray-800">{formatCurrency(inv.amount)}</span></td>
                                             <td className="py-4 px-2"><span className="font-note text-sm text-gray-500">{formatDate(inv.issue_date)}</span></td>
                                             <td className="py-4 px-2">
@@ -217,12 +235,12 @@ export default function Invoices({ invoices: propInvoices, clients: propClients 
                     </div>
                 </div>
             </div>
-            {showModal && <InvoiceModal formData={formData} setFormData={setFormData} clients={clients} handleSubmit={handleSubmit} editingInvoice={editingInvoice} setShowModal={setShowModal} />}
+            {showModal && <InvoiceModal formData={formData} setFormData={setFormData} clients={clients} projects={projects} handleSubmit={handleSubmit} editingInvoice={editingInvoice} setShowModal={setShowModal} />}
         </JournalLayout>
     );
 }
 
-function InvoiceModal({ formData, setFormData, clients, handleSubmit, editingInvoice, setShowModal }) {
+function InvoiceModal({ formData, setFormData, clients, projects, handleSubmit, editingInvoice, setShowModal }) {
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowModal(false)}>
             <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
@@ -231,6 +249,10 @@ function InvoiceModal({ formData, setFormData, clients, handleSubmit, editingInv
                     <select value={formData.client_id} onChange={e => setFormData({...formData, client_id: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" required>
                         <option value="">Select Client</option>
                         {clients.map(c => <option key={c.id} value={c.id}>{c.name} - {c.company}</option>)}
+                    </select>
+                    <select value={formData.project_id} onChange={e => setFormData({...formData, project_id: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none">
+                        <option value="">Link to Project (Optional)</option>
+                        {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
                     <input type="text" placeholder="Invoice Number" value={formData.invoice_number} onChange={e => setFormData({...formData, invoice_number: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" required />
                     <input type="number" placeholder="Amount" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" step="0.01" required />
@@ -250,6 +272,12 @@ function InvoiceModal({ formData, setFormData, clients, handleSubmit, editingInv
                         <option value="Overdue">Overdue</option>
                         <option value="Cancelled">Cancelled</option>
                     </select>
+                    {formData.status === 'Paid' && (
+                        <div>
+                            <label className="font-note text-sm text-gray-500">Paid Date</label>
+                            <input type="date" value={formData.paid_date} onChange={e => setFormData({...formData, paid_date: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                        </div>
+                    )}
                     <textarea placeholder="Description" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" rows={3} />
                     <div className="flex gap-3">
                         <button type="button" onClick={() => setShowModal(false)} className="flex-1 py-3 border border-gray-200 rounded-xl hover:bg-gray-50">Cancel</button>

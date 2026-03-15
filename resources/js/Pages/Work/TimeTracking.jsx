@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { usePage } from '@inertiajs/react';
 import axios from 'axios';
 import JournalLayout from '@/Layouts/JournalLayout';
 import WorkEmptyState from '@/Components/WorkEmptyState';
@@ -23,19 +22,38 @@ export default function TimeTracking({ entries: propEntries, projects: propProje
     const [projects, setProjects] = useState(propProjects || []);
     const [showModal, setShowModal] = useState(false);
     const [runningEntry, setRunningEntry] = useState(null);
+    const [selectedProjectId, setSelectedProjectId] = useState(propProjects?.[0]?.id ? String(propProjects[0].id) : '');
     const [timerSeconds, setTimerSeconds] = useState(0);
     const [formData, setFormData] = useState({ project_id: '', description: '', duration: '' });
 
     useEffect(() => { setEntries(propEntries || []); }, [propEntries]);
     useEffect(() => { setProjects(propProjects || []); }, [propProjects]);
+    useEffect(() => {
+        if (!projects.length) {
+            setSelectedProjectId('');
+            return;
+        }
+
+        const hasSelection = projects.some(project => String(project.id) === String(selectedProjectId));
+
+        if (!hasSelection) {
+            setSelectedProjectId(String(projects[0].id));
+        }
+    }, [projects, selectedProjectId]);
 
     // Find running entry and start timer
     useEffect(() => {
         const running = entries.find(e => e.is_running);
         if (running) {
             setRunningEntry(running);
+            if (running.project_id) {
+                setSelectedProjectId(String(running.project_id));
+            }
             const start = new Date(running.start_time).getTime();
             setTimerSeconds(Math.floor((Date.now() - start) / 1000));
+        } else {
+            setRunningEntry(null);
+            setTimerSeconds(0);
         }
     }, [entries]);
 
@@ -79,10 +97,10 @@ export default function TimeTracking({ entries: propEntries, projects: propProje
     }, 0);
 
     const startTimer = async () => {
-        if (!projects.length) { alert('Tambahkan proyek terlebih dahulu'); return; }
+        if (!projects.length || !selectedProjectId) { alert('Tambahkan proyek terlebih dahulu'); return; }
         try {
             const res = await axios.post('/api/work/time-entries', {
-                project_id: projects[0].id,
+                project_id: selectedProjectId,
                 start_time: new Date().toISOString(),
                 is_running: true,
                 description: ''
@@ -134,7 +152,7 @@ export default function TimeTracking({ entries: propEntries, projects: propProje
     };
 
     const openAdd = () => {
-        setFormData({ project_id: projects[0]?.id || '', description: '', duration: '' });
+        setFormData({ project_id: selectedProjectId || projects[0]?.id || '', description: '', duration: '' });
         setShowModal(true);
     };
 
@@ -164,6 +182,23 @@ export default function TimeTracking({ entries: propEntries, projects: propProje
                                 <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 inline-block">
                                     <p className="font-handwriting text-6xl font-bold text-gray-800 tracking-wider">{formatTimer(timerSeconds)}</p>
                                     {runningEntry && <div className="mt-3"><p className="font-note text-sm text-gray-600"><span className="font-bold text-primary">{runningEntry.project?.name || '-'}</span></p></div>}
+                                </div>
+                                <div className="mt-4 max-w-xs mx-auto md:mx-0">
+                                    <label className="font-note text-xs uppercase tracking-[0.2em] text-gray-400 mb-2 block">Project Focus</label>
+                                    <select
+                                        value={selectedProjectId}
+                                        onChange={(e) => setSelectedProjectId(e.target.value)}
+                                        disabled={!!runningEntry || !projects.length}
+                                        className="w-full p-3 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none disabled:bg-gray-100 disabled:text-gray-400"
+                                    >
+                                        <option value="">Select Project</option>
+                                        {projects.map(project => (
+                                            <option key={project.id} value={project.id}>{project.name}</option>
+                                        ))}
+                                    </select>
+                                    <p className="font-note text-xs text-gray-400 mt-2">
+                                        {runningEntry ? 'Stop timer untuk ganti proyek yang sedang dicatat.' : 'Pilih proyek sebelum mulai timer.'}
+                                    </p>
                                 </div>
                             </div>
                             <div className="flex flex-col items-center gap-5">

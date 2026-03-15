@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { usePage } from '@inertiajs/react';
 import axios from 'axios';
 import JournalLayout from '@/Layouts/JournalLayout';
 import WorkEmptyState from '@/Components/WorkEmptyState';
@@ -11,29 +10,31 @@ function formatDate(dateStr) {
     return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-export default function MeetingNotes({ notes: propNotes, clients: propClients }) {
+export default function MeetingNotes({ notes: propNotes, clients: propClients, projects: propProjects }) {
     const [notes, setNotes] = useState(propNotes || []);
     const [clients, setClients] = useState(propClients || []);
+    const [projects, setProjects] = useState(propProjects || []);
     const [showModal, setShowModal] = useState(false);
     const [editingNote, setEditingNote] = useState(null);
-    const [formData, setFormData] = useState({ client_id: '', title: '', meeting_date: '', content: '' });
+    const [formData, setFormData] = useState({ client_id: '', project_id: '', title: '', meeting_date: '', content: '' });
 
     useEffect(() => { setNotes(propNotes || []); }, [propNotes]);
     useEffect(() => { setClients(propClients || []); }, [propClients]);
+    useEffect(() => { setProjects(propProjects || []); }, [propProjects]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
             if (editingNote?.id) {
-                const res = await axios.put(`/api/work/meeting-notes/${editingNote.id}`, formData);
+                const res = await axios.put(`/api/work/meeting-notes/${editingNote.id}`, { ...formData, project_id: formData.project_id || null, client_id: formData.client_id || null });
                 setNotes(notes.map(n => n.id === editingNote.id ? res.data : n));
             } else {
-                const res = await axios.post('/api/work/meeting-notes', formData);
+                const res = await axios.post('/api/work/meeting-notes', { ...formData, project_id: formData.project_id || null, client_id: formData.client_id || null });
                 setNotes([res.data, ...notes]);
             }
             setShowModal(false);
             setEditingNote(null);
-            setFormData({ client_id: '', title: '', meeting_date: '', content: '' });
+            setFormData({ client_id: '', project_id: '', title: '', meeting_date: '', content: '' });
         } catch (err) { console.error(err); }
     };
 
@@ -47,13 +48,13 @@ export default function MeetingNotes({ notes: propNotes, clients: propClients })
 
     const openEdit = (note) => {
         setEditingNote(note);
-        setFormData({ client_id: note.client_id || '', title: note.title || '', meeting_date: note.meeting_date || '', content: note.content || '' });
+        setFormData({ client_id: note.client_id || '', project_id: note.project_id || '', title: note.title || '', meeting_date: note.meeting_date ? String(note.meeting_date).slice(0, 10) : '', content: note.content || '' });
         setShowModal(true);
     };
 
     const openAdd = () => {
         setEditingNote(null);
-        setFormData({ client_id: clients[0]?.id || '', title: '', meeting_date: new Date().toISOString().split('T')[0], content: '' });
+        setFormData({ client_id: clients[0]?.id || '', project_id: '', title: '', meeting_date: new Date().toISOString().split('T')[0], content: '' });
         setShowModal(true);
     };
 
@@ -65,7 +66,7 @@ export default function MeetingNotes({ notes: propNotes, clients: propClients })
                         <WorkEmptyState icon="event_note" title="Belum ada catatan rapat" description="Catat rapat pertamamu untuk menjaga komunikasi tetap terdokumentasi" actionLabel="Add Note" onAction={openAdd} />
                     </div>
                 </div>
-                {showModal && <NoteModal formData={formData} setFormData={setFormData} clients={clients} handleSubmit={handleSubmit} editingNote={editingNote} setShowModal={setShowModal} />}
+                {showModal && <NoteModal formData={formData} setFormData={setFormData} clients={clients} projects={projects} handleSubmit={handleSubmit} editingNote={editingNote} setShowModal={setShowModal} />}
             </JournalLayout>
         );
     }
@@ -86,6 +87,7 @@ export default function MeetingNotes({ notes: propNotes, clients: propClients })
                                         <div className="flex items-center gap-3 mb-2">
                                             <h4 className="font-handwriting text-xl font-bold text-gray-800">{note.title}</h4>
                                             <span className={`${TAG_COLORS[idx % TAG_COLORS.length]} text-xs font-bold px-2.5 py-0.5 rounded-full`}>{note.client?.name || 'General'}</span>
+                                            {note.project?.name && <span className="bg-gray-100 text-gray-600 text-xs font-bold px-2.5 py-0.5 rounded-full">{note.project.name}</span>}
                                         </div>
                                         <p className="font-note text-sm text-gray-500">{formatDate(note.meeting_date)}</p>
                                     </div>
@@ -100,12 +102,12 @@ export default function MeetingNotes({ notes: propNotes, clients: propClients })
                     </div>
                 </div>
             </div>
-            {showModal && <NoteModal formData={formData} setFormData={setFormData} clients={clients} handleSubmit={handleSubmit} editingNote={editingNote} setShowModal={setShowModal} />}
+            {showModal && <NoteModal formData={formData} setFormData={setFormData} clients={clients} projects={projects} handleSubmit={handleSubmit} editingNote={editingNote} setShowModal={setShowModal} />}
         </JournalLayout>
     );
 }
 
-function NoteModal({ formData, setFormData, clients, handleSubmit, editingNote, setShowModal }) {
+function NoteModal({ formData, setFormData, clients, projects, handleSubmit, editingNote, setShowModal }) {
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowModal(false)}>
             <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
@@ -114,6 +116,10 @@ function NoteModal({ formData, setFormData, clients, handleSubmit, editingNote, 
                     <select value={formData.client_id} onChange={e => setFormData({...formData, client_id: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl">
                         <option value="">Select Client (Optional)</option>
                         {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                    <select value={formData.project_id} onChange={e => setFormData({...formData, project_id: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl">
+                        <option value="">Select Project (Optional)</option>
+                        {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
                     <input type="text" placeholder="Meeting Title" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl" required />
                     <input type="date" value={formData.meeting_date} onChange={e => setFormData({...formData, meeting_date: e.target.value})} className="w-full p-3 border border-gray-200 rounded-xl" required />

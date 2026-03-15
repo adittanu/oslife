@@ -3,141 +3,160 @@
 namespace App\Http\Controllers;
 
 use App\Models\WorkClient;
-use App\Models\WorkProject;
-use App\Models\WorkInvoice;
-use App\Models\WorkTimeEntry;
 use App\Models\WorkContract;
+use App\Models\WorkInvoice;
 use App\Models\WorkMeetingNote;
+use App\Models\WorkProject;
+use App\Models\WorkTimeEntry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class WorkController extends Controller
 {
-    // Dashboard
     public function dashboard()
     {
         $userId = Auth::id();
         $clients = WorkClient::where('user_id', $userId)->count();
         $activeProjects = WorkProject::where('user_id', $userId)->where('status', 'Active')->count();
         $pendingInvoices = WorkInvoice::where('user_id', $userId)->where('status', 'Pending')->count();
-        $overdueInvoices = WorkInvoice::where('user_id', $userId)->where('status', 'Overdue')->count();
+        $overdueInvoices = WorkInvoice::where('user_id', $userId)
+            ->where(function ($query) {
+                $query->where('status', 'Overdue')
+                    ->orWhere(function ($invoiceQuery) {
+                        $invoiceQuery->where('status', 'Pending')
+                            ->whereDate('due_date', '<', now()->toDateString());
+                    });
+            })
+            ->count();
 
         $thisWeek = now()->startOfWeek();
         $timeThisWeek = WorkTimeEntry::where('user_id', $userId)
             ->where('start_time', '>=', $thisWeek)
             ->get()
-            ->sum(function ($entry) {
-                return $entry->start_time->diffInMinutes($entry->end_time ?? now());
-            });
-        $hoursThisWeek = round($timeThisWeek / 60, 1);
+            ->sum(fn ($entry) => $entry->start_time->diffInMinutes($entry->end_time ?? now()));
 
-        $thisMonth = now()->startOfMonth();
         $incomeThisMonth = WorkInvoice::where('user_id', $userId)
             ->where('status', 'Paid')
-            ->where('paid_date', '>=', $thisMonth)
+            ->whereDate('paid_date', '>=', now()->startOfMonth()->toDateString())
             ->sum('amount');
 
         return inertia('Work/Dashboard', [
             'stats' => [
                 'activeProjects' => $activeProjects,
                 'pendingInvoices' => $pendingInvoices,
-                'hoursThisWeek' => $hoursThisWeek,
-                'incomeThisMonth' => $incomeThisMonth,
+                'hoursThisWeek' => round($timeThisWeek / 60, 1),
+                'incomeThisMonth' => (float) $incomeThisMonth,
                 'totalClients' => $clients,
                 'overdueInvoices' => $overdueInvoices,
             ],
+            'recentActivity' => $this->buildRecentActivity($userId),
+            'upcomingFocus' => $this->buildUpcomingFocus($userId),
         ]);
     }
 
-    // Clients
     public function clients()
     {
-        $clients = WorkClient::where('user_id', Auth::id())
-            ->orderBy('created_at', 'desc')
-            ->get();
-        return inertia('Work/Clients', ['clients' => $clients]);
+        return inertia('Work/Clients', [
+            'clients' => WorkClient::where('user_id', Auth::id())
+                ->orderBy('created_at', 'desc')
+                ->get(),
+        ]);
     }
 
-    // Pipeline (Projects)
     public function pipeline()
     {
-        $projects = WorkProject::with('client')
-            ->where('user_id', Auth::id())
-            ->orderBy('created_at', 'desc')
-            ->get();
-        $clients = WorkClient::where('user_id', Auth::id())->get();
-        return inertia('Work/Pipeline', ['projects' => $projects, 'clients' => $clients]);
+        $userId = Auth::id();
+
+        return inertia('Work/Pipeline', [
+            'projects' => WorkProject::with('client')
+                ->where('user_id', $userId)
+                ->orderBy('created_at', 'desc')
+                ->get(),
+            'clients' => WorkClient::where('user_id', $userId)->orderBy('name')->get(),
+        ]);
     }
 
-    // Time Tracking
     public function timeTracking()
     {
-        $entries = WorkTimeEntry::with('project')
-            ->where('user_id', Auth::id())
-            ->orderBy('start_time', 'desc')
-            ->limit(50)
-            ->get();
-        $projects = WorkProject::where('user_id', Auth::id())->get();
-        return inertia('Work/TimeTracking', ['entries' => $entries, 'projects' => $projects]);
+        $userId = Auth::id();
+
+        return inertia('Work/TimeTracking', [
+            'entries' => WorkTimeEntry::with('project')
+                ->where('user_id', $userId)
+                ->orderByDesc('start_time')
+                ->limit(50)
+                ->get(),
+            'projects' => WorkProject::where('user_id', $userId)->orderBy('name')->get(),
+        ]);
     }
 
-    // Invoices
     public function invoices()
     {
-        $invoices = WorkInvoice::with(['client', 'project'])
-            ->where('user_id', Auth::id())
-            ->orderBy('created_at', 'desc')
-            ->get();
-        $clients = WorkClient::where('user_id', Auth::id())->get();
-        return inertia('Work/Invoices', ['invoices' => $invoices, 'clients' => $clients]);
+        $userId = Auth::id();
+
+        return inertia('Work/Invoices', [
+            'invoices' => WorkInvoice::with(['client', 'project'])
+                ->where('user_id', $userId)
+                ->orderByDesc('created_at')
+                ->get(),
+            'clients' => WorkClient::where('user_id', $userId)->orderBy('name')->get(),
+            'projects' => WorkProject::where('user_id', $userId)->orderBy('name')->get(),
+        ]);
     }
 
-    // Income (derived from invoices)
     public function income()
     {
-        $invoices = WorkInvoice::with('client')
-            ->where('user_id', Auth::id())
-            ->where('status', 'Paid')
-            ->orderBy('paid_date', 'desc')
-            ->get();
-        return inertia('Work/Income', ['invoices' => $invoices]);
+        return inertia('Work/Income', [
+            'invoices' => WorkInvoice::with('client')
+                ->where('user_id', Auth::id())
+                ->where('status', 'Paid')
+                ->orderByDesc('paid_date')
+                ->get(),
+        ]);
     }
 
-    // Meeting Notes
     public function meetingNotes()
     {
-        $notes = WorkMeetingNote::with(['client', 'project'])
-            ->where('user_id', Auth::id())
-            ->orderBy('meeting_date', 'desc')
-            ->get();
-        $clients = WorkClient::where('user_id', Auth::id())->get();
-        return inertia('Work/MeetingNotes', ['notes' => $notes, 'clients' => $clients]);
+        $userId = Auth::id();
+
+        return inertia('Work/MeetingNotes', [
+            'notes' => WorkMeetingNote::with(['client', 'project'])
+                ->where('user_id', $userId)
+                ->orderByDesc('meeting_date')
+                ->get(),
+            'clients' => WorkClient::where('user_id', $userId)->orderBy('name')->get(),
+            'projects' => WorkProject::where('user_id', $userId)->orderBy('name')->get(),
+        ]);
     }
 
-    // Contracts
     public function contracts()
     {
-        $contracts = WorkContract::with('client')
-            ->where('user_id', Auth::id())
-            ->orderBy('created_at', 'desc')
-            ->get();
-        $clients = WorkClient::where('user_id', Auth::id())->get();
-        return inertia('Work/Contracts', ['contracts' => $contracts, 'clients' => $clients]);
+        $userId = Auth::id();
+
+        return inertia('Work/Contracts', [
+            'contracts' => WorkContract::with('client')
+                ->where('user_id', $userId)
+                ->orderByDesc('created_at')
+                ->get(),
+            'clients' => WorkClient::where('user_id', $userId)->orderBy('name')->get(),
+        ]);
     }
 
-    // API: Clients CRUD
     public function apiClients(Request $request)
     {
         $userId = Auth::id();
 
         if ($request->isMethod('GET')) {
-            return response()->json(WorkClient::where('user_id', $userId)->get());
+            return response()->json(WorkClient::where('user_id', $userId)->orderByDesc('created_at')->get());
         }
 
-        if ($request->isMethod('POST')) {
-            $client = WorkClient::create(array_merge($request->all(), ['user_id' => $userId]));
-            return response()->json($client);
-        }
+        $client = WorkClient::create([
+            ...$this->validateClient($request),
+            'user_id' => $userId,
+        ]);
+
+        return response()->json($client->fresh());
     }
 
     public function apiClient(Request $request, $id)
@@ -145,29 +164,32 @@ class WorkController extends Controller
         $client = WorkClient::where('user_id', Auth::id())->findOrFail($id);
 
         if ($request->isMethod('PUT')) {
-            $client->update($request->all());
-            return response()->json($client);
+            $client->update($this->validateClient($request, true));
+
+            return response()->json($client->fresh());
         }
 
-        if ($request->isMethod('DELETE')) {
-            $client->delete();
-            return response()->json(['success' => true]);
-        }
+        $client->delete();
+
+        return response()->json(['success' => true]);
     }
 
-    // API: Projects CRUD
     public function apiProjects(Request $request)
     {
         $userId = Auth::id();
 
         if ($request->isMethod('GET')) {
-            return response()->json(WorkProject::with('client')->where('user_id', $userId)->get());
+            return response()->json(
+                WorkProject::with('client')->where('user_id', $userId)->orderByDesc('created_at')->get()
+            );
         }
 
-        if ($request->isMethod('POST')) {
-            $project = WorkProject::create(array_merge($request->all(), ['user_id' => $userId]));
-            return response()->json($project);
-        }
+        $project = WorkProject::create([
+            ...$this->validateProject($request),
+            'user_id' => $userId,
+        ]);
+
+        return response()->json($project->load('client'));
     }
 
     public function apiProject(Request $request, $id)
@@ -175,29 +197,32 @@ class WorkController extends Controller
         $project = WorkProject::where('user_id', Auth::id())->findOrFail($id);
 
         if ($request->isMethod('PUT')) {
-            $project->update($request->all());
-            return response()->json($project);
+            $project->update($this->validateProject($request, true));
+
+            return response()->json($project->fresh()->load('client'));
         }
 
-        if ($request->isMethod('DELETE')) {
-            $project->delete();
-            return response()->json(['success' => true]);
-        }
+        $project->delete();
+
+        return response()->json(['success' => true]);
     }
 
-    // API: Invoices CRUD
     public function apiInvoices(Request $request)
     {
         $userId = Auth::id();
 
         if ($request->isMethod('GET')) {
-            return response()->json(WorkInvoice::with(['client', 'project'])->where('user_id', $userId)->get());
+            return response()->json(
+                WorkInvoice::with(['client', 'project'])->where('user_id', $userId)->orderByDesc('created_at')->get()
+            );
         }
 
-        if ($request->isMethod('POST')) {
-            $invoice = WorkInvoice::create(array_merge($request->all(), ['user_id' => $userId]));
-            return response()->json($invoice);
-        }
+        $invoice = WorkInvoice::create([
+            ...$this->validateInvoice($request),
+            'user_id' => $userId,
+        ]);
+
+        return response()->json($invoice->load(['client', 'project']));
     }
 
     public function apiInvoice(Request $request, $id)
@@ -205,29 +230,32 @@ class WorkController extends Controller
         $invoice = WorkInvoice::where('user_id', Auth::id())->findOrFail($id);
 
         if ($request->isMethod('PUT')) {
-            $invoice->update($request->all());
-            return response()->json($invoice);
+            $invoice->update($this->validateInvoice($request, true));
+
+            return response()->json($invoice->fresh()->load(['client', 'project']));
         }
 
-        if ($request->isMethod('DELETE')) {
-            $invoice->delete();
-            return response()->json(['success' => true]);
-        }
+        $invoice->delete();
+
+        return response()->json(['success' => true]);
     }
 
-    // API: Time Entries CRUD
     public function apiTimeEntries(Request $request)
     {
         $userId = Auth::id();
 
         if ($request->isMethod('GET')) {
-            return response()->json(WorkTimeEntry::with('project')->where('user_id', $userId)->get());
+            return response()->json(
+                WorkTimeEntry::with('project')->where('user_id', $userId)->orderByDesc('start_time')->get()
+            );
         }
 
-        if ($request->isMethod('POST')) {
-            $entry = WorkTimeEntry::create(array_merge($request->all(), ['user_id' => $userId]));
-            return response()->json($entry);
-        }
+        $entry = WorkTimeEntry::create([
+            ...$this->validateTimeEntry($request),
+            'user_id' => $userId,
+        ]);
+
+        return response()->json($entry->load('project'));
     }
 
     public function apiTimeEntry(Request $request, $id)
@@ -235,29 +263,32 @@ class WorkController extends Controller
         $entry = WorkTimeEntry::where('user_id', Auth::id())->findOrFail($id);
 
         if ($request->isMethod('PUT')) {
-            $entry->update($request->all());
-            return response()->json($entry);
+            $entry->update($this->validateTimeEntry($request, true));
+
+            return response()->json($entry->fresh()->load('project'));
         }
 
-        if ($request->isMethod('DELETE')) {
-            $entry->delete();
-            return response()->json(['success' => true]);
-        }
+        $entry->delete();
+
+        return response()->json(['success' => true]);
     }
 
-    // API: Contracts CRUD
     public function apiContracts(Request $request)
     {
         $userId = Auth::id();
 
         if ($request->isMethod('GET')) {
-            return response()->json(WorkContract::with('client')->where('user_id', $userId)->get());
+            return response()->json(
+                WorkContract::with('client')->where('user_id', $userId)->orderByDesc('created_at')->get()
+            );
         }
 
-        if ($request->isMethod('POST')) {
-            $contract = WorkContract::create(array_merge($request->all(), ['user_id' => $userId]));
-            return response()->json($contract);
-        }
+        $contract = WorkContract::create([
+            ...$this->validateContract($request),
+            'user_id' => $userId,
+        ]);
+
+        return response()->json($contract->load('client'));
     }
 
     public function apiContract(Request $request, $id)
@@ -265,29 +296,32 @@ class WorkController extends Controller
         $contract = WorkContract::where('user_id', Auth::id())->findOrFail($id);
 
         if ($request->isMethod('PUT')) {
-            $contract->update($request->all());
-            return response()->json($contract);
+            $contract->update($this->validateContract($request, true));
+
+            return response()->json($contract->fresh()->load('client'));
         }
 
-        if ($request->isMethod('DELETE')) {
-            $contract->delete();
-            return response()->json(['success' => true]);
-        }
+        $contract->delete();
+
+        return response()->json(['success' => true]);
     }
 
-    // API: Meeting Notes CRUD
     public function apiMeetingNotes(Request $request)
     {
         $userId = Auth::id();
 
         if ($request->isMethod('GET')) {
-            return response()->json(WorkMeetingNote::with(['client', 'project'])->where('user_id', $userId)->get());
+            return response()->json(
+                WorkMeetingNote::with(['client', 'project'])->where('user_id', $userId)->orderByDesc('meeting_date')->get()
+            );
         }
 
-        if ($request->isMethod('POST')) {
-            $note = WorkMeetingNote::create(array_merge($request->all(), ['user_id' => $userId]));
-            return response()->json($note);
-        }
+        $note = WorkMeetingNote::create([
+            ...$this->validateMeetingNote($request),
+            'user_id' => $userId,
+        ]);
+
+        return response()->json($note->load(['client', 'project']));
     }
 
     public function apiMeetingNote(Request $request, $id)
@@ -295,13 +329,194 @@ class WorkController extends Controller
         $note = WorkMeetingNote::where('user_id', Auth::id())->findOrFail($id);
 
         if ($request->isMethod('PUT')) {
-            $note->update($request->all());
-            return response()->json($note);
+            $note->update($this->validateMeetingNote($request, true));
+
+            return response()->json($note->fresh()->load(['client', 'project']));
         }
 
-        if ($request->isMethod('DELETE')) {
-            $note->delete();
-            return response()->json(['success' => true]);
-        }
+        $note->delete();
+
+        return response()->json(['success' => true]);
+    }
+
+    private function validateClient(Request $request, bool $partial = false): array
+    {
+        $required = $partial ? 'sometimes' : 'required';
+
+        return $request->validate([
+            'name' => [$required, 'string', 'max:255'],
+            'company' => ['nullable', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'status' => [$partial ? 'sometimes' : 'required', 'string', Rule::in(['Active', 'Lead', 'Inactive'])],
+            'notes' => ['nullable', 'string'],
+            'avatar_color' => ['nullable', 'string', 'max:50'],
+        ]);
+    }
+
+    private function validateProject(Request $request, bool $partial = false): array
+    {
+        $userId = Auth::id();
+
+        return $request->validate([
+            'client_id' => ['nullable', 'integer', Rule::exists('work_clients', 'id')->where('user_id', $userId)],
+            'name' => [$partial ? 'sometimes' : 'required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'status' => [$partial ? 'sometimes' : 'required', 'string', Rule::in(['Active', 'On Hold', 'Completed', 'Cancelled'])],
+            'budget' => ['nullable', 'numeric', 'min:0'],
+            'deadline' => ['nullable', 'date'],
+        ]);
+    }
+
+    private function validateInvoice(Request $request, bool $partial = false): array
+    {
+        $userId = Auth::id();
+
+        return $request->validate([
+            'client_id' => ['nullable', 'integer', Rule::exists('work_clients', 'id')->where('user_id', $userId)],
+            'project_id' => ['nullable', 'integer', Rule::exists('work_projects', 'id')->where('user_id', $userId)],
+            'invoice_number' => [$partial ? 'sometimes' : 'required', 'string', 'max:100'],
+            'amount' => [$partial ? 'sometimes' : 'required', 'numeric', 'min:0'],
+            'status' => [$partial ? 'sometimes' : 'required', 'string', Rule::in(['Pending', 'Paid', 'Overdue', 'Cancelled'])],
+            'issue_date' => [$partial ? 'sometimes' : 'required', 'date'],
+            'due_date' => [$partial ? 'sometimes' : 'required', 'date'],
+            'paid_date' => ['nullable', 'date'],
+            'description' => ['nullable', 'string'],
+        ]);
+    }
+
+    private function validateTimeEntry(Request $request, bool $partial = false): array
+    {
+        $userId = Auth::id();
+
+        return $request->validate([
+            'project_id' => ['nullable', 'integer', Rule::exists('work_projects', 'id')->where('user_id', $userId)],
+            'start_time' => [$partial ? 'sometimes' : 'required', 'date'],
+            'end_time' => ['nullable', 'date'],
+            'description' => ['nullable', 'string'],
+            'is_running' => [$partial ? 'sometimes' : 'required', 'boolean'],
+        ]);
+    }
+
+    private function validateContract(Request $request, bool $partial = false): array
+    {
+        $userId = Auth::id();
+
+        return $request->validate([
+            'client_id' => ['nullable', 'integer', Rule::exists('work_clients', 'id')->where('user_id', $userId)],
+            'title' => [$partial ? 'sometimes' : 'required', 'string', 'max:255'],
+            'content' => ['nullable', 'string'],
+            'status' => [$partial ? 'sometimes' : 'required', 'string', Rule::in(['Draft', 'Sent', 'Signed', 'Expired', 'Cancelled'])],
+            'signed_date' => ['nullable', 'date'],
+            'expiry_date' => ['nullable', 'date'],
+        ]);
+    }
+
+    private function validateMeetingNote(Request $request, bool $partial = false): array
+    {
+        $userId = Auth::id();
+
+        return $request->validate([
+            'client_id' => ['nullable', 'integer', Rule::exists('work_clients', 'id')->where('user_id', $userId)],
+            'project_id' => ['nullable', 'integer', Rule::exists('work_projects', 'id')->where('user_id', $userId)],
+            'title' => [$partial ? 'sometimes' : 'required', 'string', 'max:255'],
+            'meeting_date' => [$partial ? 'sometimes' : 'required', 'date'],
+            'content' => ['nullable', 'string'],
+        ]);
+    }
+
+    private function buildRecentActivity(int $userId): array
+    {
+        $projectActivity = WorkProject::with('client')
+            ->where('user_id', $userId)
+            ->latest('updated_at')
+            ->limit(3)
+            ->get()
+            ->map(fn ($project) => [
+                'type' => 'project',
+                'icon' => 'folder_open',
+                'title' => $project->name,
+                'meta' => $project->client?->name ?: 'No client assigned',
+                'timestamp' => $project->updated_at,
+            ]);
+
+        $invoiceActivity = WorkInvoice::with('client')
+            ->where('user_id', $userId)
+            ->latest('updated_at')
+            ->limit(3)
+            ->get()
+            ->map(fn ($invoice) => [
+                'type' => 'invoice',
+                'icon' => 'receipt_long',
+                'title' => $invoice->invoice_number,
+                'meta' => $invoice->client?->name ?: 'Invoice updated',
+                'timestamp' => $invoice->updated_at,
+            ]);
+
+        $meetingActivity = WorkMeetingNote::with('client')
+            ->where('user_id', $userId)
+            ->latest('updated_at')
+            ->limit(2)
+            ->get()
+            ->map(fn ($note) => [
+                'type' => 'meeting',
+                'icon' => 'event_note',
+                'title' => $note->title,
+                'meta' => $note->client?->name ?: 'General meeting',
+                'timestamp' => $note->updated_at,
+            ]);
+
+        return collect()
+            ->merge($projectActivity)
+            ->merge($invoiceActivity)
+            ->merge($meetingActivity)
+            ->sortByDesc('timestamp')
+            ->take(5)
+            ->values()
+            ->map(fn ($item) => [
+                'type' => $item['type'],
+                'icon' => $item['icon'],
+                'title' => $item['title'],
+                'meta' => $item['meta'],
+                'date' => $item['timestamp']->toDateString(),
+            ])
+            ->all();
+    }
+
+    private function buildUpcomingFocus(int $userId): array
+    {
+        $invoiceFocus = WorkInvoice::with('client')
+            ->where('user_id', $userId)
+            ->whereIn('status', ['Pending', 'Overdue'])
+            ->whereNotNull('due_date')
+            ->orderBy('due_date')
+            ->limit(3)
+            ->get()
+            ->map(fn ($invoice) => [
+                'label' => $invoice->invoice_number,
+                'detail' => $invoice->client?->name ?: 'Invoice',
+                'date' => optional($invoice->due_date)->toDateString(),
+            ]);
+
+        $projectFocus = WorkProject::with('client')
+            ->where('user_id', $userId)
+            ->whereIn('status', ['Active', 'On Hold'])
+            ->whereNotNull('deadline')
+            ->orderBy('deadline')
+            ->limit(3)
+            ->get()
+            ->map(fn ($project) => [
+                'label' => $project->name,
+                'detail' => $project->client?->name ?: 'Project',
+                'date' => optional($project->deadline)->toDateString(),
+            ]);
+
+        return collect()
+            ->merge($invoiceFocus)
+            ->merge($projectFocus)
+            ->sortBy('date')
+            ->take(4)
+            ->values()
+            ->all();
     }
 }
