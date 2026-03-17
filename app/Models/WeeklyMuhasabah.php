@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WeeklyMuhasabah extends Model
 {
+    protected $table = 'weekly_muhasabah';
+
     protected $fillable = [
         'user_id',
         'week_start',

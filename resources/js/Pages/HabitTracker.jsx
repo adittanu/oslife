@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import JournalLayout from '@/Layouts/JournalLayout';
 import { router, usePage } from '@inertiajs/react';
 import axios from 'axios';
